@@ -1,11 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Add your Google Web Client ID here (used for server verification) -->
-    <string name="server_client_id">333098500167-c8bd3aeeq39e21hcn644ukg67ljrlvhb.apps.googleusercontent.com</string>
-</resources>
-<?xml version='1.0' encoding='utf-8'?>
-<resources>
+
     <string name="app_name">RK</string>
     <string name="title_activity_main">RK</string>
     <string name="package_name">com.dev.rk</string>
     <string name="custom_url_scheme">com.dev.rk</string>
+
+    <!-- Google Web Client ID for server verification -->
+    <string name="server_client_id">
+        333098500167-c8bd3aeeq39e21hcn644ukg67ljrlvhb.apps.googleusercontent.com
+    </string>
+
 </resources>
