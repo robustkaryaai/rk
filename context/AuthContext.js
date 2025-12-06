@@ -114,11 +114,31 @@ export function AuthProvider({ children }) {
             const callbackUrl = `${origin}/auth/callback`;
             const failureUrl = `${origin}/login?error=oauth_failed`;
 
-            // Appwrite's createOAuth2Session does the OAuth flow:
-            // 1. Redirects to Google login
-            // 2. User signs in
-            // 3. Google redirects to our callback page with code
-            // 4. Our callback page establishes session and redirects to /home
+            // Detect native (Capacitor) environment
+            const isNative = () => {
+                try {
+                    return !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
+                } catch (e) {
+                    return false;
+                }
+            };
+
+            if (isNative()) {
+                // For native apps: open external browser to a special login URL
+                // that will start Appwrite OAuth from the browser context and
+                // then redirect to /auth/callback which Android will intercept.
+                const oauthStart = `${origin}/login?start_oauth=google`;
+                try {
+                    await Browser.open({ url: oauthStart });
+                } catch (err) {
+                    console.warn('Browser.open failed, falling back to direct OAuth start', err.message);
+                    // Fallback to direct call in app (may stay in browser)
+                    account.createOAuth2Session('google', callbackUrl, failureUrl, ['https://www.googleapis.com/auth/drive.file']);
+                }
+                return;
+            }
+
+            // Web: start OAuth directly from this page
             account.createOAuth2Session(
                 'google',
                 callbackUrl,  // Our callback page handles the redirect

@@ -4,6 +4,7 @@ import { SignInForm } from '@/components/AuthForms';
 import { useAuth } from '@/context/AuthContext';
 import { redirect } from 'next/navigation';
 import { useEffect } from 'react';
+import { account } from '@/lib/appwrite';
 
 export default function LoginPage() {
     const { user, loading } = useAuth();
@@ -13,6 +14,25 @@ export default function LoginPage() {
             redirect('/home');
         }
     }, [user, loading]);
+
+    // If the page is opened with ?start_oauth=google (used by native flow), start Appwrite OAuth
+    useEffect(() => {
+        try {
+            const params = new URLSearchParams(window.location.search);
+            const start = params.get('start_oauth');
+            if (start === 'google') {
+                // success and failure URLs
+                const origin = window.location.origin;
+                const callbackUrl = `${origin}/auth/callback`;
+                const failureUrl = `${origin}/login?error=oauth_failed`;
+
+                // Initiate Appwrite OAuth from this browser context
+                account.createOAuth2Session('google', callbackUrl, failureUrl, ['https://www.googleapis.com/auth/drive.file']);
+            }
+        } catch (e) {
+            console.warn('OAuth auto-start not available:', e.message);
+        }
+    }, []);
 
     if (loading) {
         return (
