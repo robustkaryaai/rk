@@ -4,6 +4,8 @@ import { createContext, useContext, useEffect, useState } from 'react';
 import { account, ID } from '@/lib/appwrite';
 import { useRouter } from 'next/navigation';
 import { userAPI } from '@/lib/api';
+import { Browser } from '@capacitor/browser';
+import { App } from '@capacitor/app';
 
 const AuthContext = createContext();
 
@@ -14,7 +16,28 @@ export function AuthProvider({ children }) {
 
     useEffect(() => {
         checkUser();
+        setupDeepLinkListener();
     }, []);
+
+    // Setup listener for deep links from OAuth callback
+    const setupDeepLinkListener = async () => {
+        try {
+            // Listen for when app is opened via deep link (OAuth callback)
+            App.addListener('appUrlOpen', async (event) => {
+                const slug = event.url.split('.app').pop();
+                
+                // Check if this is an auth callback
+                if (slug && slug.includes('/api/auth')) {
+                    // Wait a moment for the session to be established
+                    setTimeout(() => {
+                        checkUser();
+                    }, 500);
+                }
+            });
+        } catch (error) {
+            console.log('Deep link setup note (might not be available in web):', error.message);
+        }
+    };
 
     const checkUser = async () => {
         try {
@@ -80,15 +103,21 @@ export function AuthProvider({ children }) {
 
     const loginWithGoogle = async () => {
         try {
-            // Redirects to Google OAuth
-            // successUrl and failureUrl should be absolute or relative to domain
-            // Using window.location.origin to be safe
             const origin = window.location.origin;
+            
+            // Use the current page as success URL (Appwrite will handle redirect after session is created)
+            // This way user returns to where they started (login page initially)
+            const successUrl = `${origin}/home`;
+            const failureUrl = `${origin}/login?error=oauth_failed`;
+
+            // Appwrite's createOAuth2Session does the OAuth flow
+            // It will redirect to Google, user signs in, then Appwrite redirects back
+            // with session cookie already set
             account.createOAuth2Session(
                 'google',
-                `${origin}/home`,
-                `${origin}/login?error=oauth_failed`,
-                ['https://www.googleapis.com/auth/drive.file'] // Request Drive Access
+                successUrl,
+                failureUrl,
+                ['https://www.googleapis.com/auth/drive.file']
             );
         } catch (error) {
             console.error('Google login failed:', error);
