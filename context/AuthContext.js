@@ -27,9 +27,11 @@ export function AuthProvider({ children }) {
                 const slug = event.url.split('.app').pop();
                 
                 // Check if this is an auth callback
-                if (slug && slug.includes('/api/auth')) {
+                if (slug && slug.includes('/auth/callback')) {
+                    console.log('[Deep Link] OAuth callback detected:', event.url);
                     // Wait a moment for the session to be established
                     setTimeout(() => {
+                        console.log('[Deep Link] Checking user session...');
                         checkUser();
                     }, 500);
                 }
@@ -105,17 +107,21 @@ export function AuthProvider({ children }) {
         try {
             const origin = window.location.origin;
             
-            // Use the current page as success URL (Appwrite will handle redirect after session is created)
-            // This way user returns to where they started (login page initially)
-            const successUrl = `${origin}/home`;
+            // Redirect to our callback page which will:
+            // 1. Establish the session
+            // 2. Redirect to /home
+            // 3. (On Android) Deep link will bring app to foreground
+            const callbackUrl = `${origin}/auth/callback`;
             const failureUrl = `${origin}/login?error=oauth_failed`;
 
-            // Appwrite's createOAuth2Session does the OAuth flow
-            // It will redirect to Google, user signs in, then Appwrite redirects back
-            // with session cookie already set
+            // Appwrite's createOAuth2Session does the OAuth flow:
+            // 1. Redirects to Google login
+            // 2. User signs in
+            // 3. Google redirects to our callback page with code
+            // 4. Our callback page establishes session and redirects to /home
             account.createOAuth2Session(
                 'google',
-                successUrl,
+                callbackUrl,  // Our callback page handles the redirect
                 failureUrl,
                 ['https://www.googleapis.com/auth/drive.file']
             );

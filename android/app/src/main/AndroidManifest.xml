@@ -32,13 +32,13 @@
                 <data
                     android:scheme="https"
                     android:host="rk-alpha-nine.vercel.app"
-                    android:pathPrefix="/api/auth" />
+                    android:pathPrefix="/auth/callback" />
                 
                 <!-- Also handle localhost for development testing -->
                 <data
                     android:scheme="http"
                     android:host="localhost:3000"
-                    android:pathPrefix="/api/auth" />
+                    android:pathPrefix="/auth/callback" />
             </intent-filter>
 
         </activity>
