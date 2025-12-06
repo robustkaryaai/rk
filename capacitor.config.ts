@@ -1,8 +1,8 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'com.rkai.app',
-  appName: 'RK AI App',
+  appId: 'com.dev.rk',
+  appName: 'RK',
   webDir: 'public'
 };
 
