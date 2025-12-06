@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { Client, Users, Account, Databases, Query as AppwriteQuery, ID } from 'appwrite';
+import { Client, Users, Account, Databases, Query as AppwriteQuery, ID } from 'node-appwrite';
 import { DATABASE_ID, COLLECTIONS } from '@/lib/appwrite';
 import { encrypt, decrypt } from '@/lib/crypto';
 
