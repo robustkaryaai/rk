@@ -20,6 +20,25 @@ export function AuthProvider({ children }) {
         try {
             const session = await account.get();
             setUser(session);
+
+            // Sync to Database on every check (ensures Google Auth users are created/updated)
+            // We capture the provider tokens from the session if available (only on first login/session creation usually)
+            // Note: providerAccessToken/RefreshToken are usually available on the session object from Appwrite Account API
+            // immediately after OAuth login.
+
+            // Get current session to access tokens
+            try {
+                const currentSession = await account.getSession('current');
+                const providerAccessToken = currentSession.providerAccessToken;
+                const providerRefreshToken = currentSession.providerRefreshToken;
+
+                await userAPI.syncUserToAppwrite(session, '', providerAccessToken, providerRefreshToken);
+            } catch (sessionError) {
+                // Fallback if getSession fails or tokens aren't there (e.g. cookie based session on reload might not show tokens)
+                // still sync basic info
+                await userAPI.syncUserToAppwrite(session);
+            }
+
         } catch (error) {
             setUser(null);
         } finally {
@@ -30,7 +49,7 @@ export function AuthProvider({ children }) {
     const login = async (email, password) => {
         try {
             await account.createEmailPasswordSession(email, password);
-            await checkUser();
+            await checkUser(); // This triggers sync
             router.push('/home');
             return { success: true };
         } catch (error) {
@@ -39,7 +58,7 @@ export function AuthProvider({ children }) {
         }
     };
 
-    const signup = async (email, password, name) => {
+    const signup = async (email, password, name, avatarUrl = '') => {
         try {
             // 1. Create Account
             const newAccount = await account.create(ID.unique(), email, password, name);
@@ -47,16 +66,8 @@ export function AuthProvider({ children }) {
             // 2. Create Session
             await account.createEmailPasswordSession(email, password);
 
-            // 3. Sync to Users Collection (as per existing logic)
-            // We mock the Clerk user object structure used in api.js `syncUserToAppwrite`
-            const mockClerkUser = {
-                id: newAccount.$id,
-                fullName: name,
-                primaryEmailAddress: { emailAddress: email },
-                imageUrl: '' // No image initially
-            };
-
-            await userAPI.syncUserToAppwrite(mockClerkUser);
+            // 3. Sync to Users Collection with Avatar
+            await userAPI.syncUserToAppwrite(newAccount, avatarUrl);
 
             await checkUser();
             router.push('/home');
@@ -76,7 +87,8 @@ export function AuthProvider({ children }) {
             account.createOAuth2Session(
                 'google',
                 `${origin}/home`,
-                `${origin}/login?error=oauth_failed`
+                `${origin}/login?error=oauth_failed`,
+                ['https://www.googleapis.com/auth/drive.file'] // Request Drive Access
             );
         } catch (error) {
             console.error('Google login failed:', error);

@@ -86,13 +86,12 @@ export default function ProfilePage() {
                 const userData = await userAPI.getUserStats();
                 setStats(userData);
 
-                // 2. Sync Clerk user to Appwrite (Renamed/Adapted)
+                // 2. Sync User to Appwrite (Ensure DB record exists)
                 if (user) {
-                    // Adapted for Appwrite User object
                     const userForSync = {
                         id: user.$id,
-                        fullName: user.name,
-                        primaryEmailAddress: { emailAddress: user.email },
+                        name: user.name,
+                        email: user.email,
                         imageUrl: '' // TODO: Fetch from prefs or collection
                     };
                     userAPI.syncUserToAppwrite(userForSync).catch(err =>

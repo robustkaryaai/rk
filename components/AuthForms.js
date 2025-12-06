@@ -1,9 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useAuth } from '@/context/AuthContext';
-import { AiOutlineGoogle, AiOutlineMail, AiOutlineLock, AiOutlineUser } from 'react-icons/ai';
+import { AiOutlineGoogle, AiOutlineMail, AiOutlineLock, AiOutlineUser, AiOutlineUpload } from 'react-icons/ai';
 import Link from 'next/link';
+import { supabase } from '@/lib/supabase';
 
 export function SignInForm() {
     const { login, loginWithGoogle } = useAuth();
@@ -28,33 +29,33 @@ export function SignInForm() {
     return (
         <div className="w-full">
             <form onSubmit={handleSubmit}>
-                <div className="form-group mb-4">
-                    <label className="block text-sm font-medium mb-1 opacity-80">Email Address</label>
-                    <div className="relative">
-                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <AiOutlineMail className="text-gray-400" />
+                <div className="auth-form-group">
+                    <label className="auth-label">Email Address</label>
+                    <div className="input-wrapper">
+                        <div className="input-icon-left">
+                            <AiOutlineMail />
                         </div>
                         <input
                             type="email"
                             required
-                            className="w-full pl-10 pr-3 py-2 bg-white/5 border border-white/10 rounded-lg focus:outline-none focus:border-blue-500 transition-colors"
-                            placeholder="you@example.com"
+                            className="auth-input"
+                            placeholder="name@example.com"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
                         />
                     </div>
                 </div>
 
-                <div className="form-group mb-6">
-                    <label className="block text-sm font-medium mb-1 opacity-80">Password</label>
-                    <div className="relative">
-                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <AiOutlineLock className="text-gray-400" />
+                <div className="auth-form-group">
+                    <label className="auth-label">Password</label>
+                    <div className="input-wrapper">
+                        <div className="input-icon-left">
+                            <AiOutlineLock />
                         </div>
                         <input
                             type="password"
                             required
-                            className="w-full pl-10 pr-3 py-2 bg-white/5 border border-white/10 rounded-lg focus:outline-none focus:border-blue-500 transition-colors"
+                            className="auth-input"
                             placeholder="••••••••"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
@@ -63,7 +64,8 @@ export function SignInForm() {
                 </div>
 
                 {error && (
-                    <div className="mb-4 p-3 bg-red-500/20 border border-red-500/30 rounded-lg text-sm text-red-200">
+                    <div className="error-box">
+                        <div className="error-dot"></div>
                         {error}
                     </div>
                 )}
@@ -71,30 +73,30 @@ export function SignInForm() {
                 <button
                     type="submit"
                     disabled={loading}
-                    className="w-full py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 rounded-lg font-bold shadow-lg transform transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="btn-primary-gradient"
                 >
                     {loading ? 'Signing in...' : 'Sign In'}
                 </button>
             </form>
 
-            <div className="my-6 flex items-center">
-                <div className="flex-grow border-t border-white/10"></div>
-                <span className="mx-4 text-xs uppercase opacity-50">Or continue with</span>
-                <div className="flex-grow border-t border-white/10"></div>
+            <div className="divider-wrapper">
+                <div className="divider-line"></div>
+                <span className="divider-text">Or continue with</span>
+                <div className="divider-line"></div>
             </div>
 
             <button
                 onClick={loginWithGoogle}
                 type="button"
-                className="w-full py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg font-medium transition-all flex items-center justify-center gap-2"
+                className="btn-google-outline"
             >
                 <AiOutlineGoogle className="text-xl" />
                 <span>Sign in with Google</span>
             </button>
 
-            <div className="mt-6 text-center text-sm opacity-70">
+            <div className="link-switch-wrapper">
                 Don't have an account?{' '}
-                <Link href="/signup" className="text-blue-400 hover:text-blue-300 font-medium">
+                <Link href="/signup" className="link-highlight">
                     Sign up
                 </Link>
             </div>
@@ -107,15 +109,54 @@ export function SignUpForm() {
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [avatarFile, setAvatarFile] = useState(null);
+    const [avatarPreview, setAvatarPreview] = useState(null);
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
+    const fileInputRef = useRef(null);
+
+    const handleFileChange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            setAvatarFile(file);
+            const previewUrl = URL.createObjectURL(file);
+            setAvatarPreview(previewUrl);
+        }
+    };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
         setLoading(true);
 
-        const result = await signup(email, password, name);
+        let avatarUrl = '';
+
+        if (avatarFile) {
+            try {
+                // Upload to Supabase
+                const fileName = `avatars/${Date.now()}_${avatarFile.name}`;
+                const { data, error: uploadError } = await supabase
+                    .storage
+                    .from('rk-ai-storage-base') // Using existing bucket
+                    .upload(fileName, avatarFile);
+
+                if (uploadError) {
+                    console.error('Avatar upload failed:', uploadError);
+                    // Continue without avatar if fails, but log it
+                } else {
+                    const { data: publicUrlData } = supabase
+                        .storage
+                        .from('rk-ai-storage-base')
+                        .getPublicUrl(fileName);
+                    avatarUrl = publicUrlData.publicUrl;
+                }
+
+            } catch (err) {
+                console.error('Avatar upload exception:', err);
+            }
+        }
+
+        const result = await signup(email, password, name, avatarUrl);
 
         if (!result.success) {
             setError(result.error);
@@ -126,16 +167,40 @@ export function SignUpForm() {
     return (
         <div className="w-full">
             <form onSubmit={handleSubmit}>
-                <div className="form-group mb-4">
-                    <label className="block text-sm font-medium mb-1 opacity-80">Full Name</label>
-                    <div className="relative">
-                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <AiOutlineUser className="text-gray-400" />
+                {/* Avatar Upload */}
+                <div className="avatar-section">
+                    <div
+                        className="avatar-upload-circle"
+                        onClick={() => fileInputRef.current.click()}
+                    >
+                        {avatarPreview ? (
+                            <img src={avatarPreview} alt="Avatar" className="avatar-preview-img" />
+                        ) : (
+                            <div className="avatar-placeholder">
+                                <AiOutlineUpload className="avatar-icon" />
+                                <span className="avatar-label-text">Add Photo</span>
+                            </div>
+                        )}
+                        <input
+                            type="file"
+                            ref={fileInputRef}
+                            onChange={handleFileChange}
+                            accept="image/*"
+                            className="hidden"
+                        />
+                    </div>
+                </div>
+
+                <div className="auth-form-group">
+                    <label className="auth-label">Full Name</label>
+                    <div className="input-wrapper">
+                        <div className="input-icon-left">
+                            <AiOutlineUser />
                         </div>
                         <input
                             type="text"
                             required
-                            className="w-full pl-10 pr-3 py-2 bg-white/5 border border-white/10 rounded-lg focus:outline-none focus:border-blue-500 transition-colors"
+                            className="auth-input"
                             placeholder="John Doe"
                             value={name}
                             onChange={(e) => setName(e.target.value)}
@@ -143,16 +208,16 @@ export function SignUpForm() {
                     </div>
                 </div>
 
-                <div className="form-group mb-4">
-                    <label className="block text-sm font-medium mb-1 opacity-80">Email Address</label>
-                    <div className="relative">
-                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <AiOutlineMail className="text-gray-400" />
+                <div className="auth-form-group">
+                    <label className="auth-label">Email Address</label>
+                    <div className="input-wrapper">
+                        <div className="input-icon-left">
+                            <AiOutlineMail />
                         </div>
                         <input
                             type="email"
                             required
-                            className="w-full pl-10 pr-3 py-2 bg-white/5 border border-white/10 rounded-lg focus:outline-none focus:border-blue-500 transition-colors"
+                            className="auth-input"
                             placeholder="you@example.com"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
@@ -160,17 +225,17 @@ export function SignUpForm() {
                     </div>
                 </div>
 
-                <div className="form-group mb-6">
-                    <label className="block text-sm font-medium mb-1 opacity-80">Password</label>
-                    <div className="relative">
-                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <AiOutlineLock className="text-gray-400" />
+                <div className="auth-form-group">
+                    <label className="auth-label">Password</label>
+                    <div className="input-wrapper">
+                        <div className="input-icon-left">
+                            <AiOutlineLock />
                         </div>
                         <input
                             type="password"
                             required
                             minLength={8}
-                            className="w-full pl-10 pr-3 py-2 bg-white/5 border border-white/10 rounded-lg focus:outline-none focus:border-blue-500 transition-colors"
+                            className="auth-input"
                             placeholder="••••••••"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
@@ -179,7 +244,8 @@ export function SignUpForm() {
                 </div>
 
                 {error && (
-                    <div className="mb-4 p-3 bg-red-500/20 border border-red-500/30 rounded-lg text-sm text-red-200">
+                    <div className="error-box">
+                        <div className="error-dot"></div>
                         {error}
                     </div>
                 )}
@@ -187,30 +253,30 @@ export function SignUpForm() {
                 <button
                     type="submit"
                     disabled={loading}
-                    className="w-full py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 rounded-lg font-bold shadow-lg transform transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="btn-primary-gradient"
                 >
                     {loading ? 'Creating Account...' : 'Sign Up'}
                 </button>
             </form>
 
-            <div className="my-6 flex items-center">
-                <div className="flex-grow border-t border-white/10"></div>
-                <span className="mx-4 text-xs uppercase opacity-50">Or continue with</span>
-                <div className="flex-grow border-t border-white/10"></div>
+            <div className="divider-wrapper">
+                <div className="divider-line"></div>
+                <span className="divider-text">Or continue with</span>
+                <div className="divider-line"></div>
             </div>
 
             <button
                 onClick={loginWithGoogle}
                 type="button"
-                className="w-full py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg font-medium transition-all flex items-center justify-center gap-2"
+                className="btn-google-outline"
             >
                 <AiOutlineGoogle className="text-xl" />
                 <span>Sign in with Google</span>
             </button>
 
-            <div className="mt-6 text-center text-sm opacity-70">
+            <div className="link-switch-wrapper">
                 Already have an account?{' '}
-                <Link href="/login" className="text-blue-400 hover:text-blue-300 font-medium">
+                <Link href="/login" className="link-highlight">
                     Sign in
                 </Link>
             </div>

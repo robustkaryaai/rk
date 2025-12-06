@@ -8,45 +8,45 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
     return (
-        <AuthProvider>
-            <html lang="en" suppressHydrationWarning>
-                <head>
-                    <script
-                        dangerouslySetInnerHTML={{
-                            __html: `
-                                (function() {
-                                    try {
-                                        const theme = localStorage.getItem('theme');
-                                        if (theme === 'dark' || (!theme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-                                            document.documentElement.classList.add('dark');
-                                        }
-                                    } catch (e) {}
-                                })();
-                            `,
-                        }}
-                    />
-                </head>
-                <body suppressHydrationWarning>
-                    <script
-                        dangerouslySetInnerHTML={{
-                            __html: `
-                                (function() {
-                                    try {
-                                        const theme = localStorage.getItem('theme');
-                                        if (theme === 'dark' || (!theme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-                                            document.body.classList.add('dark');
-                                        }
-                                    } catch (e) {}
-                                })();
-                            `,
-                        }}
-                    />
+        <html lang="en" suppressHydrationWarning>
+            <head>
+                <script
+                    dangerouslySetInnerHTML={{
+                        __html: `
+                            (function() {
+                                try {
+                                    const theme = localStorage.getItem('theme');
+                                    if (theme === 'dark' || (!theme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                                        document.documentElement.classList.add('dark');
+                                    }
+                                } catch (e) {}
+                            })();
+                        `,
+                    }}
+                />
+            </head>
+            <body suppressHydrationWarning>
+                <script
+                    dangerouslySetInnerHTML={{
+                        __html: `
+                            (function() {
+                                try {
+                                    const theme = localStorage.getItem('theme');
+                                    if (theme === 'dark' || (!theme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                                        document.body.classList.add('dark');
+                                    }
+                                } catch (e) {}
+                            })();
+                        `,
+                    }}
+                />
+                <AuthProvider>
                     <div className="gradient-blob-1"></div>
                     <div className="gradient-blob-2"></div>
                     {children}
-                </body>
-            </html>
-        </AuthProvider>
+                </AuthProvider>
+            </body>
+        </html>
     );
 }
 

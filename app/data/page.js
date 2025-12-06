@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useUser } from '@clerk/nextjs';
+import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
 import BottomNav from '@/components/BottomNav';
 import GlassCard from '@/components/GlassCard';
@@ -16,10 +16,14 @@ import {
 import { mediaAPI } from '@/lib/api';
 
 export default function DataPage() {
-    const { isLoaded, isSignedIn } = useUser();
+    const { user, loading } = useAuth();
+    // Adapter
+    const isLoaded = !loading;
+    const isSignedIn = !!user;
+
     const router = useRouter();
     const [fileData, setFileData] = useState(null);
-    const [loading, setLoading] = useState(true);
+    const [dataLoading, setDataLoading] = useState(true);
     const [deviceSlug, setDeviceSlug] = useState('');
     const [files, setFiles] = useState([]);
 
@@ -39,7 +43,7 @@ export default function DataPage() {
         setDeviceSlug(slug);
 
         const fetchFiles = async () => {
-            setLoading(true);
+            setDataLoading(true);
             try {
                 const data = await mediaAPI.getFiles(slug);
                 setFileData(data);
@@ -47,7 +51,7 @@ export default function DataPage() {
                 console.error('Error fetching files:', error);
                 setFileData(null);
             } finally {
-                setLoading(false);
+                setDataLoading(false); // Changed setLoading to setDataLoading
             }
         };
 

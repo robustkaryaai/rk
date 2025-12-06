@@ -1,8 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useUser } from '@clerk/nextjs';
 import { useRouter } from 'next/navigation';
+import { useAuth } from '@/context/AuthContext';
 import BottomNav from '@/components/BottomNav';
 import GlassCard from '@/components/GlassCard';
 import AICommandInput from '@/components/AICommandInput';
@@ -17,7 +17,11 @@ import {
 import { deviceAPI, mediaAPI } from '@/lib/api';
 
 export default function HomePage() {
-    const { isLoaded, isSignedIn, user } = useUser();
+    const { user, loading: authLoading } = useAuth();
+    // Adaptation for existing logic
+    const isLoaded = !authLoading;
+    const isSignedIn = !!user;
+
     const router = useRouter();
     const [device, setDevice] = useState(null);
     const [chatHistory, setChatHistory] = useState([]);

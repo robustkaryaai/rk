@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useUser, useClerk } from '@clerk/nextjs';
+import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
 import BottomNav from '@/components/BottomNav';
 import GlassCard from '@/components/GlassCard';
@@ -27,9 +27,11 @@ import dynamic from 'next/dynamic';
 const BluetoothSetup = dynamic(() => import('@/components/DeviceSetup/BluetoothSetup'), { ssr: false });
 
 export default function SettingsPage() {
-    const { isLoaded, isSignedIn, user } = useUser();
-    const { signOut } = useClerk();
+    const { user, loading, logout } = useAuth();
     const router = useRouter();
+    // Map loading/user to match previous logic (isLoaded, isSignedIn)
+    const isLoaded = !loading;
+    const isSignedIn = !!user;
     const [deviceSlug, setDeviceSlug] = useState('');
     const [deviceInfo, setDeviceInfo] = useState(null);
     const [subscription, setSubscription] = useState(null);
@@ -151,7 +153,7 @@ export default function SettingsPage() {
     };
 
     const handleLogout = async () => {
-        await signOut();
+        await logout();
         router.push('/login');
     };
 
@@ -258,7 +260,7 @@ export default function SettingsPage() {
 
     return (
         <>
-            <style jsx global>{`
+        <style jsx global>{`
                 @keyframes textFlow {
                     0% {
                         background: linear-gradient(90deg, 
@@ -354,6 +356,7 @@ export default function SettingsPage() {
                 }
             `}</style>
             {/* WiFi Update Modal */}
+            {/* WiFi Update Modal */}
             {showWifiUpdate && (
                 <div style={{
                     position: 'fixed',
@@ -382,7 +385,8 @@ export default function SettingsPage() {
             {/* Device Settings */}
             <div className="page-container">
                 <h1 className="page-title">Settings</h1>
-                <section style={{ marginBottom: '24px' }}>
+
+               <section style={{ marginBottom: '24px' }}>
                     <h2 className="section-title">Connected Device</h2>
                     <GlassCard>
                         {deviceSlug ? (
@@ -656,7 +660,34 @@ export default function SettingsPage() {
                             <div className="settings-info">
                                 <span>Version</span>
                             </div>
-                            <div className="settings-value">1.0.0</div>
+                            <div className="settings-value">2.0</div>
+                        </div>
+                        <div
+                            onClick={() => router.push('/new')}
+                            className="settings-item menu-item-hover"
+                            style={{
+                                cursor: 'pointer',
+                                transition: 'all 0.3s ease',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'space-between',
+                                borderRadius: '12px'
+                            }}
+                            onMouseEnter={(e) => {
+                                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.08)';
+                                const span = e.currentTarget.querySelector('span');
+                                if (span) span.classList.add('menu-text-flow');
+                            }}
+                            onMouseLeave={(e) => {
+                                e.currentTarget.style.background = 'transparent';
+                                const span = e.currentTarget.querySelector('span');
+                                if (span) span.classList.remove('menu-text-flow');
+                            }}
+                        >
+                            <div className="settings-info">
+                                <span style={{ transition: 'all 0.3s' }}>What's New?</span>
+                            </div>
+                            <AiOutlineRight style={{ opacity: 0.5 }} />
                         </div>
                         <div
                             onClick={() => router.push('/terms')}

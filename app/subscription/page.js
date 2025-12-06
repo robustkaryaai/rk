@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useUser } from '@clerk/nextjs';
+import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
 import BottomNav from '@/components/BottomNav';
 import GlassCard from '@/components/GlassCard';
@@ -9,7 +9,11 @@ import { AiOutlineCheck, AiOutlineStar, AiOutlineRocket } from 'react-icons/ai';
 import { userAPI } from '@/lib/api';
 
 export default function SubscriptionPage() {
-    const { isLoaded, isSignedIn, user } = useUser();
+    const { user, loading } = useAuth();
+    // Adapter
+    const isLoaded = !loading;
+    const isSignedIn = !!user;
+
     const router = useRouter();
     const [currentTier, setCurrentTier] = useState(0);
 

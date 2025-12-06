@@ -38,7 +38,6 @@ export async function POST(request) {
         const updateData = { storageUsing: 'supabase' };
 
         // Clear ALL Google fields if they exist
-        if ('googleAccessToken' in device) updateData.googleAccessToken = null;
         if ('googleRefreshToken' in device) updateData.googleRefreshToken = null;
         if ('googleFolderId' in device) updateData.googleFolderId = null;
         if ('email' in device) updateData.email = null;

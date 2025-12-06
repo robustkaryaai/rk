@@ -23,15 +23,25 @@ export default function LoginPage() {
     }
 
     return (
-        <div className="login-container">
-            <div className="login-logo">RK AI</div>
-            <h1 className="login-title">Your AI-Powered School Companion</h1>
-            <p className="hero-subtitle" style={{ marginBottom: '32px', maxWidth: '400px' }}>
-                Manage assignments, get AI help, and stay organized
-            </p>
+        <div className="login-wrapper">
+            <div className="brand-container">
+                <div className="brand-logo">RK</div>
+                <h1 className="brand-title">
+                    Only app for the only RK AI
+                </h1>
+                <p className="brand-subtitle">
+                    View chat history and manage AI files in one premium workspace.
+                </p>
+            </div>
 
-            <div className="login-card glass-card">
-                <SignInForm />
+            <div className="card-container-wrapper">
+                <div className="glass-panel">
+                    <SignInForm />
+                </div>
+
+                <p className="copyright-text">
+                    &copy; 2025 RK AI Systems
+                </p>
             </div>
         </div>
     );

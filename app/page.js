@@ -1,12 +1,22 @@
-import { redirect } from 'next/navigation';
-import { auth } from '@clerk/nextjs/server';
+'use client';
 
-export default async function Home() {
-    const { userId } = await auth();
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@/context/AuthContext';
 
-    if (userId) {
-        redirect('/home');
-    } else {
-        redirect('/login');
-    }
+export default function Home() {
+    const { user, loading } = useAuth();
+    const router = useRouter();
+
+    useEffect(() => {
+        if (!loading) {
+            if (user) {
+                router.push('/home');
+            } else {
+                router.push('/login');
+            }
+        }
+    }, [user, loading, router]);
+
+    return <div className="spinner"></div>;
 }
