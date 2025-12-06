@@ -27,19 +27,25 @@
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                
-                <!-- Main domain OAuth callback -->
+
+                <!-- Main domain OAuth callback (web fallback) -->
                 <data
                     android:scheme="https"
                     android:host="rk-alpha-nine.vercel.app"
                     android:pathPrefix="/auth/callback" />
-                
-                <!-- Also handle localhost for development testing -->
+
+                <!-- Localhost for dev testing -->
                 <data
                     android:scheme="http"
                     android:host="localhost:3000"
                     android:pathPrefix="/auth/callback" />
+
+                <!-- Custom scheme for in-app deep link -->
+                <data
+                    android:scheme="rkai"
+                    android:host="callback" />
             </intent-filter>
+
 
         </activity>
 

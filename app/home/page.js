@@ -5,37 +5,32 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import BottomNav from '@/components/BottomNav';
 import GlassCard from '@/components/GlassCard';
-import AICommandInput from '@/components/AICommandInput';
 import {
-    AiOutlineWifi,
-    AiOutlineDisconnect,
     AiOutlineRobot,
-    AiOutlineHistory,
-    AiOutlineClockCircle,
-    AiOutlinePicture
+    AiOutlineHistory
 } from 'react-icons/ai';
 import { deviceAPI, mediaAPI } from '@/lib/api';
 
 export default function HomePage() {
     const { user, loading: authLoading } = useAuth();
-    // Adaptation for existing logic
-    const isLoaded = !authLoading;
-    const isSignedIn = !!user;
-
     const router = useRouter();
     const [device, setDevice] = useState(null);
     const [chatHistory, setChatHistory] = useState([]);
     const [loading, setLoading] = useState(true);
     const [isOnline, setIsOnline] = useState(true);
 
+    const isSignedIn = !!user;
+    const isLoaded = !authLoading;
+
+    // Redirect to login if user not signed in
     useEffect(() => {
         if (isLoaded && !isSignedIn) {
             router.push('/login');
         }
     }, [isLoaded, isSignedIn, router]);
 
+    // Online/offline status
     useEffect(() => {
-        // Check online status
         setIsOnline(navigator.onLine);
 
         const handleOnline = () => setIsOnline(true);
@@ -50,44 +45,30 @@ export default function HomePage() {
         };
     }, []);
 
+    // Fetch device and chat history
     useEffect(() => {
-        const initDevice = async () => {
+        const fetchData = async () => {
             if (!isSignedIn) return;
 
-            // Check for linked device slug
-            const slug = localStorage.getItem('rk_device_slug');
-            if (!slug) {
-                router.push('/connect');
-                return;
-            }
-
             try {
-                // Fetch device details only
-                const deviceData = await deviceAPI.validateSlug(slug);
+                // Get first device (or main device)
+                const devices = await deviceAPI.listUserDevices(user.$id);
+                const mainDevice = devices?.[0] || null;
+                setDevice(mainDevice);
 
-                if (!deviceData) {
-                    // Slug invalid or device removed
-                    localStorage.removeItem('rk_device_slug');
-                    router.push('/connect');
-                    return;
+                if (mainDevice) {
+                    const chat = await mediaAPI.getChatHistory(mainDevice.slug);
+                    setChatHistory(chat);
                 }
-
-                setDevice(deviceData);
-
-                // Fetch chat history
-                const chat = await mediaAPI.getChatHistory(slug);
-                setChatHistory(chat);
-            } catch (error) {
-                console.error('Device sync error:', error);
+            } catch (err) {
+                console.error('Error fetching device/chat:', err);
             } finally {
                 setLoading(false);
             }
         };
 
-        if (isSignedIn) {
-            initDevice();
-        }
-    }, [isSignedIn, router]);
+        fetchData();
+    }, [isSignedIn, user]);
 
     if (!isLoaded || !isSignedIn || loading) {
         return <div className="spinner"></div>;
@@ -96,21 +77,26 @@ export default function HomePage() {
     return (
         <>
             <div className="page-container">
-                {/* Device Status Header */}
-                <div className="hero-section" style={{ textAlign: 'left', display: 'flex', justifyContent: 'space-between', alignItems: 'end' }}>
-                    <div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-                            <div className={`status-dot ${device.status === 'online' ? 'online' : 'offline'}`}></div>
-                            <span style={{ fontSize: '14px', opacity: 0.8, textTransform: 'capitalize' }}>{device.status}</span>
+                {/* Device Header */}
+                {device && (
+                    <div className="hero-section" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'end' }}>
+                        <div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                                <div className={`status-dot ${device.status === 'online' ? 'online' : 'offline'}`}></div>
+                                <span style={{ fontSize: '14px', opacity: 0.8, textTransform: 'capitalize' }}>
+                                    {device.status}
+                                </span>
+                            </div>
+                            <h1 className="hero-title" style={{ fontSize: '28px', marginBottom: '4px' }}>Device: {device.name}</h1>
+                            <p className="hero-subtitle" style={{ fontSize: '14px' }}>ID: {device.id}</p>
                         </div>
-                        <h1 className="hero-title" style={{ fontSize: '28px', marginBottom: '4px' }}>Device: {device.name}</h1>
-                        <p className="hero-subtitle" style={{ fontSize: '14px' }}>ID: {device.id}</p>
+                        <div className="device-icon-large">
+                            <AiOutlineRobot size={48} color="white" style={{ opacity: 0.2 }} />
+                        </div>
                     </div>
-                    <div className="device-icon-large">
-                        <AiOutlineRobot size={48} color="white" style={{ opacity: 0.2 }} />
-                    </div>
-                </div>
-                {/* Command History Feed */}
+                )}
+
+                {/* Chat History */}
                 <section>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
                         <AiOutlineHistory />
@@ -120,28 +106,19 @@ export default function HomePage() {
                     <div className="history-feed">
                         {chatHistory.length > 0 ? (
                             chatHistory.map((convo) => (
-                                <GlassCard key={convo.id} style={{ margin: '24px 0px', padding: '20px' }}>
+                                <GlassCard key={convo.id} style={{ margin: '24px 0', padding: '20px' }}>
                                     {/* User Message */}
                                     <div style={{ display: 'flex', alignItems: 'start', gap: '10px', margin: '12px' }}>
                                         <div style={{
-                                            width: '32px',
-                                            height: '32px',
-                                            borderRadius: '50%',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            justifyContent: 'center',
-                                            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                                            flexShrink: 0
-                                        }}>
-                                            👤
-                                        </div>
+                                            width: '32px', height: '32px', borderRadius: '50%',
+                                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
+                                        }}>👤</div>
                                         <div style={{ flex: 1 }}>
                                             <div style={{ fontSize: '12px', fontWeight: '600', marginBottom: '4px', opacity: 0.7 }}>
                                                 You
                                             </div>
-                                            <div style={{ fontSize: '14px', lineHeight: '1.5' }}>
-                                                {convo.userMessage}
-                                            </div>
+                                            <div style={{ fontSize: '14px', lineHeight: '1.5' }}>{convo.userMessage}</div>
                                         </div>
                                     </div>
 
@@ -149,39 +126,23 @@ export default function HomePage() {
                                     {convo.aiMessage && (
                                         <div style={{ display: 'flex', alignItems: 'start', gap: '10px', paddingLeft: '8px', borderLeft: '2px solid rgba(255,255,255,0.1)' }}>
                                             <div style={{
-                                                width: '32px',
-                                                height: '32px',
-                                                borderRadius: '50%',
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                justifyContent: 'center',
-                                                background: 'rgba(255,255,255,0.1)',
-                                                flexShrink: 0
-                                            }}>
-                                                🤖
-                                            </div>
+                                                width: '32px', height: '32px', borderRadius: '50%',
+                                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                                background: 'rgba(255,255,255,0.1)'
+                                            }}>🤖</div>
                                             <div style={{ flex: 1 }}>
-                                                <div style={{ fontSize: '12px', fontWeight: '600', marginBottom: '4px', opacity: 0.7 }}>
-                                                    AI Assistant
-                                                </div>
-                                                <div style={{ fontSize: '14px', lineHeight: '1.5' }}>
-                                                    {convo.aiMessage}
-                                                </div>
+                                                <div style={{ fontSize: '12px', fontWeight: '600', marginBottom: '4px', opacity: 0.7 }}>AI Assistant</div>
+                                                <div style={{ fontSize: '14px', lineHeight: '1.5' }}>{convo.aiMessage}</div>
                                             </div>
                                         </div>
                                     )}
 
-                                    {/* Date and Time */}
+                                    {/* Date/Time */}
                                     {(convo.date || convo.time) && (
                                         <div style={{
-                                            marginTop: '12px',
-                                            paddingTop: '12px',
+                                            marginTop: '12px', paddingTop: '12px',
                                             borderTop: '1px solid rgba(255,255,255,0.1)',
-                                            fontSize: '12px',
-                                            opacity: 0.5,
-                                            display: 'flex',
-                                            gap: '12px',
-                                            alignItems: 'center'
+                                            fontSize: '12px', opacity: 0.5, display: 'flex', gap: '12px', alignItems: 'center'
                                         }}>
                                             {convo.date && <span>📅 {convo.date}</span>}
                                             {convo.time && <span>🕐 {convo.time}</span>}
