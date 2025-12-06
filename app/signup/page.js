@@ -1,11 +1,11 @@
 'use client';
 
-import { SignInForm } from '@/components/AuthForms';
+import { SignUpForm } from '@/components/AuthForms';
 import { useAuth } from '@/context/AuthContext';
 import { redirect } from 'next/navigation';
 import { useEffect } from 'react';
 
-export default function LoginPage() {
+export default function SignUpPage() {
     const { user, loading } = useAuth();
 
     useEffect(() => {
@@ -25,13 +25,13 @@ export default function LoginPage() {
     return (
         <div className="login-container">
             <div className="login-logo">RK AI</div>
-            <h1 className="login-title">Your AI-Powered School Companion</h1>
+            <h1 className="login-title">Join the Future of Learning</h1>
             <p className="hero-subtitle" style={{ marginBottom: '32px', maxWidth: '400px' }}>
-                Manage assignments, get AI help, and stay organized
+                Create your account to get started with RK AI
             </p>
 
             <div className="login-card glass-card">
-                <SignInForm />
+                <SignUpForm />
             </div>
         </div>
     );
