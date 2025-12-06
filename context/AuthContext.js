@@ -1,11 +1,12 @@
 'use client';
 
 import { createContext, useContext, useEffect, useState } from 'react';
-import { account, ID } from '@/lib/appwrite';
+import { account, ID, client } from '@/lib/appwrite';
 import { useRouter } from 'next/navigation';
 import { userAPI } from '@/lib/api';
 import { Browser } from '@capacitor/browser';
 import { App } from '@capacitor/app';
+import { signInWithGoogleNative } from '@/lib/nativeGoogle';
 
 const AuthContext = createContext();
 
@@ -124,18 +125,46 @@ export function AuthProvider({ children }) {
             };
 
             if (isNative()) {
-                // For native apps: open external browser to a special login URL
-                // that will start Appwrite OAuth from the browser context and
-                // then redirect to /auth/callback which Android will intercept.
-                const oauthStart = `${origin}/login?start_oauth=google`;
+                // Attempt native Google Sign-In first (in-app experience)
                 try {
-                    await Browser.open({ url: oauthStart });
-                } catch (err) {
-                    console.warn('Browser.open failed, falling back to direct OAuth start', err.message);
-                    // Fallback to direct call in app (may stay in browser)
-                    account.createOAuth2Session('google', callbackUrl, failureUrl, ['https://www.googleapis.com/auth/drive.file']);
+                    const res = await signInWithGoogleNative();
+                    // res expected to contain idToken and accessToken
+                    const idToken = res.idToken || res.id_token || res.serverAuthCode;
+                    const accessToken = res.accessToken || res.access_token;
+
+                    // Send tokens to server for verification/linking
+                    const exchangeRes = await fetch('/api/auth/google/native-exchange', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ idToken, accessToken })
+                    });
+
+                    const data = await exchangeRes.json();
+                    if (data && data.success) {
+                        // If server returned a short-lived Appwrite JWT, set it so client is authenticated
+                        if (data.userJwt) {
+                            try {
+                                client.setJWT(data.userJwt);
+                            } catch (e) {
+                                console.warn('Failed to set Appwrite JWT on client:', e.message || e);
+                            }
+                        }
+
+                        // After verifying, attempt to refresh client-side session state
+                        setTimeout(() => checkUser(), 500);
+                        return;
+                    } else {
+                        console.warn('Native exchange failed, falling back to browser OAuth', data);
+                        const oauthStart = `${origin}/login?start_oauth=google`;
+                        await Browser.open({ url: oauthStart });
+                        return;
+                    }
+                } catch (nativeErr) {
+                    console.warn('Native Google sign-in failed, falling back to browser OAuth', nativeErr.message || nativeErr);
+                    const oauthStart = `${origin}/login?start_oauth=google`;
+                    try { await Browser.open({ url: oauthStart }); } catch(e) { console.error(e); }
+                    return;
                 }
-                return;
             }
 
             // Web: start OAuth directly from this page

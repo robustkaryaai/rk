@@ -1,3 +1,7 @@
+<resources>
+    <!-- Add your Google Web Client ID here (used for server verification) -->
+    <string name="server_client_id">333098500167-c8bd3aeeq39e21hcn644ukg67ljrlvhb.apps.googleusercontent.com</string>
+</resources>
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
     <string name="app_name">RK</string>
