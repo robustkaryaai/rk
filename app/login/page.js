@@ -19,25 +19,27 @@ export default function LoginPage() {
 
   // Auto-start Google OAuth
   useEffect(() => {
-    if (typeof window === 'undefined') return;
+  if (typeof window === 'undefined') return;
 
-    const params = new URLSearchParams(window.location.search);
-    const start = params.get('start_oauth');
+  const startGoogleOAuth = async () => {
+    const callbackUrl = 'rkai://callback'; // Android deep link
+    const failureUrl = 'rkai://login?error=oauth_failed';
 
-    if (start === 'google') {
-      const isMobileApp = /RKAIApp/.test(navigator.userAgent); // change to your app detection logic
-      const origin = window.location.origin;
-      const failureUrl = `${origin}/login?error=oauth_failed`;
-
-      // Web fallback
-      const callbackUrl = isMobileApp
-        ? 'rkai://callback' // deep link for Android/iOS
-        : `${origin}/auth/callback`; // normal web callback
-
-      account.createOAuth2Session('google', callbackUrl, failureUrl)
-        .catch(err => console.warn('OAuth failed:', err));
+    try {
+      account.createOAuth2Session('google', callbackUrl, failureUrl);
+      // Open in external browser using Capacitor
+      if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.Browser) {
+        const oauthUrl = account.getOAuth2Url('google', callbackUrl, failureUrl);
+        await window.Capacitor.Plugins.Browser.open({ url: oauthUrl });
+      }
+    } catch (err) {
+      console.warn('OAuth failed:', err);
     }
-  }, []);
+  };
+
+  startGoogleOAuth();
+}, []);
+
 
   if (loading) {
     return (
