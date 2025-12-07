@@ -1,7 +1,7 @@
 'use client';
 
 import { createContext, useContext, useEffect, useState } from 'react';
-import { account, ID, client } from '@/lib/appwrite';
+import { account, ID, client, APPWRITE_ENDPOINT, APPWRITE_PROJECT_ID } from '@/lib/appwrite';
 import { useRouter } from 'next/navigation';
 import { userAPI } from '@/lib/api';
 import { App } from '@capacitor/app';
@@ -208,22 +208,46 @@ export function AuthProvider({ children }) {
         try {
             console.log('[Google Login] Button clicked, starting OAuth flow...');
 
-            // Use the deployed app URL for callbacks (not localhost)
-            // This is critical for Android - the browser opens OAuth, redirects to deployed app,
-            // which then redirects back to the Android app via deep link
-            const callbackUrl = 'https://rk-alpha-nine.vercel.app/auth/callback';
-            const failureUrl = 'https://rk-alpha-nine.vercel.app/login?error=oauth_failed';
+            // Check if we're in Capacitor native app
+            const isNative = typeof window !== 'undefined' &&
+                window.Capacitor &&
+                window.Capacitor.isNativePlatform &&
+                window.Capacitor.isNativePlatform();
 
-            console.log('[Google Login] Starting OAuth with callback:', callbackUrl);
+            console.log('[Google Login] Is Native Platform:', isNative);
 
-            // Use createOAuth2Session for ALL platforms (web and native)
-            // This properly handles the OAuth flow through Appwrite
-            account.createOAuth2Session(
-                'google',
-                callbackUrl,
-                failureUrl,
-                ['https://www.googleapis.com/auth/drive.file']
-            );
+            if (isNative) {
+                // For native Android, we need to open OAuth in external browser
+                // Import Browser dynamically to avoid web build issues
+                const { Browser } = await import('@capacitor/browser');
+
+                // Manually construct OAuth URL since createOAuth2Session doesn't work well on native
+                const successCallback = 'https://rk-alpha-nine.vercel.app/auth/callback';
+                const failureCallback = 'https://rk-alpha-nine.vercel.app/login?error=oauth_failed';
+                const scopes = ['https://www.googleapis.com/auth/drive.file'];
+
+                const oauthUrl = `${APPWRITE_ENDPOINT}/v1/account/sessions/oauth2/google?` +
+                    `project=${APPWRITE_PROJECT_ID}` +
+                    `&success=${encodeURIComponent(successCallback)}` +
+                    `&failure=${encodeURIComponent(failureCallback)}` +
+                    scopes.map(scope => `&scope=${encodeURIComponent(scope)}`).join('');
+
+                console.log('[Google Login] Opening OAuth in external browser:', oauthUrl);
+                await Browser.open({ url: oauthUrl });
+                console.log('[Google Login] Browser opened successfully');
+            } else {
+                // For web, use createOAuth2Session which works fine
+                const callbackUrl = 'https://rk-alpha-nine.vercel.app/auth/callback';
+                const failureUrl = 'https://rk-alpha-nine.vercel.app/login?error=oauth_failed';
+
+                console.log('[Google Login] Web platform, using createOAuth2Session');
+                account.createOAuth2Session(
+                    'google',
+                    callbackUrl,
+                    failureUrl,
+                    ['https://www.googleapis.com/auth/drive.file']
+                );
+            }
         } catch (error) {
             console.error('[Google Login] Google login failed:', error);
             alert('Failed to start Google sign-in: ' + (error.message || 'Please try again.'));
