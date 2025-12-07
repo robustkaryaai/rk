@@ -26,19 +26,25 @@ export function AuthProvider({ children }) {
             App.addListener('appUrlOpen', async (event) => {
                 console.log('[Deep Link] App opened with URL:', event.url);
                 
-                // Check if this is an auth callback (both rkai:// and https://)
-                if (event.url.includes('/auth/callback')) {
+                // Check if this is an auth callback (rkai://callback or https://)
+                if (event.url.includes('/auth/callback') || event.url.startsWith('rkai://callback')) {
                     console.log('[Deep Link] OAuth callback detected:', event.url);
-                    // Wait a moment for the session to be established by the callback page
-                    setTimeout(() => {
+                    // Wait a moment for the session to be established
+                    setTimeout(async () => {
                         console.log('[Deep Link] Checking user session...');
-                        checkUser().then(() => {
-                            // If user is logged in, navigate to home
-                            // The callback page should handle navigation, but this is a backup
-                            if (user) {
+                        try {
+                            await checkUser();
+                            // Verify session exists by checking account directly (avoid stale closure)
+                            const session = await account.get();
+                            if (session && session.$id) {
+                                console.log('[Deep Link] Session verified, navigating to home');
                                 router.push('/home');
+                            } else {
+                                console.log('[Deep Link] No session found');
                             }
-                        });
+                        } catch (error) {
+                            console.error('[Deep Link] Error checking session:', error);
+                        }
                     }, 1500);
                 }
             });

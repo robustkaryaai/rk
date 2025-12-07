@@ -56,10 +56,30 @@ export default function OAuthCallbackPage() {
                     console.log('[OAuth Callback] Appwrite OAuth callback detected, waiting for session...');
                     await new Promise(resolve => setTimeout(resolve, 1500));
                     
+                    // Check if we're in Android app (Capacitor)
+                    const isAndroidApp = typeof window !== 'undefined' && 
+                        window.Capacitor && 
+                        window.Capacitor.isNativePlatform && 
+                        window.Capacitor.isNativePlatform();
+                    
                     try {
                         const session = await account.get();
                         if (session && session.$id) {
                             console.log('[OAuth Callback] Session established successfully:', session.$id);
+                            
+                            // If Android app, redirect to app using custom scheme
+                            if (isAndroidApp) {
+                                console.log('[OAuth Callback] Android app detected, redirecting to app...');
+                                // Build deep link URL - app will check session on its own
+                                const deepLinkUrl = `rkai://callback?success=true`;
+                                // Small delay to ensure session is fully established
+                                setTimeout(() => {
+                                    window.location.href = deepLinkUrl;
+                                }, 500);
+                                return;
+                            }
+                            
+                            // Web: normal navigation
                             router.push('/home');
                             return;
                         }
@@ -73,6 +93,17 @@ export default function OAuthCallbackPage() {
                         const session = await account.get();
                         if (session && session.$id) {
                             console.log('[OAuth Callback] Session established on retry');
+                            
+                            // If Android app, redirect to app using custom scheme
+                            if (isAndroidApp) {
+                                console.log('[OAuth Callback] Android app detected on retry, redirecting to app...');
+                                const deepLinkUrl = `rkai://callback?success=true`;
+                                setTimeout(() => {
+                                    window.location.href = deepLinkUrl;
+                                }, 500);
+                                return;
+                            }
+                            
                             router.push('/home');
                             return;
                         }
