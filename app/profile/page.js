@@ -353,19 +353,19 @@ export default function ProfilePage() {
 
                     <div className="info-item">
                         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                            <AiOutlineGoogle size={24} color={storageUsing === 'google' ? "#4caf50" : "#999"} />
+                            <AiOutlineGoogle size={24} color="#999" />
                             <div className="info-label">Google Drive</div>
                         </div>
-                        <div className="info-value">
-                            {storageUsing === 'google' ? (
-                                <span style={{ color: '#4caf50', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                    <AiOutlineCheckCircle /> Linked
-                                </span>
-                            ) : (
-                                <button className="btn-ghost" onClick={handleLinkDrive} style={{ padding: '4px 12px', fontSize: '12px' }}>
-                                    Link Account
-                                </button>
-                            )}
+                        <div style={{
+                            padding: '4px 12px',
+                            fontSize: '12px',
+                            background: 'rgba(102, 126, 234, 0.1)',
+                            border: '1px solid rgba(102, 126, 234, 0.3)',
+                            borderRadius: '6px',
+                            color: '#667eea',
+                            fontWeight: '600'
+                        }}>
+                            Coming Soon
                         </div>
                     </div>
                 </GlassCard>

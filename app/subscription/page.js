@@ -281,11 +281,23 @@ export default function SubscriptionPage() {
 
                                 {plan.tier !== currentTier && (
                                     <button
-                                        onClick={() => handleUpgrade(plan)}
+                                        onClick={() => {
+                                            // For high tiers (Pro & Studio), redirect to contact form
+                                            if (plan.tier === 3 || plan.tier === 4) {
+                                                router.push('/tiersonlycontact');
+                                            } else {
+                                                handleSubscribe(plan);
+                                            }
+                                        }}
                                         className={plan.tier < currentTier ? "btn-ghost" : "btn-primary"}
                                         style={{ width: '100%' }}
                                     >
-                                        {plan.tier < currentTier ? 'Downgrade' : 'Upgrade Now'}
+                                        {plan.tier < currentTier
+                                            ? 'Downgrade'
+                                            : (plan.tier === 3 || plan.tier === 4)
+                                                ? 'Request Features & Get it Sooner'
+                                                : 'Upgrade Now'
+                                        }
                                     </button>
                                 )}
                             </GlassCard>

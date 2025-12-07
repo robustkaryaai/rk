@@ -826,6 +826,25 @@ export default function SettingsPage() {
                             </div>
                         </div>
 
+                        <div className="settings-item">
+                            <div className="settings-info">
+                                <span>Google Drive Integration</span>
+                                <div style={{ fontSize: '12px', opacity: 0.6, marginTop: '4px' }}>Store files in your personal Drive</div>
+                            </div>
+                            <div style={{
+                                padding: '8px 16px',
+                                fontSize: '13px',
+                                background: 'rgba(102, 126, 234, 0.1)',
+                                border: '1px solid rgba(102, 126, 234, 0.3)',
+                                borderRadius: '8px',
+                                color: '#667eea',
+                                fontWeight: '600'
+                            }}>
+                                Coming Soon
+                            </div>
+                        </div>
+
+                        {/* Commented out for future use
                         {storageUsing === 'supabase' ? (
                             <div className="settings-item">
                                 <div className="settings-info">
@@ -915,14 +934,15 @@ export default function SettingsPage() {
                                             fontSize: '13px'
                                         }}
                                     >
-                                        Disconnect
                                     </button>
                                 </div>
                             </div>
 
                         )}
+                        */}
                     </GlassCard>
                 </section>
+
 
                 {/* Account Section */}
                 <section>
