@@ -35,28 +35,29 @@ export function AuthProvider({ children }) {
                         const userId = url.searchParams.get('userId');
                         const secret = url.searchParams.get('secret');
                         const route = url.searchParams.get('route') || 'home';
-                        const sessionEstablished = url.searchParams.get('sessionEstablished') === 'true';
+                        const navigateTo = url.searchParams.get('navigateTo'); // Callback URL to navigate to
+
+                        if (navigateTo) {
+                            // Navigate app's WebView to callback URL to establish session cookies
+                            console.log('[Deep Link] Navigating WebView to callback URL:', navigateTo);
+                            window.location.href = navigateTo;
+                            // The callback page will handle session and redirect
+                            return;
+                        }
 
                         if (userId && secret) {
                             // 1️⃣ Create session in-app using Appwrite SDK
                             console.log('[Deep Link] Creating session from userId/secret');
-                            await account.createSession(userId, secret);
-                            await checkUser();
-                            router.push(`/${route}`);
-                            return;
-                        } else if (sessionEstablished) {
-                            // Session already established in browser, just check in app
-                            console.log('[Deep Link] Session already established, checking...');
-                            await checkUser();
-                            const session = await account.get();
-                            if (session && session.$id) {
-                                console.log('[Deep Link] Session verified in app');
+                            try {
+                                await account.createSession(userId, secret);
+                                await checkUser();
                                 router.push(`/${route}`);
-                            } else {
-                                console.log('[Deep Link] No session in app, redirecting to login');
+                                return;
+                            } catch (err) {
+                                console.error('[Deep Link] Session creation failed:', err);
                                 router.push('/login');
+                                return;
                             }
-                            return;
                         } else {
                             // fallback - try to check existing session
                             console.log('[Deep Link] No session params, checking existing session...');

@@ -192,11 +192,13 @@ export default function OAuthCallbackPage() {
                             window.Capacitor.isNativePlatform && 
                             window.Capacitor.isNativePlatform();
                         
-                        // If mobile browser, redirect to app with session info
-                        // Note: We can't pass userId/secret from cookies, but app can check session
+                        // If mobile browser (opened from Android app), navigate app's WebView to callback URL
+                        // This will establish session cookies in app's WebView context
                         if (isMobileBrowser && !isAndroidApp) {
-                            console.log('[OAuth Callback] Mobile browser detected, redirecting to app...');
-                            const deepLinkUrl = `rkai://callback?success=true&route=${route}&sessionEstablished=true`;
+                            console.log('[OAuth Callback] Mobile browser detected, navigating app WebView to callback URL...');
+                            // Navigate app's WebView to callback URL so Appwrite can set cookies there
+                            // The deep link will bring app to foreground, then we navigate WebView
+                            const deepLinkUrl = `rkai://callback?navigateTo=${encodeURIComponent(window.location.href)}&route=${route}`;
                             window.location.href = deepLinkUrl;
                             
                             // Fallback after timeout
