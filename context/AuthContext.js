@@ -229,22 +229,24 @@ export function AuthProvider({ children }) {
                 }
             };
 
-            // Always perform OAuth inside the app/WebView so Appwrite cookies apply
-            console.log('[Google Login] Using createOAuth2Session to run OAuth in-app');
-            try {
-                account.createOAuth2Session(
-                    'google',
-                    callbackUrl,
-                    failureUrl,
-                    ['https://www.googleapis.com/auth/drive.file']
-                );
-            } catch (e) {
-                console.error('[Google Login] OAuth session creation failed:', e);
-                alert('Failed to start Google sign-in. Please try again.');
+            if (isNative()) {
+                console.log('[Google Login] Native platform, opening external OAuth with deep link rkai://callback');
+                try {
+                    const oauthUrl = account.getOAuth2Url(
+                        'google',
+                        'rkai://callback',
+                        failureUrl,
+                        ['https://www.googleapis.com/auth/drive.file']
+                    );
+                    await Browser.open({ url: oauthUrl });
+                    return;
+                } catch (e) {
+                    console.error('[Google Login] getOAuth2Url failed:', e);
+                    alert('Failed to start Google sign-in. Please try again.');
+                    return;
+                }
             }
-            return;
 
-            // Web: use getOAuth2Url so success callback includes userId & secret
             console.log('[Google Login] Web platform, using getOAuth2Url');
             const webOauthUrl = account.getOAuth2Url(
                 'google',
