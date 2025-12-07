@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { Client, Account, Databases } from 'node-appwrite';
+import { Client, Account, Users } from 'node-appwrite';
 
 export async function GET(request) {
     try {
@@ -16,8 +16,8 @@ export async function GET(request) {
             .setProject(process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID)
             .setKey(process.env.APPWRITE_API_KEY); // Server-side API key
 
-        const databases = new Databases(client);
-        const account = new Account(client);
+        const databases = new (await import('node-appwrite')).Databases(client);
+        const users = new Users(client);
 
         // Fetch the OAuth session data from database
         const oauthDoc = await databases.getDocument(
@@ -26,17 +26,25 @@ export async function GET(request) {
             token
         );
 
-        if (!oauthDoc || !oauthDoc.userId) {
+        if (!oauthDoc || !oauthDoc.userId || oauthDoc.userId === 'PENDING') {
             return NextResponse.json({ error: 'Invalid token or user not found' }, { status: 404 });
         }
 
         const userId = oauthDoc.userId;
 
-        // Create a magic URL session for this user
-        // This generates a secret that can be used to create a session
+        // Get user details to get their email
+        const user = await users.get(userId);
+
+        if (!user || !user.email) {
+            return NextResponse.json({ error: 'User email not found' }, { status: 404 });
+        }
+
+        // Create a magic URL token for this user's email
+        const account = new Account(client);
         const magicUrl = await account.createMagicURLToken(
-            userId,
-            `rkai://callback?userId=${userId}` // Doesn't matter, we just need the secret
+            'unique()', // Generate unique ID for the token
+            user.email,
+            'rkai://callback' // Redirect URL (not used by app but required)
         );
 
         // Return the userId and secret to the app
