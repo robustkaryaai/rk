@@ -4,7 +4,6 @@ import { createContext, useContext, useEffect, useState } from 'react';
 import { account, ID, client } from '@/lib/appwrite';
 import { useRouter } from 'next/navigation';
 import { userAPI } from '@/lib/api';
-import { Browser } from '@capacitor/browser';
 import { App } from '@capacitor/app';
 
 const AuthContext = createContext();
@@ -26,7 +25,7 @@ export function AuthProvider({ children }) {
             App.addListener('appUrlOpen', async (event) => {
                 alert('✅ appUrlOpen fired');
                 console.log('FULL URL:', event.url);
-                try { localStorage.setItem('rk_last_oauth_url', event.url || ''); } catch (_) {}
+                try { localStorage.setItem('rk_last_oauth_url', event.url || ''); } catch (_) { }
 
                 if (!event.url) {
                     alert('❌ No URL received');
@@ -74,11 +73,11 @@ export function AuthProvider({ children }) {
                         try {
                             const origin = window.location.origin;
                             const target = `${origin}/auth/callback?url=${encodeURIComponent(event.url)}&route=${route}`;
-                            try { localStorage.setItem('rk_last_oauth_error', 'missing_params'); } catch (_) {}
+                            try { localStorage.setItem('rk_last_oauth_error', 'missing_params'); } catch (_) { }
                             window.location.href = target;
                             return;
                         } catch (_) {
-                            try { localStorage.setItem('rk_last_oauth_error', 'missing_params'); } catch (_) {}
+                            try { localStorage.setItem('rk_last_oauth_error', 'missing_params'); } catch (_) { }
                             router.push('/login?error=missing_params');
                             return;
                         }
@@ -91,7 +90,7 @@ export function AuthProvider({ children }) {
                             userId,
                             secret
                         );
-                          
+
                         alert('✅ createSession success');
 
                         await checkUser();
@@ -106,7 +105,7 @@ export function AuthProvider({ children }) {
                             '❌ createSession failed:\n' +
                             (sessionErr.message || JSON.stringify(sessionErr))
                         );
-                        try { localStorage.setItem('rk_last_oauth_error', 'session_failed'); } catch (_) {}
+                        try { localStorage.setItem('rk_last_oauth_error', 'session_failed'); } catch (_) { }
                         router.push('/login?error=session_failed');
                     }
 
@@ -208,56 +207,26 @@ export function AuthProvider({ children }) {
     const loginWithGoogle = async () => {
         try {
             console.log('[Google Login] Button clicked, starting OAuth flow...');
-            const origin = window.location.origin;
 
-            // Redirect to our callback page which will:
-            // 1. Establish the session
-            // 2. Redirect to /home
-            // 3. (On Android) Deep link will bring app to foreground
-            const callbackUrl = `${origin}/auth/callback`;
-            const failureUrl = `${origin}/login?error=oauth_failed`;
+            // Use the deployed app URL for callbacks (not localhost)
+            // This is critical for Android - the browser opens OAuth, redirects to deployed app,
+            // which then redirects back to the Android app via deep link
+            const callbackUrl = 'https://rk-alpha-nine.vercel.app/auth/callback';
+            const failureUrl = 'https://rk-alpha-nine.vercel.app/login?error=oauth_failed';
 
-            // Detect native (Capacitor) environment
-            const isNative = () => {
-                try {
-                    const isNativePlatform = !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
-                    console.log('[Google Login] Is Native Platform:', isNativePlatform);
-                    return isNativePlatform;
-                } catch (e) {
-                    console.log('[Google Login] Error checking native platform:', e);
-                    return false;
-                }
-            };
+            console.log('[Google Login] Starting OAuth with callback:', callbackUrl);
 
-            if (isNative()) {
-                console.log('[Google Login] Native platform, opening external OAuth with deep link rkai://callback');
-                try {
-                    const oauthUrl = account.getOAuth2Url(
-                        'google',
-                        'rkai://callback',
-                        failureUrl,
-                        ['https://www.googleapis.com/auth/drive.file']
-                    );
-                    await Browser.open({ url: oauthUrl });
-                    return;
-                } catch (e) {
-                    console.error('[Google Login] getOAuth2Url failed:', e);
-                    alert('Failed to start Google sign-in. Please try again.');
-                    return;
-                }
-            }
-
-            console.log('[Google Login] Web platform, using getOAuth2Url');
-            const webOauthUrl = account.getOAuth2Url(
+            // Use createOAuth2Session for ALL platforms (web and native)
+            // This properly handles the OAuth flow through Appwrite
+            account.createOAuth2Session(
                 'google',
                 callbackUrl,
                 failureUrl,
                 ['https://www.googleapis.com/auth/drive.file']
             );
-            window.location.href = webOauthUrl;
         } catch (error) {
             console.error('[Google Login] Google login failed:', error);
-            alert('Failed to start Google sign-in. Please try again.');
+            alert('Failed to start Google sign-in: ' + (error.message || 'Please try again.'));
         }
     };
 
