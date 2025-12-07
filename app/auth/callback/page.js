@@ -18,6 +18,26 @@ export default function OAuthCallbackPage() {
             try {
                 const url = new URL(window.location.href);
                 try { localStorage.setItem('rk_last_oauth_url', url.href); } catch (_) {}
+
+                const start = url.searchParams.get('start');
+                if (start === 'google') {
+                    const origin = window.location.origin.replace(/\/$/, '');
+                    const callbackUrl = `${origin}/auth/callback`;
+                    const failureUrl = `${origin}/login?error=oauth_failed`;
+                    try {
+                        account.createOAuth2Session(
+                            'google',
+                            callbackUrl,
+                            failureUrl,
+                            ['https://www.googleapis.com/auth/drive.file']
+                        );
+                        return;
+                    } catch (e) {
+                        console.error('[OAuth Callback] Failed to start OAuth in-app:', e);
+                        try { localStorage.setItem('rk_last_oauth_error', 'start_oauth_failed'); } catch (_) {}
+                        // Continue to normal handling
+                    }
+                }
                 const nested = url.searchParams.get('url');
                 if (nested) {
                     try {

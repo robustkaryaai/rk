@@ -230,18 +230,8 @@ export function AuthProvider({ children }) {
             };
 
             if (isNative()) {
-                console.log('[Google Login] Native platform detected, using createOAuth2Session in WebView');
-                try {
-                    account.createOAuth2Session(
-                        'google',
-                        callbackUrl,
-                        failureUrl,
-                        ['https://www.googleapis.com/auth/drive.file']
-                    );
-                } catch (e) {
-                    console.error('[Google Login] OAuth session creation failed:', e);
-                    alert('Failed to start Google sign-in. Please try again.');
-                }
+                console.log('[Google Login] Native platform detected, launching in-app callback starter');
+                router.push('/auth/callback?start=google');
                 return;
             }
 
