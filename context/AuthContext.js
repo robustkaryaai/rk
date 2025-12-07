@@ -84,16 +84,32 @@ export function AuthProvider({ children }) {
                             'route: ' + route
                         );
 
-                        if (!userId || !secret) {
+                        if (!userId) {
                             alert('❌ Retrieved params are invalid');
                             router.push('/login?error=invalid_oauth_params');
                             return;
                         }
 
-                        alert('🔐 Creating session...');
+                        // Check if session already exists (from mobile OAuth flow)
+                        let sessionExists = false;
+                        try {
+                            const existingSession = await account.get();
+                            if (existingSession && existingSession.$id === userId) {
+                                sessionExists = true;
+                                console.log('[Deep Link] Session already exists:', existingSession.$id);
+                                alert('✅ Session already exists!');
+                            }
+                        } catch (e) {
+                            // No session exists, need to create one
+                            console.log('[Deep Link] No existing session');
+                        }
 
-                        await account.createSession(userId, secret);
-                        alert('✅ createSession success');
+                        // Only create session if it doesn't exist and we have a secret
+                        if (!sessionExists && secret && secret !== 'session_exists') {
+                            alert('🔐 Creating session...');
+                            await account.createSession(userId, secret);
+                            alert('✅ createSession success');
+                        }
 
                         await checkUser();
                         alert('✅ checkUser done');
