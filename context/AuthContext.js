@@ -27,35 +27,37 @@ export function AuthProvider({ children }) {
                 console.log('[Deep Link] App opened with URL:', event.url);
                 
                 // Check if this is an auth callback (rkai://callback or https://)
-                if (event.url.includes('/auth/callback') || event.url.startsWith('rkai://callback')) {
+                if (event.url.startsWith('rkai://callback')) {
                     console.log('[Deep Link] OAuth callback detected:', event.url);
                     
-                    // Parse route and session params from URL
-                    let targetRoute = 'home'; // default
-                    let userId = null;
-                    let secret = null;
-                    
                     try {
-                        const url = new URL(event.url);
-                        const routeParam = url.searchParams.get('route');
-                        if (routeParam) {
-                            targetRoute = routeParam;
-                            console.log('[Deep Link] Route parameter found:', targetRoute);
-                        }
-                        
-                        // Get session params from deep link
-                        userId = url.searchParams.get('userId');
-                        secret = url.searchParams.get('secret');
-                        
-                        if (userId && secret) {
-                            console.log('[Deep Link] Session params found in deep link');
-                        }
-                    } catch (e) {
-                        // If URL parsing fails, check device slug to decide route
-                        const hasDeviceSlug = typeof localStorage !== 'undefined' && localStorage.getItem('rk_device_slug');
-                        targetRoute = hasDeviceSlug ? 'home' : 'connect';
-                        console.log('[Deep Link] Using device slug check, route:', targetRoute);
-                    }
+    const url = new URL(event.url);
+    const userId = url.searchParams.get('userId');
+    const secret = url.searchParams.get('secret');
+    const route = url.searchParams.get('route') || 'home';
+
+    if (userId && secret) {
+        // 1️⃣ Create session in-app using Appwrite SDK
+        await account.createSession(userId, secret);
+        await checkUser();
+        // 2️⃣ Route to correct page
+        router.push(`/${route}`);
+        return;
+    } else {
+        // fallback - no session params, still try checkUser
+        await checkUser();
+        const session = await account.get();
+        if (session && session.$id) {
+            router.push(`/${route}`);
+        } else {
+            router.push('/login');
+        }
+        return;
+    }
+} catch (err) {
+    console.error('[Deep Link] Error handling callback:', err);
+    router.push('/login');
+}
                     
                     // If we have userId and secret, create session first
                     if (userId && secret) {
