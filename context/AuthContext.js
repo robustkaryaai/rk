@@ -24,224 +24,30 @@ export function AuthProvider({ children }) {
         try {
             // Listen for when app is opened via deep link (OAuth callback)
             App.addListener('appUrlOpen', async (event) => {
-                console.log('[Deep Link] App opened with URL:', event.url);
-                
-                // Check if this is an auth callback (rkai://callback)
-                if (event.url.startsWith('rkai://callback')) {
-                    console.log('[Deep Link] OAuth callback detected:', event.url);
-                    // Visual debug for user
-                    if (typeof window !== 'undefined' && window.alert) {
-                        alert('🔗 Deep link received: ' + event.url.substring(0, 50) + '...');
-                    }
-                    
-                    try {
-                        const url = new URL(event.url);
-                        const callbackUrl = url.searchParams.get('url'); // Full callback URL from browser
-                        const route = url.searchParams.get('route') || 'home';
-                        const userId = url.searchParams.get('userId'); // Legacy support
-                        const secret = url.searchParams.get('secret'); // Legacy support
-
-                        // REAL APP APPROACH: Extract userId/secret from callback URL and create session directly
-                        // This is more reliable than loading the full URL in WebView
-                        if (callbackUrl) {
-                            console.log('[Deep Link] Processing callback URL:', callbackUrl);
-                            
-                            // Decode the URL first (it's URL encoded)
-                            let decodedCallbackUrl = callbackUrl;
-                            try {
-                                decodedCallbackUrl = decodeURIComponent(callbackUrl);
-                                console.log('[Deep Link] Decoded callback URL:', decodedCallbackUrl);
-                            } catch (e) {
-                                console.warn('[Deep Link] Could not decode URL, using as-is:', e);
-                            }
-                            
-                            try {
-                                const parsedUrl = new URL(decodedCallbackUrl);
-                                
-                                // Log ALL params to see what we have
-                                const allParams = Object.fromEntries(parsedUrl.searchParams.entries());
-                                console.log('[Deep Link] All params in callback URL:', allParams);
-                                
-                                // Extract userId/secret from callback URL
-                                const callbackUserId = parsedUrl.searchParams.get('userId');
-                                const callbackSecret = parsedUrl.searchParams.get('secret');
-                                
-                                console.log('[Deep Link] Extracted - userId:', callbackUserId ? callbackUserId.substring(0, 20) + '...' : 'MISSING', 'secret:', callbackSecret ? callbackSecret.substring(0, 20) + '...' : 'MISSING');
-                                
-                                if (typeof window !== 'undefined' && window.alert) {
-                                    alert('📋 Callback URL params:\nuserId: ' + (callbackUserId ? '✅ Present' : '❌ Missing') + '\nsecret: ' + (callbackSecret ? '✅ Present' : '❌ Missing') + '\n\nAll params: ' + Object.keys(allParams).join(', '));
-                                }
-                                
-                                if (callbackUserId && callbackSecret) {
-                                    console.log('[Deep Link] Creating session from callback URL params...');
-                                    if (typeof window !== 'undefined' && window.alert) {
-                                        alert('🔐 Creating session...\nuserId: ' + callbackUserId.substring(0, 10) + '...\nsecret: ' + callbackSecret.substring(0, 10) + '...');
-                                    }
-                                    try {
-                                        // Create session directly - this is the most reliable approach
-                                        await account.createSession(callbackUserId, callbackSecret);
-                                        console.log('[Deep Link] Session creation call completed');
-                                        
-                                        // Wait for session to be established
-                                        await new Promise(resolve => setTimeout(resolve, 2000));
-                                        
-                                        // Verify session
-                                        const verifySession = await account.get();
-                                        console.log('[Deep Link] Session verification - has session:', !!verifySession?.$id);
-                                        
-                                        if (verifySession && verifySession.$id) {
-                                            console.log('[Deep Link] ✅ Session established successfully!');
-                                            if (typeof window !== 'undefined' && window.alert) {
-                                                alert('✅ Session created! ID: ' + verifySession.$id.substring(0, 10) + '...');
-                                            }
-                                            // Update user state
-                                            await checkUser();
-                                            console.log('[Deep Link] Navigating to:', route);
-                                            router.push(`/${route}`);
-                                            return;
-                                        } else {
-                                            console.error('[Deep Link] ❌ Session not found after createSession');
-                                            if (typeof window !== 'undefined' && window.alert) {
-                                                alert('⚠️ Session not found, retrying...');
-                                            }
-                                            // Try one more time
-                                            await new Promise(resolve => setTimeout(resolve, 2000));
-                                            const retrySession = await account.get();
-                                            if (retrySession && retrySession.$id) {
-                                                console.log('[Deep Link] ✅ Session found on retry!');
-                                                if (typeof window !== 'undefined' && window.alert) {
-                                                    alert('✅ Session found on retry!');
-                                                }
-                                                await checkUser();
-                                                router.push(`/${route}`);
-                                                return;
-                                            }
-                                            if (typeof window !== 'undefined' && window.alert) {
-                                                alert('❌ Failed to create session. Check console for details.');
-                                            }
-                                            router.push('/login?error=session_not_created');
-                                            return;
-                                        }
-                                    } catch (sessionErr) {
-                                        console.error('[Deep Link] ❌ Session creation error:', sessionErr);
-                                        console.error('[Deep Link] Error details:', {
-                                            message: sessionErr.message,
-                                            code: sessionErr.code,
-                                            type: sessionErr.type
-                                        });
-                                        if (typeof window !== 'undefined' && window.alert) {
-                                            alert('❌ Session creation failed:\n' + (sessionErr.message || 'Unknown error'));
-                                        }
-                                        router.push('/login?error=session_creation_failed');
-                                        return;
-                                    }
-                                } else {
-                                    console.error('[Deep Link] ❌ No userId/secret in callback URL');
-                                    console.log('[Deep Link] Trying fallback: Load callback URL in WebView to let Appwrite process it...');
-                                    
-                                    // FALLBACK: If no userId/secret, load the callback URL in WebView
-                                    // Appwrite might have set cookies in browser, and loading the URL will transfer them
-                                    if (typeof window !== 'undefined' && window.alert) {
-                                        alert('⚠️ No userId/secret found\n\nTrying fallback: Loading callback URL in app...');
-                                    }
-                                    
-                                    // Load the callback URL - Appwrite will process it and set cookies in WebView
-                                    window.location.href = decodedCallbackUrl;
-                                    return;
-                                }
-                            } catch (e) {
-                                console.error('[Deep Link] ❌ Error parsing callback URL:', e);
-                                router.push('/login?error=invalid_callback');
-                                return;
-                            }
-                        }
-
-                        // Legacy: Direct userId/secret (fallback)
-                        if (userId && secret) {
-                            // 1️⃣ Create session in-app using Appwrite SDK
-                            console.log('[Deep Link] Creating session from userId/secret');
-                            console.log('[Deep Link] userId:', userId?.substring(0, 10) + '...', 'length:', userId?.length);
-                            console.log('[Deep Link] secret:', secret?.substring(0, 10) + '...', 'length:', secret?.length);
-                            
-                            try {
-                                // Decode if URL encoded
-                                const decodedUserId = decodeURIComponent(userId);
-                                const decodedSecret = decodeURIComponent(secret);
-                                
-                                console.log('[Deep Link] Calling account.createSession...');
-                                const sessionResult = await account.createSession(decodedUserId, decodedSecret);
-                                console.log('[Deep Link] createSession completed, result:', sessionResult?.$id || 'no id');
-                                
-                                // Wait for session to be fully established
-                                await new Promise(resolve => setTimeout(resolve, 1500));
-                                
-                                // Verify session was created by checking account
-                                console.log('[Deep Link] Verifying session...');
-                                const verifySession = await account.get();
-                                console.log('[Deep Link] Verified session:', verifySession?.$id || 'none');
-                                
-                                if (verifySession && verifySession.$id) {
-                                    console.log('[Deep Link] Session verified successfully!');
-                                    // Update user state
-                                    await checkUser();
-                                    console.log('[Deep Link] User state updated, navigating to', route);
-                                    router.push(`/${route}`);
-                                    return;
-                                } else {
-                                    console.error('[Deep Link] Session creation failed - no session after createSession');
-                                    console.error('[Deep Link] verifySession:', verifySession);
-                                    // Try one more time with a longer wait
-                                    await new Promise(resolve => setTimeout(resolve, 2000));
-                                    const retrySession = await account.get();
-                                    if (retrySession && retrySession.$id) {
-                                        console.log('[Deep Link] Session found on retry!');
-                                        await checkUser();
-                                        router.push(`/${route}`);
-                                        return;
-                                    }
-                                    router.push('/login?error=session_not_created');
-                                    return;
-                                }
-                            } catch (err) {
-                                console.error('[Deep Link] Session creation failed:', err);
-                                console.error('[Deep Link] Error details:', {
-                                    message: err.message,
-                                    code: err.code,
-                                    type: err.type,
-                                    response: err.response
-                                });
-                                
-                                // Try to get more info about the error
-                                if (err.message) {
-                                    console.error('[Deep Link] Error message:', err.message);
-                                }
-                                if (err.code) {
-                                    console.error('[Deep Link] Error code:', err.code);
-                                }
-                                
-                                router.push('/login?error=session_creation_failed');
-                                return;
-                            }
-                        } else {
-                            // fallback - try to check existing session
-                            console.log('[Deep Link] No session params (userId:', !!userId, 'secret:', !!secret, '), checking existing session...');
-                            await checkUser();
-                            const session = await account.get();
-                            if (session && session.$id) {
-                                console.log('[Deep Link] Existing session found, navigating to', route);
-                                router.push(`/${route}`);
-                            } else {
-                                console.log('[Deep Link] No existing session, redirecting to login');
-                                router.push('/login');
-                            }
-                            return;
-                        }
-                    } catch (err) {
-                        console.error('[Deep Link] Error handling callback:', err);
-                        router.push('/login');
-                    }
+                if (!event.url.startsWith('rkai://callback')) return;
+              
+                try {
+                  const url = new URL(event.url);
+                  const userId = url.searchParams.get('userId');
+                  const secret = url.searchParams.get('secret');
+                  const route = url.searchParams.get('route') || 'home';
+              
+                  if (!userId || !secret) {
+                    console.error('Missing userId or secret');
+                    router.push('/login?error=missing_session');
+                    return;
+                  }
+              
+                  await account.createSession(userId, secret);
+                  await checkUser();
+                  router.push(`/${route}`);
+              
+                } catch (err) {
+                  console.error('Deep link login failed:', err);
+                  router.push('/login?error=session_failed');
                 }
-            });
+              });
+              
         } catch (error) {
             console.log('Deep link setup note (might not be available in web):', error.message);
         }
@@ -287,14 +93,14 @@ export function AuthProvider({ children }) {
             console.error('Login failed:', error);
             // Provide more helpful error messages
             let errorMessage = error.message || 'Login failed. Please try again.';
-            
+
             // Check for specific error types
             if (error.code === 401 || error.message?.includes('Invalid credentials')) {
                 errorMessage = 'Invalid email or password. Please check your credentials or sign up if you don\'t have an account.';
             } else if (error.message?.includes('User not found')) {
                 errorMessage = 'Account not found. Please sign up first.';
             }
-            
+
             return { success: false, error: errorMessage };
         }
     };
@@ -317,14 +123,14 @@ export function AuthProvider({ children }) {
             console.error('Signup failed:', error);
             // Provide more helpful error messages
             let errorMessage = error.message || 'Signup failed. Please try again.';
-            
+
             // Check for specific error types
             if (error.message?.includes('already exists') || error.message?.includes('already registered')) {
                 errorMessage = 'An account with this email already exists. Please sign in instead.';
             } else if (error.message?.includes('password')) {
                 errorMessage = 'Password must be at least 8 characters long.';
             }
-            
+
             return { success: false, error: errorMessage };
         }
     };
@@ -333,7 +139,7 @@ export function AuthProvider({ children }) {
         try {
             console.log('[Google Login] Button clicked, starting OAuth flow...');
             const origin = window.location.origin;
-            
+
             // Redirect to our callback page which will:
             // 1. Establish the session
             // 2. Redirect to /home
@@ -359,14 +165,13 @@ export function AuthProvider({ children }) {
                 try {
                     const oauthUrl = account.getOAuth2Url(
                         'google',
-                        callbackUrl,
-                        failureUrl,
-                        ['https://www.googleapis.com/auth/drive.file']
+                        'rkai://callback',
+                        'https://yourdomain.com/login?error=oauth_failed'
                     );
-                    console.log('[Google Login] OAuth URL:', oauthUrl);
                     await Browser.open({ url: oauthUrl });
+                    console.log('[Google Login] OAuth URL:', oauthUrl);
                     console.log('[Google Login] Browser opened successfully');
-                } catch(e) {
+                } catch (e) {
                     console.error('[Google Login] Failed to open browser:', e);
                     // Fallback: Try direct OAuth session creation
                     try {
@@ -377,7 +182,7 @@ export function AuthProvider({ children }) {
                             failureUrl,
                             ['https://www.googleapis.com/auth/drive.file']
                         );
-                    } catch(fallbackError) {
+                    } catch (fallbackError) {
                         console.error('[Google Login] All methods failed:', fallbackError);
                         alert('Failed to open Google sign-in. Please check your internet connection and try again.');
                     }
