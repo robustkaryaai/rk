@@ -216,33 +216,17 @@ export function AuthProvider({ children }) {
             };
 
             if (isNative()) {
-                // For Android: Use browser OAuth directly (more reliable than native)
-                console.log('[Google Login] Native platform detected, opening OAuth in browser');
+                console.log('[Google Login] Native platform detected, using createOAuth2Session in WebView');
                 try {
-                    const origin = window.location.origin;
-                    const oauthUrl = account.getOAuth2Url(
+                    account.createOAuth2Session(
                         'google',
-                        `${origin}/auth/callback`,
-                        `${origin}/login?error=oauth_failed`
+                        callbackUrl,
+                        failureUrl,
+                        ['https://www.googleapis.com/auth/drive.file']
                     );
-                    await Browser.open({ url: oauthUrl });
-                    console.log('[Google Login] OAuth URL:', oauthUrl);
-                    console.log('[Google Login] Browser opened successfully');
                 } catch (e) {
-                    console.error('[Google Login] Failed to open browser:', e);
-                    // Fallback: Try direct OAuth session creation
-                    try {
-                        console.log('[Google Login] Trying fallback method...');
-                        account.createOAuth2Session(
-                            'google',
-                            callbackUrl,
-                            failureUrl,
-                            ['https://www.googleapis.com/auth/drive.file']
-                        );
-                    } catch (fallbackError) {
-                        console.error('[Google Login] All methods failed:', fallbackError);
-                        alert('Failed to open Google sign-in. Please check your internet connection and try again.');
-                    }
+                    console.error('[Google Login] OAuth session creation failed:', e);
+                    alert('Failed to start Google sign-in. Please try again.');
                 }
                 return;
             }
