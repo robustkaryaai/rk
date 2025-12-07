@@ -23,6 +23,7 @@ import {
 import { BsMoonStars, BsSun } from 'react-icons/bs';
 import { deviceAPI, userAPI, mediaAPI } from '@/lib/api';
 import dynamic from 'next/dynamic';
+import { Browser } from '@capacitor/browser';
 
 const BluetoothSetup = dynamic(() => import('@/components/DeviceSetup/BluetoothSetup'), { ssr: false });
 
@@ -121,8 +122,36 @@ export default function SettingsPage() {
         }
     }, [isLoaded, isSignedIn, router]);
 
-    const handleConnectGoogle = () => {
-        window.location.href = `/api/auth/google/connect?slug=${deviceSlug}`;
+    const handleConnectGoogle = async () => {
+        const isNative = typeof window !== 'undefined' && window.Capacitor && window.Capacitor.isNativePlatform();
+
+        if (isNative) {
+            // Build OAuth URL manually for Native
+            const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
+            const redirectUri = process.env.NEXT_PUBLIC_GOOGLE_REDIRECT_URI;
+            const scope = 'https://www.googleapis.com/auth/drive.file email';
+
+            if (!clientId || !redirectUri) {
+                alert('Google OAuth config missing');
+                return;
+            }
+
+            const authUrl = new URL('https://accounts.google.com/o/oauth2/v2/auth');
+            authUrl.searchParams.append('client_id', clientId);
+            authUrl.searchParams.append('redirect_uri', redirectUri);
+            authUrl.searchParams.append('response_type', 'code');
+            authUrl.searchParams.append('scope', scope);
+            authUrl.searchParams.append('access_type', 'offline');
+            authUrl.searchParams.append('prompt', 'consent');
+            // Pass flag to indicate this is a native app request so callback can redirect to deep link
+            authUrl.searchParams.append('state', `${deviceSlug}|native`);
+
+            console.log('[Google Connect] Opening native browser:', authUrl.toString());
+            await Browser.open({ url: authUrl.toString() });
+        } else {
+            // Web flow
+            window.location.href = `/api/auth/google/connect?slug=${deviceSlug}`;
+        }
     };
 
     const handleDisconnectGoogle = async () => {
@@ -260,7 +289,7 @@ export default function SettingsPage() {
 
     return (
         <>
-        <style jsx global>{`
+            <style jsx global>{`
                 @keyframes textFlow {
                     0% {
                         background: linear-gradient(90deg, 
@@ -386,7 +415,7 @@ export default function SettingsPage() {
             <div className="page-container">
                 <h1 className="page-title">Settings</h1>
 
-               <section style={{ marginBottom: '24px' }}>
+                <section style={{ marginBottom: '24px' }}>
                     <h2 className="section-title">Connected Device</h2>
                     <GlassCard>
                         {deviceSlug ? (

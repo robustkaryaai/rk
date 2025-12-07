@@ -80,8 +80,17 @@ export async function GET(request) {
         }
 
         // Get device slug from OAuth state parameter
-        const slug = searchParams.get('state');
-        console.log('[Google Callback] Device slug from state:', slug);
+        const rawState = searchParams.get('state');
+        let slug = rawState;
+        let isNative = false;
+
+        if (rawState && rawState.includes('|native')) {
+            const parts = rawState.split('|');
+            slug = parts[0];
+            isNative = true;
+        }
+
+        console.log('[Google Callback] Device slug:', slug, 'Native:', isNative);
 
         if (slug) {
             const deviceResponse = await databases.listDocuments(
@@ -107,9 +116,29 @@ export async function GET(request) {
             }
         }
 
+        if (isNative) {
+            return Response.redirect(`rkai://settings?google_connected=true`);
+        }
         return Response.redirect(`${appUrl}/settings?google_connected=true`);
     } catch (error) {
         console.error('Google OAuth callback error:', error);
+
+        // Handle error redirect for native too if we can detect it (but we might lose context in catch block)
+        // Ideally we check state early, but here we are in catch.
+        // We can try to re-parse state from URL if needed, or just default to web 
+        // fallback (user will see error in browser, app stays background).
+        // Since we split logic, let's try to extract state again for robustness? 
+        // It's tricky without scope. Let's stick to web redirect for hard errors, 
+        // or re-parse quickly.
+
+        try {
+            const { searchParams } = new URL(request.url);
+            const rawState = searchParams.get('state');
+            if (rawState && rawState.includes('|native')) {
+                return Response.redirect(`rkai://settings?google_error=callback_failed`);
+            }
+        } catch (e) { }
+
         return Response.redirect(`${appUrl}/settings?google_error=callback_failed`);
     }
 }
