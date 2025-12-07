@@ -38,26 +38,37 @@ export function AuthProvider({ children }) {
                         const navigateTo = url.searchParams.get('navigateTo'); // Callback URL to navigate to
 
                         if (navigateTo) {
-                            // Parse callback URL to extract OAuth params
+                            // Navigate app's WebView to callback URL
+                            // This allows Appwrite to process the OAuth callback and set cookies in app's WebView
+                            console.log('[Deep Link] Navigating WebView to callback URL:', navigateTo);
+                            
                             try {
                                 const callbackUrl = new URL(navigateTo);
                                 const callbackUserId = callbackUrl.searchParams.get('userId');
                                 const callbackSecret = callbackUrl.searchParams.get('secret');
                                 
                                 if (callbackUserId && callbackSecret) {
-                                    // We have OAuth params in callback URL, create session directly
-                                    console.log('[Deep Link] Creating session from callback URL params');
-                                    await account.createSession(callbackUserId, callbackSecret);
-                                    await checkUser();
-                                    router.push(`/${route}`);
-                                    return;
-                                } else {
-                                    // No params in callback URL, navigate to it and let Appwrite handle via cookies
-                                    console.log('[Deep Link] No OAuth params in callback URL, navigating WebView...');
-                                    window.location.href = navigateTo;
-                                    // The callback page will handle session and redirect
-                                    return;
+                                    // We have OAuth params, try to create session directly first
+                                    console.log('[Deep Link] Found OAuth params in callback URL, creating session...');
+                                    try {
+                                        await account.createSession(callbackUserId, callbackSecret);
+                                        await new Promise(resolve => setTimeout(resolve, 1000));
+                                        const verifySession = await account.get();
+                                        if (verifySession && verifySession.$id) {
+                                            console.log('[Deep Link] Session created successfully from params');
+                                            await checkUser();
+                                            router.push(`/${route}`);
+                                            return;
+                                        }
+                                    } catch (sessionErr) {
+                                        console.warn('[Deep Link] Direct session creation failed, will navigate to callback URL:', sessionErr);
+                                    }
                                 }
+                                
+                                // Navigate to callback URL - Appwrite will process it and set cookies
+                                window.location.href = navigateTo;
+                                // The callback page will handle session and redirect
+                                return;
                             } catch (e) {
                                 console.error('[Deep Link] Error parsing callback URL:', e);
                                 // Fallback: just navigate
