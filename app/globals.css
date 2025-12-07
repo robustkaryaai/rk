@@ -73,10 +73,11 @@
   background-clip: text;
 }
 
+/* Light Mode (Default) */
 body {
   font-family: 'Outfit', sans-serif;
-  background-color: #0a0a0f;
-  background: linear-gradient(180deg, #05050A 0%, #0a0a15 50%, #05050A 100%);
+  background-color: #f5f7fa;
+  background: linear-gradient(180deg, #ffffff 0%, #f0f4f8 50%, #ffffff 100%);
   color: var(--text-light);
   min-height: 100vh;
   min-height: 100dvh;
@@ -85,7 +86,14 @@ body {
   width: 100%;
 }
 
-/* Premium Animated Background */
+/* Dark Mode Override */
+html.dark body {
+  background-color: #0a0a0f;
+  background: linear-gradient(180deg, #05050A 0%, #0a0a15 50%, #05050A 100%);
+  color: var(--text-dark);
+}
+
+/* Premium Animated Background - Light Mode */
 body::before {
   content: '';
   position: fixed;
@@ -95,13 +103,24 @@ body::before {
   height: 100%;
   min-height: 100vh;
   min-height: 100dvh;
-  background: radial-gradient(circle at 15% 50%, rgba(99, 102, 241, 0.2) 0%, transparent 30%),
-    radial-gradient(circle at 85% 30%, rgba(168, 85, 247, 0.2) 0%, transparent 30%);
+  background:
+    radial-gradient(circle at 50% 10%, rgba(138, 92, 246, 0.08) 0%, transparent 25%),
+    radial-gradient(circle at 15% 50%, rgba(99, 102, 241, 0.06) 0%, transparent 30%),
+    radial-gradient(circle at 85% 30%, rgba(168, 85, 247, 0.06) 0%, transparent 30%);
   z-index: -2;
   pointer-events: none;
-  filter: blur(100px);
+  filter: blur(80px);
   animation: bg-shift 15s ease-in-out infinite alternate;
   background-size: 200% 200%;
+}
+
+/* Dark Mode Override */
+html.dark body::before {
+  background:
+    radial-gradient(circle at 50% 10%, rgba(138, 92, 246, 0.25) 0%, transparent 35%),
+    radial-gradient(circle at 15% 50%, rgba(99, 102, 241, 0.2) 0%, transparent 30%),
+    radial-gradient(circle at 85% 30%, rgba(168, 85, 247, 0.2) 0%, transparent 30%);
+  filter: blur(100px);
 }
 
 @keyframes bg-shift {
@@ -124,7 +143,7 @@ body::before {
   }
 }
 
-/* Subtle Grid Mesh */
+/* Subtle Grid Mesh - Light Mode */
 body::after {
   content: '';
   position: fixed;
@@ -135,11 +154,19 @@ body::after {
   min-height: 100vh;
   min-height: 100dvh;
   background-image:
-    linear-gradient(rgba(99, 102, 241, 0.08) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(99, 102, 241, 0.08) 1px, transparent 1px);
+    linear-gradient(rgba(99, 102, 241, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(99, 102, 241, 0.04) 1px, transparent 1px);
   background-size: 50px 50px;
   z-index: -1;
   pointer-events: none;
+  opacity: 0.4;
+}
+
+/* Dark Mode Override */
+html.dark body::after {
+  background-image:
+    linear-gradient(rgba(99, 102, 241, 0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(99, 102, 241, 0.08) 1px, transparent 1px);
   opacity: 0.6;
 }
 
@@ -1658,5 +1685,5 @@ input:checked+.slider:before {
 }
 
 .padding-from-top {
-    padding-top: 24px;
+  padding-top: 24px;
 }

@@ -44,6 +44,7 @@ export default function SettingsPage() {
     const [isEditingName, setIsEditingName] = useState(false);
     const [editedName, setEditedName] = useState('');
     const [showWifiUpdate, setShowWifiUpdate] = useState(false);
+    const [darkMode, setDarkMode] = useState(false);
 
     useEffect(() => {
         if (isLoaded && !isSignedIn) {
@@ -121,6 +122,14 @@ export default function SettingsPage() {
             fetchData();
         }
     }, [isLoaded, isSignedIn, router]);
+
+    // Initialize dark mode state
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            const isDark = document.documentElement.classList.contains('dark');
+            setDarkMode(isDark);
+        }
+    }, []);
 
     const handleConnectGoogle = async () => {
         const isNative = typeof window !== 'undefined' && window.Capacitor && window.Capacitor.isNativePlatform();
@@ -200,6 +209,7 @@ export default function SettingsPage() {
         const darkModeEnabled = html.classList.toggle('dark');
         body.classList.toggle('dark');
         localStorage.setItem('theme', darkModeEnabled ? 'dark' : 'light');
+        setDarkMode(darkModeEnabled);
     };
 
     const handleEditName = () => {
@@ -548,14 +558,14 @@ export default function SettingsPage() {
                         <div className="settings-item">
                             <div className="settings-info">
                                 <div className="settings-icon">
-                                    {isDarkMode() ? <BsMoonStars /> : <BsSun />}
+                                    {darkMode ? <BsMoonStars /> : <BsSun />}
                                 </div>
                                 <span>Dark Mode</span>
                             </div>
                             <label className="switch">
                                 <input
                                     type="checkbox"
-                                    checked={isDarkMode()}
+                                    checked={darkMode}
                                     onChange={toggleDarkMode}
                                 />
                                 <span className="slider round"></span>
@@ -1006,7 +1016,7 @@ export default function SettingsPage() {
                 </section>
 
                 <div style={{ textAlign: 'center', marginTop: '32px', opacity: 0.5, fontSize: '12px' }}>
-                    <p>RK v2.1</p>
+                    <p>RK v2.1.1</p>
                 </div>
             </div>
 

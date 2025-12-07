@@ -12,8 +12,8 @@ export default function WhatsNewPage() {
         <>
             <div className="page-container">
                 <div className="hero-section">
-                    <h1 className="hero-title">🚀 RK v2.1 - Android Ready!</h1>
-                    <p className="hero-subtitle">Major improvements for Android + Bug fixes</p>
+                    <h1 className="hero-title">🚀 RK v2.1.1 - Polish & Fixes!</h1>
+                    <p className="hero-subtitle">CSS improvements + Dark mode toggle fixed</p>
                     <button
                         onClick={() => router.back()}
                         className="btn-ghost"
@@ -193,17 +193,76 @@ export default function WhatsNewPage() {
                     </div>
                 </GlassCard>
 
+                {/* v2.1.1 Hotfix */}
+                <GlassCard style={{ marginBottom: '24px', border: '1px solid rgba(102, 126, 234, 0.3)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>
+                        <div style={{
+                            width: '32px',
+                            height: '32px',
+                            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                            borderRadius: '8px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontSize: '16px'
+                        }}>
+                            🎨
+                        </div>
+                        <h2 className="section-title" style={{ margin: 0 }}>v2.1.1 - CSS & Theme Fixes</h2>
+                    </div>
+
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                        <div className="feature-item">
+                            <AiOutlineCheckCircle size={20} color="#4CAF50" />
+                            <div>
+                                <strong>Light/Dark Mode Backgrounds</strong>
+                                <p style={{ fontSize: '14px', opacity: 0.7, margin: '4px 0 0 0' }}>
+                                    Fixed background appearing the same in both themes - now properly switches
+                                </p>
+                            </div>
+                        </div>
+                        <div className="feature-item">
+                            <AiOutlineCheckCircle size={20} color="#4CAF50" />
+                            <div>
+                                <strong>Dark Mode Toggle State</strong>
+                                <p style={{ fontSize: '14px', opacity: 0.7, margin: '4px 0 0 0' }}>
+                                    Toggle now correctly reflects whether dark mode is active or not
+                                </p>
+                            </div>
+                        </div>
+                        <div className="feature-item">
+                            <AiOutlineCheckCircle size={20} color="#4CAF50" />
+                            <div>
+                                <strong>Well litten App</strong>
+                                <p style={{ fontSize: '14px', opacity: 0.7, margin: '4px 0 0 0' }}>
+                                    Added another color blob for the top so no part of app is not well litten.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div className="feature-item">
+                            <AiOutlineCheckCircle size={20} color="#4CAF50" />
+                            <div>
+                                <strong>Light Mode Improvements</strong>
+                                <p style={{ fontSize: '14px', opacity: 0.7, margin: '4px 0 0 0' }}>
+                                    Softer gradients and reduced grid opacity for better light mode experience
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </GlassCard>
+
                 {/* Technical Improvements */}
                 <GlassCard>
                     <h3 style={{ marginBottom: '16px', fontSize: '18px' }}>🔧 Technical Improvements</h3>
                     <ul style={{ paddingLeft: '20px', display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '14px', opacity: 0.9 }}>
                         <li>Hybrid OAuth architecture: Appwrite for login, Direct Google API for Drive</li>
-                        <li>Enhanced deep link handling with automatic browser closure</li>
-                        <li>Device ownership validation on session check</li>
-                        <li>LocalStorage cleanup on logout for clean account switching</li>
-                        <li>Dynamic viewport height (dvh) support for better mobile display</li>
-                        <li>Improved gradient visibility with increased opacity</li>
-                        <li>Feature request system for premium subscribers</li>
+                        <li>Enhanced deep link handling with automatic browser closure.</li>
+                        <li>Device ownership validation on session check.</li>
+                        <li>LocalStorage cleanup on logout for clean account switching.</li>
+                        <li>Dynamic viewport height (dvh) support for better mobile display.</li>
+                        <li>Improved gradient visibility with increased opacity.</li>
+                        <li>Feature request system for premium subscribers.</li>
                     </ul>
                 </GlassCard>
             </div>
