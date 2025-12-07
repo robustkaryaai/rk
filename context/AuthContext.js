@@ -6,7 +6,6 @@ import { useRouter } from 'next/navigation';
 import { userAPI } from '@/lib/api';
 import { Browser } from '@capacitor/browser';
 import { App } from '@capacitor/app';
-import { signInWithGoogleNative } from '@/lib/nativeGoogle';
 
 const AuthContext = createContext();
 
@@ -80,7 +79,17 @@ export function AuthProvider({ children }) {
             return { success: true };
         } catch (error) {
             console.error('Login failed:', error);
-            return { success: false, error: error.message };
+            // Provide more helpful error messages
+            let errorMessage = error.message || 'Login failed. Please try again.';
+            
+            // Check for specific error types
+            if (error.code === 401 || error.message?.includes('Invalid credentials')) {
+                errorMessage = 'Invalid email or password. Please check your credentials or sign up if you don\'t have an account.';
+            } else if (error.message?.includes('User not found')) {
+                errorMessage = 'Account not found. Please sign up first.';
+            }
+            
+            return { success: false, error: errorMessage };
         }
     };
 
@@ -100,12 +109,23 @@ export function AuthProvider({ children }) {
             return { success: true };
         } catch (error) {
             console.error('Signup failed:', error);
-            return { success: false, error: error.message };
+            // Provide more helpful error messages
+            let errorMessage = error.message || 'Signup failed. Please try again.';
+            
+            // Check for specific error types
+            if (error.message?.includes('already exists') || error.message?.includes('already registered')) {
+                errorMessage = 'An account with this email already exists. Please sign in instead.';
+            } else if (error.message?.includes('password')) {
+                errorMessage = 'Password must be at least 8 characters long.';
+            }
+            
+            return { success: false, error: errorMessage };
         }
     };
 
     const loginWithGoogle = async () => {
         try {
+            console.log('[Google Login] Button clicked, starting OAuth flow...');
             const origin = window.location.origin;
             
             // Redirect to our callback page which will:
@@ -118,76 +138,49 @@ export function AuthProvider({ children }) {
             // Detect native (Capacitor) environment
             const isNative = () => {
                 try {
-                    return !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
+                    const isNativePlatform = !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
+                    console.log('[Google Login] Is Native Platform:', isNativePlatform);
+                    return isNativePlatform;
                 } catch (e) {
+                    console.log('[Google Login] Error checking native platform:', e);
                     return false;
                 }
             };
 
             if (isNative()) {
-                // Attempt native Google Sign-In first (in-app experience)
+                // For Android: Use browser OAuth directly (more reliable than native)
+                console.log('[Google Login] Native platform detected, opening OAuth in browser');
                 try {
-                    const res = await signInWithGoogleNative();
-                    // res expected to contain idToken and accessToken
-                    const idToken = res.idToken || res.id_token || res.serverAuthCode;
-                    const accessToken = res.accessToken || res.access_token;
-
-                    // Send tokens to server for verification/linking
-                    const exchangeRes = await fetch('/api/auth/google/native-exchange', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ idToken, accessToken })
-                    });
-
-                    const data = await exchangeRes.json();
-                    if (data && data.success) {
-                        // If server returned a short-lived Appwrite JWT, set it so client is authenticated
-                        if (data.userJwt) {
-                            try {
-                                client.setJWT(data.userJwt);
-                            } catch (e) {
-                                console.warn('Failed to set Appwrite JWT on client:', e.message || e);
-                            }
-                        }
-
-                        // After verifying, attempt to refresh client-side session state
-                        setTimeout(() => checkUser(), 500);
-                        return;
-                    } else {
-                        console.warn('Native exchange failed, falling back to browser OAuth', data);
-                        // Fallback: Get OAuth URL and open in browser manually (prevents auto-redirect)
-                        try {
-                            const oauthUrl = account.getOAuth2Url(
-                                'google',
-                                callbackUrl,
-                                failureUrl,
-                                ['https://www.googleapis.com/auth/drive.file']
-                            );
-                            await Browser.open({ url: oauthUrl });
-                        } catch(e) {
-                            console.error('Browser OAuth fallback failed:', e);
-                        }
-                        return;
-                    }
-                } catch (nativeErr) {
-                    console.warn('Native Google sign-in failed, falling back to browser OAuth', nativeErr.message || nativeErr);
-                    // Fallback: Get OAuth URL and open in browser manually (prevents auto-redirect)
+                    const oauthUrl = account.getOAuth2Url(
+                        'google',
+                        callbackUrl,
+                        failureUrl,
+                        ['https://www.googleapis.com/auth/drive.file']
+                    );
+                    console.log('[Google Login] OAuth URL:', oauthUrl);
+                    await Browser.open({ url: oauthUrl });
+                    console.log('[Google Login] Browser opened successfully');
+                } catch(e) {
+                    console.error('[Google Login] Failed to open browser:', e);
+                    // Fallback: Try direct OAuth session creation
                     try {
-                        const oauthUrl = account.getOAuth2Url(
+                        console.log('[Google Login] Trying fallback method...');
+                        account.createOAuth2Session(
                             'google',
                             callbackUrl,
                             failureUrl,
                             ['https://www.googleapis.com/auth/drive.file']
                         );
-                        await Browser.open({ url: oauthUrl });
-                    } catch(e) {
-                        console.error('Browser OAuth fallback failed:', e);
+                    } catch(fallbackError) {
+                        console.error('[Google Login] All methods failed:', fallbackError);
+                        alert('Failed to open Google sign-in. Please check your internet connection and try again.');
                     }
-                    return;
                 }
+                return;
             }
 
             // Web: start OAuth directly from this page (auto-redirect is fine for web)
+            console.log('[Google Login] Web platform, using createOAuth2Session');
             account.createOAuth2Session(
                 'google',
                 callbackUrl,  // Our callback page handles the redirect
@@ -195,7 +188,8 @@ export function AuthProvider({ children }) {
                 ['https://www.googleapis.com/auth/drive.file']
             );
         } catch (error) {
-            console.error('Google login failed:', error);
+            console.error('[Google Login] Google login failed:', error);
+            alert('Failed to start Google sign-in. Please try again.');
         }
     };
 
