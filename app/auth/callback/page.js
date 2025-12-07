@@ -67,20 +67,33 @@ export default function OAuthCallbackPage() {
                         if (session && session.$id) {
                             console.log('[OAuth Callback] Session established successfully:', session.$id);
                             
-                            // If Android app, redirect to app using custom scheme
-                            if (isAndroidApp) {
-                                console.log('[OAuth Callback] Android app detected, redirecting to app...');
-                                // Build deep link URL - app will check session on its own
-                                const deepLinkUrl = `rkai://callback?success=true`;
-                                // Small delay to ensure session is fully established
+                            // Always try to redirect to app first (works if opened from Android app's browser)
+                            // Check if we're in a mobile browser (likely opened from app)
+                            const isMobileBrowser = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+                            
+                            if (isMobileBrowser || isAndroidApp) {
+                                console.log('[OAuth Callback] Mobile browser/app detected, redirecting to app...');
+                                // Build deep link URL - app will handle navigation
+                                // Check device slug first to decide route
+                                const hasDeviceSlug = typeof localStorage !== 'undefined' && localStorage.getItem('rk_device_slug');
+                                const route = hasDeviceSlug ? 'home' : 'connect';
+                                const deepLinkUrl = `rkai://callback?success=true&route=${route}`;
+                                
+                                // Redirect to app
+                                window.location.href = deepLinkUrl;
+                                
+                                // Fallback: If redirect doesn't work (not in app context), navigate normally after timeout
                                 setTimeout(() => {
-                                    window.location.href = deepLinkUrl;
-                                }, 500);
+                                    console.log('[OAuth Callback] Fallback: navigating to', route);
+                                    router.push(`/${route}`);
+                                }, 2000);
                                 return;
                             }
                             
-                            // Web: normal navigation
-                            router.push('/home');
+                            // Web: normal navigation (check device slug first)
+                            const hasDeviceSlug = typeof localStorage !== 'undefined' && localStorage.getItem('rk_device_slug');
+                            const route = hasDeviceSlug ? 'home' : 'connect';
+                            router.push(`/${route}`);
                             return;
                         }
                     } catch (sessionError) {
@@ -94,17 +107,26 @@ export default function OAuthCallbackPage() {
                         if (session && session.$id) {
                             console.log('[OAuth Callback] Session established on retry');
                             
-                            // If Android app, redirect to app using custom scheme
-                            if (isAndroidApp) {
-                                console.log('[OAuth Callback] Android app detected on retry, redirecting to app...');
-                                const deepLinkUrl = `rkai://callback?success=true`;
+                            // Always try to redirect to app first
+                            const isMobileBrowser = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+                            
+                            if (isMobileBrowser || isAndroidApp) {
+                                console.log('[OAuth Callback] Mobile browser/app detected on retry, redirecting to app...');
+                                const hasDeviceSlug = typeof localStorage !== 'undefined' && localStorage.getItem('rk_device_slug');
+                                const route = hasDeviceSlug ? 'home' : 'connect';
+                                const deepLinkUrl = `rkai://callback?success=true&route=${route}`;
+                                
+                                window.location.href = deepLinkUrl;
+                                
                                 setTimeout(() => {
-                                    window.location.href = deepLinkUrl;
-                                }, 500);
+                                    router.push(`/${route}`);
+                                }, 2000);
                                 return;
                             }
                             
-                            router.push('/home');
+                            const hasDeviceSlug = typeof localStorage !== 'undefined' && localStorage.getItem('rk_device_slug');
+                            const route = hasDeviceSlug ? 'home' : 'connect';
+                            router.push(`/${route}`);
                             return;
                         }
                     } catch (retryError) {
@@ -131,7 +153,22 @@ export default function OAuthCallbackPage() {
                     const session = await account.get();
                     if (session && session.$id) {
                         console.log('[OAuth Callback] Existing session found');
-                        router.push('/home');
+                        // Check device slug to decide route
+                        const hasDeviceSlug = typeof localStorage !== 'undefined' && localStorage.getItem('rk_device_slug');
+                        const route = hasDeviceSlug ? 'home' : 'connect';
+                        
+                        // Try to redirect to app if mobile browser
+                        const isMobileBrowser = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+                        if (isMobileBrowser) {
+                            const deepLinkUrl = `rkai://callback?success=true&route=${route}`;
+                            window.location.href = deepLinkUrl;
+                            setTimeout(() => {
+                                router.push(`/${route}`);
+                            }, 2000);
+                            return;
+                        }
+                        
+                        router.push(`/${route}`);
                         return;
                     }
                 } catch (sessionError) {

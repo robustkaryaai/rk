@@ -29,6 +29,23 @@ export function AuthProvider({ children }) {
                 // Check if this is an auth callback (rkai://callback or https://)
                 if (event.url.includes('/auth/callback') || event.url.startsWith('rkai://callback')) {
                     console.log('[Deep Link] OAuth callback detected:', event.url);
+                    
+                    // Parse route from URL if provided
+                    let targetRoute = 'home'; // default
+                    try {
+                        const url = new URL(event.url);
+                        const routeParam = url.searchParams.get('route');
+                        if (routeParam) {
+                            targetRoute = routeParam;
+                            console.log('[Deep Link] Route parameter found:', targetRoute);
+                        }
+                    } catch (e) {
+                        // If URL parsing fails, check device slug to decide route
+                        const hasDeviceSlug = typeof localStorage !== 'undefined' && localStorage.getItem('rk_device_slug');
+                        targetRoute = hasDeviceSlug ? 'home' : 'connect';
+                        console.log('[Deep Link] Using device slug check, route:', targetRoute);
+                    }
+                    
                     // Wait a moment for the session to be established
                     setTimeout(async () => {
                         console.log('[Deep Link] Checking user session...');
@@ -37,13 +54,15 @@ export function AuthProvider({ children }) {
                             // Verify session exists by checking account directly (avoid stale closure)
                             const session = await account.get();
                             if (session && session.$id) {
-                                console.log('[Deep Link] Session verified, navigating to home');
-                                router.push('/home');
+                                console.log('[Deep Link] Session verified, navigating to', targetRoute);
+                                router.push(`/${targetRoute}`);
                             } else {
-                                console.log('[Deep Link] No session found');
+                                console.log('[Deep Link] No session found, redirecting to login');
+                                router.push('/login');
                             }
                         } catch (error) {
                             console.error('[Deep Link] Error checking session:', error);
+                            router.push('/login');
                         }
                     }, 1500);
                 }
