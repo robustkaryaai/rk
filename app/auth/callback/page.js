@@ -83,6 +83,25 @@ export default function OAuthCallbackPage() {
                         console.log('[OAuth Callback] Active session found:', session.$id);
                         alert('✅ Active session found! User ID: ' + session.$id.substring(0, 8));
 
+                        // Get the current session details to extract secret
+                        let sessionSecret = 'session_exists';
+                        try {
+                            const currentSession = await account.getSession('current');
+                            if (currentSession && currentSession.secret) {
+                                sessionSecret = currentSession.secret;
+                                console.log('[OAuth Callback] Got session secret from Appwrite');
+                                alert('🔑 Got session secret!');
+                            } else {
+                                console.log('[OAuth Callback] No secret in session, using userId for app login');
+                                // For app, we'll use the userId - the session already exists in browser
+                                sessionSecret = session.$id; // App will check if user already logged in
+                            }
+                        } catch (sessionDetailError) {
+                            console.error('[OAuth Callback] Could not get session details:', sessionDetailError);
+                            alert('⚠️ Could not get session secret, using userId');
+                            sessionSecret = session.$id;
+                        }
+
                         // Import database functions
                         const { databases, DATABASE_ID, COLLECTIONS, Query } = await import('@/lib/appwrite');
 
@@ -136,13 +155,13 @@ export default function OAuthCallbackPage() {
                                 tokenToUpdate,
                                 {
                                     userId: session.$id,
-                                    secret: 'session_exists', // Session already created by OAuth
+                                    secret: sessionSecret, // Store the actual secret or userId
                                     route: route
                                 }
                             );
 
                             console.log('[OAuth Callback] Document updated:', updatedDoc);
-                            alert('✅ Updated token in DB!');
+                            alert('✅ Updated token in DB with secret!');
 
                             // Check if mobile
                             const isMobileBrowser = typeof navigator !== 'undefined' && /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);

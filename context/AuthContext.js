@@ -90,7 +90,9 @@ export function AuthProvider({ children }) {
                             return;
                         }
 
-                        // Check if session already exists (from mobile OAuth flow)
+                        alert('🔐 Checking for existing session...');
+
+                        // Check if session already exists
                         let sessionExists = false;
                         try {
                             const existingSession = await account.get();
@@ -102,13 +104,44 @@ export function AuthProvider({ children }) {
                         } catch (e) {
                             // No session exists, need to create one
                             console.log('[Deep Link] No existing session');
+                            alert('⚠️ No existing session, will create one');
                         }
 
-                        // Only create session if it doesn't exist and we have a secret
-                        if (!sessionExists && secret && secret !== 'session_exists') {
-                            alert('🔐 Creating session...');
-                            await account.createSession(userId, secret);
-                            alert('✅ createSession success');
+                        // Create session if it doesn't exist
+                        if (!sessionExists) {
+                            // If secret is the userId itself or 'session_exists', we can't use createSession
+                            // The session should already exist in browser - sync it to app
+                            if (secret === userId || secret === 'session_exists') {
+                                alert('⚠️ Cannot create session - OAuth session from browser');
+                                // Try to use the existing account
+                                try {
+                                    await checkUser();
+                                    alert('✅ User check completed');
+                                } catch (userCheckError) {
+                                    console.error('[Deep Link] User check failed:', userCheckError);
+                                    alert('❌ Session sync failed. You may need to re-login.');
+                                    router.push('/login?error=session_sync_failed');
+                                    return;
+                                }
+                            } else {
+                                // We have a real secret, create session
+                                alert('🔐 Creating session with secret...');
+                                try {
+                                    await account.createSession(userId, secret);
+                                    alert('✅ Session created!');
+
+                                    await checkUser();
+                                    alert('✅ User verified');
+                                } catch (createError) {
+                                    console.error('[Deep Link] Create session failed:', createError);
+                                    alert('❌ Failed to create session: ' + createError.message);
+                                    router.push('/login?error=session_creation_failed');
+                                    return;
+                                }
+                            }
+                        } else {
+                            await checkUser();
+                            alert('✅ Using existing session!');
                         }
 
                         await checkUser();
