@@ -62,35 +62,32 @@ export function AuthProvider({ children }) {
 
                     alert('🎫 OAuth Token: ' + oauthToken.substring(0, 8) + '...');
 
-                    // Fetch OAuth params from database using token
+                    // Call server endpoint to get session credentials
                     try {
-                        // const { databases, DATABASE_ID, COLLECTIONS } = await import('@/lib/appwrite'); // Already imported at the top
+                        alert('📞 Calling server to create session...');
+                        console.log('[Deep Link] Calling server API with token:', oauthToken);
 
-                        console.log('[Deep Link] Fetching OAuth params for token:', oauthToken);
-                        const oauthDoc = await databases.getDocument(
-                            DATABASE_ID,
-                            COLLECTIONS.OAUTH_SESSIONS,
-                            oauthToken
+                        const response = await fetch(
+                            `${window.location.origin}/api/auth/create-app-session?token=${oauthToken}`,
+                            { method: 'GET' }
                         );
 
-                        const userId = oauthDoc.userId;
-                        const secret = oauthDoc.secret;
-                        const route = oauthDoc.route || 'home';
-
-                        alert(
-                            '🧾 Retrieved Params:\n' +
-                            'userId: ' + (userId ? '✅ Present' : '❌ Missing') + '\n' +
-                            'secret: ' + (secret ? '✅ Present' : '❌ Missing') + '\n' +
-                            'route: ' + route
-                        );
-
-                        if (!userId) {
-                            alert('❌ Retrieved params are invalid');
-                            router.push('/login?error=invalid_oauth_params');
-                            return;
+                        if (!response.ok) {
+                            const errorData = await response.json();
+                            throw new Error(errorData.error || 'Server request failed');
                         }
 
-                        alert('🔐 Checking for existing session...');
+                        const sessionData = await response.json();
+                        alert('✅ Got session data from server!');
+                        console.log('[Deep Link] Session data received:', sessionData);
+
+                        const { userId, secret, route } = sessionData;
+
+                        if (!userId || !secret) {
+                            alert('❌ Invalid session data from server');
+                            router.push('/login?error=invalid_session_data');
+                            return;
+                        }
 
                         // Check if session already exists
                         let sessionExists = false;
@@ -98,46 +95,28 @@ export function AuthProvider({ children }) {
                             const existingSession = await account.get();
                             if (existingSession && existingSession.$id === userId) {
                                 sessionExists = true;
-                                console.log('[Deep Link] Session already exists:', existingSession.$id);
                                 alert('✅ Session already exists!');
                             }
                         } catch (e) {
-                            // No session exists, need to create one
-                            console.log('[Deep Link] No existing session');
-                            alert('⚠️ No existing session, will authenticate with JWT');
+                            console.log('[Deep Link] No existing session, will create one');
                         }
 
                         // Create session if it doesn't exist
                         if (!sessionExists) {
-                            // The secret field contains a JWT token
-                            if (secret && secret.startsWith('eyJ')) {
-                                // It's a JWT token
-                                alert('🔑 Authenticating with JWT token...');
-                                try {
-                                    // Use JWT to create a session
-                                    const session = await account.createSession(userId, secret);
-                                    console.log('[Deep Link] Session created from JWT:', session);
-                                    alert('✅ Session created from JWT!');
-
-                                    await checkUser();
-                                    alert('✅ User verified');
-                                } catch (jwtError) {
-                                    console.error('[Deep Link] JWT authentication failed:', jwtError);
-                                    alert('❌ JWT auth failed: ' + jwtError.message);
-                                    router.push('/login?error=jwt_auth_failed');
-                                    return;
-                                }
-                            } else {
-                                // Not a JWT - might be old format or error
-                                alert('❌ Invalid authentication token format');
-                                console.error('[Deep Link] Secret is not a JWT token:', secret);
-                                router.push('/login?error=invalid_token');
+                            alert('🔐 Creating session with secret...');
+                            try {
+                                await account.createSession(userId, secret);
+                                alert('✅ Session created!');
+                            } catch (createError) {
+                                console.error('[Deep Link] Create session failed:', createError);
+                                alert('❌ Failed to create session: ' + createError.message);
+                                router.push('/login?error=session_creation_failed');
                                 return;
                             }
-                        } else {
-                            await checkUser();
-                            alert('✅ Using existing session!');
                         }
+
+                        await checkUser();
+                        alert('✅ User verified!');
 
                         // Clean up: delete the OAuth session document and localStorage token
                         try {
@@ -152,17 +131,13 @@ export function AuthProvider({ children }) {
                             console.error('[Deep Link] Cleanup error:', cleanupError);
                         }
 
-                        router.push(`/${route}`);
-                        alert('➡️ Navigated to /' + route);
+                        router.push(`/${route || 'home'}`);
+                        alert('➡️ Navigated!');
 
                     } catch (fetchError) {
-                        console.error('[Deep Link] Failed to fetch OAuth params:', fetchError);
-                        alert(
-                            '❌ Failed to fetch OAuth params:\n' +
-                            (fetchError.message || JSON.stringify(fetchError))
-                        );
-                        try { localStorage.setItem('rk_last_oauth_error', 'fetch_params_failed'); } catch (_) { }
-                        router.push('/login?error=fetch_params_failed');
+                        console.error('[Deep Link] Server request failed:', fetchError);
+                        alert('❌ Server request failed:\n' + fetchError.message);
+                        router.push('/login?error=server_request_failed');
                         return;
                     }
 
