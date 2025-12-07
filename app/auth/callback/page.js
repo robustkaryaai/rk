@@ -121,14 +121,16 @@ export default function OAuthCallbackPage() {
                             
                             if (isMobileBrowser || isAndroidApp) {
                                 console.log('[OAuth Callback] Mobile browser/app detected, redirecting to app...');
-                                // Build deep link URL with session params so app can establish session
                                 // Check device slug first to decide route
                                 const hasDeviceSlug = typeof localStorage !== 'undefined' && localStorage.getItem('rk_device_slug');
                                 const route = hasDeviceSlug ? 'home' : 'connect';
-                                // Pass userId and secret to app so it can create session
-                                const deepLinkUrl = `rkai://callback?success=true&route=${route}&userId=${encodeURIComponent(userId)}&secret=${encodeURIComponent(secret)}`;
                                 
-                                console.log('[OAuth Callback] Redirecting to app with session params');
+                                // Navigate app's WebView to the EXACT callback URL (with userId/secret)
+                                // This will allow Appwrite to set cookies in app's WebView context
+                                const currentUrlWithParams = window.location.href;
+                                const deepLinkUrl = `rkai://callback?navigateTo=${encodeURIComponent(currentUrlWithParams)}&route=${route}`;
+                                
+                                console.log('[OAuth Callback] Redirecting to app, will navigate WebView to:', currentUrlWithParams);
                                 // Redirect to app
                                 window.location.href = deepLinkUrl;
                                 
@@ -164,7 +166,10 @@ export default function OAuthCallbackPage() {
                                 console.log('[OAuth Callback] Mobile browser/app detected on retry, redirecting to app...');
                                 const hasDeviceSlug = typeof localStorage !== 'undefined' && localStorage.getItem('rk_device_slug');
                                 const route = hasDeviceSlug ? 'home' : 'connect';
-                                const deepLinkUrl = `rkai://callback?success=true&route=${route}&userId=${encodeURIComponent(userId)}&secret=${encodeURIComponent(secret)}`;
+                                
+                                // Navigate app's WebView to callback URL with params
+                                const currentUrlWithParams = window.location.href;
+                                const deepLinkUrl = `rkai://callback?navigateTo=${encodeURIComponent(currentUrlWithParams)}&route=${route}`;
                                 
                                 window.location.href = deepLinkUrl;
                                 
