@@ -248,23 +248,38 @@ export default function OAuthCallbackPage() {
                 
                 // No OAuth params in URL, but session might be established via cookies
                 // This happens when Appwrite OAuth completes and sets cookies
+                // OR when callback URL is loaded in app's WebView (from deep link)
+                const isAndroidApp = typeof window !== 'undefined' && 
+                    window.Capacitor && 
+                    window.Capacitor.isNativePlatform && 
+                    window.Capacitor.isNativePlatform();
+                
+                console.log('[OAuth Callback] No userId/secret in URL, checking for session via cookies...');
+                console.log('[OAuth Callback] Is Android App:', isAndroidApp);
+                
                 try {
+                    // Wait a bit for Appwrite to process cookies if any
+                    await new Promise(resolve => setTimeout(resolve, 1500));
+                    
                     const session = await account.get();
                     if (session && session.$id) {
-                        console.log('[OAuth Callback] Session found via cookies:', session.$id);
+                        console.log('[OAuth Callback] ✅ Session found via cookies:', session.$id);
                         
                         // Check device slug to decide route
                         const hasDeviceSlug = typeof localStorage !== 'undefined' && localStorage.getItem('rk_device_slug');
                         const route = hasDeviceSlug ? 'home' : 'connect';
                         
+                        // If in app's WebView, session is already established - just navigate
+                        if (isAndroidApp) {
+                            console.log('[OAuth Callback] In app WebView with session, navigating to', route);
+                            router.push(`/${route}`);
+                            return;
+                        }
+                        
                         // Check if we're in mobile browser (opened from Android app)
                         const isMobileBrowser = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-                        const isAndroidApp = typeof window !== 'undefined' && 
-                            window.Capacitor && 
-                            window.Capacitor.isNativePlatform && 
-                            window.Capacitor.isNativePlatform();
                         
-                        // If mobile browser (opened from Android app), pass session params to app
+                        // If mobile browser (opened from Android app), pass session to app
                         if (isMobileBrowser && !isAndroidApp) {
                             console.log('[OAuth Callback] Mobile browser detected, passing session to app...');
                             
@@ -290,9 +305,21 @@ export default function OAuthCallbackPage() {
                         // Already in app or web, just navigate
                         router.push(`/${route}`);
                         return;
+                    } else {
+                        console.error('[OAuth Callback] ❌ No session found via cookies either');
+                        if (isAndroidApp) {
+                            // In app but no session - this shouldn't happen
+                            console.error('[OAuth Callback] In app WebView but no session - OAuth might have failed');
+                            router.push('/login?error=no_session_in_app');
+                            return;
+                        }
                     }
                 } catch (sessionError) {
-                    console.error('[OAuth Callback] No session found:', sessionError);
+                    console.error('[OAuth Callback] Error checking session:', sessionError);
+                    if (isAndroidApp) {
+                        router.push('/login?error=session_check_failed');
+                        return;
+                    }
                 }
 
                 // If we reach here, something went wrong

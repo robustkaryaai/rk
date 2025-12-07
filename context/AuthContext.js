@@ -46,14 +46,31 @@ export function AuthProvider({ children }) {
                         if (callbackUrl) {
                             console.log('[Deep Link] Processing callback URL:', callbackUrl);
                             
+                            // Decode the URL first (it's URL encoded)
+                            let decodedCallbackUrl = callbackUrl;
                             try {
-                                const parsedUrl = new URL(callbackUrl);
+                                decodedCallbackUrl = decodeURIComponent(callbackUrl);
+                                console.log('[Deep Link] Decoded callback URL:', decodedCallbackUrl);
+                            } catch (e) {
+                                console.warn('[Deep Link] Could not decode URL, using as-is:', e);
+                            }
+                            
+                            try {
+                                const parsedUrl = new URL(decodedCallbackUrl);
+                                
+                                // Log ALL params to see what we have
+                                const allParams = Object.fromEntries(parsedUrl.searchParams.entries());
+                                console.log('[Deep Link] All params in callback URL:', allParams);
                                 
                                 // Extract userId/secret from callback URL
                                 const callbackUserId = parsedUrl.searchParams.get('userId');
                                 const callbackSecret = parsedUrl.searchParams.get('secret');
                                 
-                                console.log('[Deep Link] Extracted from callback URL - userId:', !!callbackUserId, 'secret:', !!callbackSecret);
+                                console.log('[Deep Link] Extracted - userId:', callbackUserId ? callbackUserId.substring(0, 20) + '...' : 'MISSING', 'secret:', callbackSecret ? callbackSecret.substring(0, 20) + '...' : 'MISSING');
+                                
+                                if (typeof window !== 'undefined' && window.alert) {
+                                    alert('📋 Callback URL params:\nuserId: ' + (callbackUserId ? '✅ Present' : '❌ Missing') + '\nsecret: ' + (callbackSecret ? '✅ Present' : '❌ Missing') + '\n\nAll params: ' + Object.keys(allParams).join(', '));
+                                }
                                 
                                 if (callbackUserId && callbackSecret) {
                                     console.log('[Deep Link] Creating session from callback URL params...');
@@ -120,10 +137,16 @@ export function AuthProvider({ children }) {
                                     }
                                 } else {
                                     console.error('[Deep Link] ❌ No userId/secret in callback URL');
+                                    console.log('[Deep Link] Trying fallback: Load callback URL in WebView to let Appwrite process it...');
+                                    
+                                    // FALLBACK: If no userId/secret, load the callback URL in WebView
+                                    // Appwrite might have set cookies in browser, and loading the URL will transfer them
                                     if (typeof window !== 'undefined' && window.alert) {
-                                        alert('❌ No userId/secret in callback URL');
+                                        alert('⚠️ No userId/secret found\n\nTrying fallback: Loading callback URL in app...');
                                     }
-                                    router.push('/login?error=missing_oauth_params');
+                                    
+                                    // Load the callback URL - Appwrite will process it and set cookies in WebView
+                                    window.location.href = decodedCallbackUrl;
                                     return;
                                 }
                             } catch (e) {
