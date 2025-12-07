@@ -28,6 +28,16 @@ export default function OAuthCallbackPage() {
                             sessionStorage.setItem('oauth_userId', nestedUserId);
                             sessionStorage.setItem('oauth_secret', nestedSecret);
                             console.log('[OAuth Callback] Extracted nested params from url=...');
+                        } else {
+                            const inner = full.searchParams.get('url');
+                            if (inner) {
+                                const innerUrl = new URL(inner);
+                                // If inner is an HTTPS callback, navigate there directly
+                                if (innerUrl.protocol === 'https:' || innerUrl.protocol === 'http:') {
+                                    window.location.href = innerUrl.href;
+                                    return;
+                                }
+                            }
                         }
                     } catch (e) {
                         console.warn('[OAuth Callback] Failed to parse nested url param:', e);

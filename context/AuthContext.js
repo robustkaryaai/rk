@@ -53,6 +53,14 @@ export function AuthProvider({ children }) {
                         const full = new URL(incomingUrl.searchParams.get('url'));
                         userId = full.searchParams.get('userId');
                         secret = full.searchParams.get('secret');
+                        const inner = full.searchParams.get('url');
+                        if ((!userId || !secret) && inner) {
+                            const innerUrl = new URL(inner);
+                            if (innerUrl.protocol === 'https:' || innerUrl.protocol === 'http:') {
+                                window.location.href = innerUrl.href;
+                                return;
+                            }
+                        }
                     }
 
                     alert(
