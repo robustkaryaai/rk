@@ -23,6 +23,46 @@ export default function WhatsNewPage() {
                     </button>
                 </div>
 
+                {/* v2.1.2 Hotfix */}
+                <GlassCard style={{ marginBottom: '24px', border: '1px solid rgba(245, 87, 108, 0.3)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>
+                        <div style={{
+                            width: '32px',
+                            height: '32px',
+                            background: 'linear-gradient(135deg, #f5576c 0%, #f093fb 100%)',
+                            borderRadius: '8px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontSize: '16px'
+                        }}>
+                            🔥
+                        </div>
+                        <h2 className="section-title" style={{ margin: 0 }}>v2.1.2 - Hotfixes</h2>
+                    </div>
+
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                        <div className="feature-item">
+                            <AiOutlineCheckCircle size={20} color="#4CAF50" />
+                            <div>
+                                <strong>Device Persistence Fixed</strong>
+                                <p style={{ fontSize: '14px', opacity: 0.7, margin: '4px 0 0 0' }}>
+                                    Fixed issue where device connection was lost after app relaunch.
+                                </p>
+                            </div>
+                        </div>
+                        <div className="feature-item">
+                            <AiOutlineCheckCircle size={20} color="#4CAF50" />
+                            <div>
+                                <strong>Dark Mode Stability</strong>
+                                <p style={{ fontSize: '14px', opacity: 0.7, margin: '4px 0 0 0' }}>
+                                    Fixed flashing white backgrounds when dark mode is enabled on launch.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </GlassCard>
+
                 {/* Android Optimizations */}
                 <GlassCard style={{ marginBottom: '24px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>

@@ -20,9 +20,11 @@ export default function RootLayout({ children }) {
                                     // If theme is explicitly 'dark', OR if no preference and system is dark
                                     if (theme === 'dark' || (!theme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
                                         document.body.classList.add('dark');
+                                        document.documentElement.classList.add('dark');
                                     } else {
                                         // Ensure dark class is removed if theme is 'light'
                                         document.body.classList.remove('dark');
+                                        document.documentElement.classList.remove('dark');
                                     }
                                 } catch (e) {}
                             })();
