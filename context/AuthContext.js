@@ -281,7 +281,30 @@ export function AuthProvider({ children }) {
 
             console.log('[Google Login] Using unique token:', oauthToken);
 
-            // Store token locally so we can use it when app reopens
+            // CREATE DOCUMENT IN APPWRITE BEFORE OAuth starts
+            // This way callback can find and update it
+            try {
+                await databases.createDocument(
+                    DATABASE_ID,
+                    COLLECTIONS.OAUTH_SESSIONS,
+                    oauthToken,
+                    {
+                        oauthToken: oauthToken,
+                        userId: 'PENDING', // Placeholder - will be updated by callback
+                        secret: 'PENDING', // Placeholder - will be updated by callback
+                        route: 'home',
+                        createdAt: new Date().toISOString()
+                    }
+                );
+                console.log('[Google Login] Token stored in Appwrite BEFORE OAuth');
+                alert('✅ Token stored in DB: ' + oauthToken.substring(0, 8));
+            } catch (dbError) {
+                console.error('[Google Login] Failed to store token:', dbError);
+                alert('❌ Failed to store token: ' + dbError.message);
+                return;
+            }
+
+            // Store token locally as backup
             try {
                 localStorage.setItem('rk_oauth_token', oauthToken);
             } catch (e) {

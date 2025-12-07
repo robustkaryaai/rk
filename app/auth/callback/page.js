@@ -73,103 +73,112 @@ export default function OAuthCallbackPage() {
                 alert('📍 Callback URL:\n' + window.location.href);
 
                 console.log('[OAuth Callback] Complete URL:', window.location.href);
-                console.log('[OAuth Callback] URL params:', {
-                    hasUserId: !!initialUserId,
-                    hasSecret: !!initialSecret,
-                    hasToken: !!oauthToken
-                });
+                console.log('[OAuth Callback] State token:', oauthToken);
 
-                // If no URL params, check for active session (mobile OAuth)
-                if (!initialUserId || !initialSecret) {
-                    console.log('[OAuth Callback] No URL params, checking for active session...');
-                    alert('⚠️ No URL params. Checking for active session...');
+                // Check for active session (Appwrite creates session via cookies on mobile)
+                try {
+                    const session = await account.get();
 
-                    try {
-                        // Check if Appwrite created a session via cookies
-                        const session = await account.get();
+                    if (session && session.$id) {
+                        console.log('[OAuth Callback] Active session found:', session.$id);
+                        alert('✅ Active session found! User ID: ' + session.$id.substring(0, 8));
 
-                        if (session && session.$id) {
-                            console.log('[OAuth Callback] Active session found:', session.$id);
-                            alert('✅ Active session found! User ID: ' + session.$id.substring(0, 8));
+                        // Import database functions
+                        const { databases, DATABASE_ID, COLLECTIONS, Query } = await import('@/lib/appwrite');
 
-                            // Get token from localStorage (set before OAuth started)
-                            let token;
+                        // Find the token document - either from state param or find PENDING one
+                        let tokenToUpdate = oauthToken;
+
+                        if (!tokenToUpdate) {
+                            // No state param - find most recent PENDING document
+                            console.log('[OAuth Callback] No state param, searching for PENDING document...');
+                            alert('⚠️ No state param, searching for PENDING document...');
+
                             try {
-                                token = localStorage.getItem('rk_oauth_token');
-                            } catch (e) {
-                                console.error('[OAuth Callback] Failed to get token from localStorage:', e);
-                            }
-
-                            if (!token) {
-                                alert('❌ No OAuth token in localStorage!');
-                                console.error('[OAuth Callback] No token found in localStorage');
-                                router.push('/login?error=no_token');
-                                return;
-                            }
-
-                            alert('🎫 Token from localStorage: ' + token.substring(0, 8));
-
-                            // Import database functions
-                            const { databases, DATABASE_ID, COLLECTIONS } = await import('@/lib/appwrite');
-
-                            // Determine route
-                            const hasDeviceSlug = typeof localStorage !== 'undefined' && localStorage.getItem('rk_device_slug');
-                            const route = hasDeviceSlug ? 'home' : 'connect';
-
-                            // Store session info in database with token
-                            try {
-                                const doc = await databases.createDocument(
+                                const docs = await databases.listDocuments(
                                     DATABASE_ID,
                                     COLLECTIONS.OAUTH_SESSIONS,
-                                    token,
-                                    {
-                                        oauthToken: token,
-                                        userId: session.$id,
-                                        secret: 'session_exists', // Placeholder since session is already created
-                                        route: route,
-                                        createdAt: new Date().toISOString()
-                                    }
+                                    [
+                                        Query.equal('userId', 'PENDING'),
+                                        Query.orderDesc('createdAt'),
+                                        Query.limit(1)
+                                    ]
                                 );
 
-                                console.log('[OAuth Callback] Session info stored:', doc);
-                                alert('✅ Stored session in DB!');
-
-                                // Check if mobile
-                                const isMobileBrowser = typeof navigator !== 'undefined' && /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-
-                                if (isMobileBrowser) {
-                                    // Redirect to app
-                                    const deepLinkUrl = `rkai://callback?token=${token}`;
-                                    console.log('[OAuth Callback] Redirecting to app:', deepLinkUrl);
-                                    alert('📱 Redirecting to app...');
-                                    window.location.href = deepLinkUrl;
-
-                                    setTimeout(() => {
-                                        router.push(`/login?oauth_stored=true&token=${token}`);
-                                    }, 2000);
-                                    return;
-                                } else {
-                                    // Web - already has session, just navigate
-                                    router.push(`/${route}`);
-                                    return;
+                                if (docs.documents && docs.documents.length > 0) {
+                                    tokenToUpdate = docs.documents[0].$id;
+                                    console.log('[OAuth Callback] Found PENDING document:', tokenToUpdate);
+                                    alert('✅ Found PENDING token: ' + tokenToUpdate.substring(0, 8));
                                 }
-                            } catch (dbError) {
-                                console.error('[OAuth Callback] Failed to store session:', dbError);
-                                alert('❌ DB Error: ' + (dbError.message || JSON.stringify(dbError)));
-                                router.push('/login?error=store_failed');
-                                return;
+                            } catch (searchError) {
+                                console.error('[OAuth Callback] Search failed:', searchError);
+                                alert('❌ Search failed: ' + searchError.message);
                             }
                         } else {
-                            alert('❌ No active session found');
-                            console.log('[OAuth Callback] No active session');
+                            alert('🎫 State token: ' + tokenToUpdate.substring(0, 8));
                         }
-                    } catch (sessionError) {
-                        console.error('[OAuth Callback] Session check failed:', sessionError);
-                        alert('❌ Session check failed: ' + sessionError.message);
+
+                        if (!tokenToUpdate) {
+                            alert('❌ No token found to update!');
+                            router.push('/login?error=no_token');
+                            return;
+                        }
+
+                        // Determine route
+                        const hasDeviceSlug = typeof localStorage !== 'undefined' && localStorage.getItem('rk_device_slug');
+                        const route = hasDeviceSlug ? 'home' : 'connect';
+
+                        // UPDATE the existing document with userId and session info
+                        try {
+                            const updatedDoc = await databases.updateDocument(
+                                DATABASE_ID,
+                                COLLECTIONS.OAUTH_SESSIONS,
+                                tokenToUpdate,
+                                {
+                                    userId: session.$id,
+                                    secret: 'session_exists', // Session already created by OAuth
+                                    route: route
+                                }
+                            );
+
+                            console.log('[OAuth Callback] Document updated:', updatedDoc);
+                            alert('✅ Updated token in DB!');
+
+                            // Check if mobile
+                            const isMobileBrowser = typeof navigator !== 'undefined' && /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
+                            if (isMobileBrowser) {
+                                // Redirect to app
+                                const deepLinkUrl = `rkai://callback?token=${tokenToUpdate}`;
+                                console.log('[OAuth Callback] Redirecting to app:', deepLinkUrl);
+                                alert('📱 Redirecting to app with token: ' + tokenToUpdate.substring(0, 8));
+                                window.location.href = deepLinkUrl;
+
+                                setTimeout(() => {
+                                    router.push(`/login?oauth_stored=true&token=${tokenToUpdate}`);
+                                }, 2000);
+                                return;
+                            } else {
+                                // Web - already has session, just navigate
+                                router.push(`/${route}`);
+                                return;
+                            }
+                        } catch (updateError) {
+                            console.error('[OAuth Callback] Failed to update document:', updateError);
+                            alert('❌ Update failed: ' + (updateError.message || JSON.stringify(updateError)));
+                            router.push('/login?error=update_failed');
+                            return;
+                        }
+                    } else {
+                        alert('❌ No active session found');
+                        console.log('[OAuth Callback] No active session');
                     }
+                } catch (sessionError) {
+                    console.error('[OAuth Callback] Session check failed:', sessionError);
+                    alert('❌ Session check failed: ' + sessionError.message);
                 }
 
-                // Original logic for URL params (if they exist)
+                // Original logic for URL params (if they exist - for web OAuth)
                 if (initialUserId && initialSecret && oauthToken) {
                     console.log('[OAuth Callback] All params present, storing in database...');
                     alert('✅ All params present! Storing in DB with token: ' + oauthToken.substring(0, 8));
