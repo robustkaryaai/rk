@@ -18,6 +18,16 @@ export default function OAuthCallbackPage() {
             try {
                 const url = new URL(window.location.href);
                 
+                // Check if we're in app's WebView
+                const isAndroidApp = typeof window !== 'undefined' && 
+                    window.Capacitor && 
+                    window.Capacitor.isNativePlatform && 
+                    window.Capacitor.isNativePlatform();
+                
+                console.log('[OAuth Callback] Page loaded. Is Android App:', isAndroidApp);
+                console.log('[OAuth Callback] Full URL:', window.location.href);
+                console.log('[OAuth Callback] All URL params:', Object.fromEntries(url.searchParams.entries()));
+                
                 // IMPORTANT: Capture userId and secret IMMEDIATELY before Appwrite processes them
                 // Store them in sessionStorage so we can use them later if needed
                 const initialUserId = url.searchParams.get('userId');
@@ -25,7 +35,17 @@ export default function OAuthCallbackPage() {
                 if (initialUserId && initialSecret) {
                     sessionStorage.setItem('oauth_userId', initialUserId);
                     sessionStorage.setItem('oauth_secret', initialSecret);
-                    console.log('[OAuth Callback] Stored OAuth params in sessionStorage');
+                    console.log('[OAuth Callback] ✅ Stored OAuth params in sessionStorage');
+                } else {
+                    console.log('[OAuth Callback] ⚠️ No userId/secret in URL - Appwrite using cookies');
+                }
+                
+                // If in app's WebView and no userId/secret, Appwrite SDK needs to process the callback
+                // This happens when Appwrite uses cookies instead of URL params
+                if (isAndroidApp && !initialUserId && !initialSecret) {
+                    console.log('[OAuth Callback] In app WebView with no URL params - waiting for Appwrite to process...');
+                    // Give Appwrite SDK time to process the callback URL and set cookies
+                    await new Promise(resolve => setTimeout(resolve, 2000));
                 }
 
                 // Android deep link (rkai://callback)
