@@ -375,9 +375,18 @@ export function AuthProvider({ children }) {
         try {
             await account.deleteSession('current');
 
-            // Clear all localStorage to prevent conflicts when switching accounts
+            // Preserve device slug but clear auth-related data
             if (typeof window !== 'undefined' && window.localStorage) {
-                localStorage.clear();
+                const deviceSlug = localStorage.getItem('rk_device_slug');
+
+                // Clear specific auth items instead of everything
+                localStorage.removeItem('rk_oauth_token');
+                localStorage.removeItem('theme');
+
+                // Restore device slug if it existed
+                if (deviceSlug) {
+                    localStorage.setItem('rk_device_slug', deviceSlug);
+                }
             }
 
             setUser(null);
@@ -385,9 +394,16 @@ export function AuthProvider({ children }) {
         } catch (error) {
             console.error('Logout failed:', error);
 
-            // Even if session delete fails, clear localStorage and redirect
+            // Even if session delete fails, clear auth data but preserve device slug
             if (typeof window !== 'undefined' && window.localStorage) {
-                localStorage.clear();
+                const deviceSlug = localStorage.getItem('rk_device_slug');
+
+                localStorage.removeItem('rk_oauth_token');
+                localStorage.removeItem('theme');
+
+                if (deviceSlug) {
+                    localStorage.setItem('rk_device_slug', deviceSlug);
+                }
             }
             setUser(null);
             router.push('/login');

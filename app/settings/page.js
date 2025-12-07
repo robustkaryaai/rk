@@ -953,6 +953,47 @@ export default function SettingsPage() {
                     </GlassCard>
                 </section>
 
+                {/* Contact & Support */}
+                <section style={{ marginBottom: '24px' }}>
+                    <h2 className="section-title">Support</h2>
+                    <GlassCard className="settings-card">
+                        <div
+                            className="settings-item menu-item-hover"
+                            onClick={() => router.push('/contact')}
+                            style={{
+                                cursor: 'pointer',
+                                transition: 'all 0.3s ease',
+                                borderRadius: '12px'
+                            }}
+                            onMouseEnter={(e) => {
+                                e.currentTarget.style.background = 'rgba(102, 126, 234, 0.1)';
+                            }}
+                            onMouseLeave={(e) => {
+                                e.currentTarget.style.background = 'transparent';
+                            }}
+                        >
+                            <div className="settings-info" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                <div style={{
+                                    width: '40px',
+                                    height: '40px',
+                                    background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+                                    borderRadius: '12px',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    fontSize: '20px'
+                                }}>
+                                    📧
+                                </div>
+                                <div>
+                                    <div style={{ fontWeight: '600', marginBottom: '4px' }}>Contact Us / Bug Report</div>
+                                    <div style={{ fontSize: '12px', opacity: 0.7 }}>Get in touch or report issues</div>
+                                </div>
+                            </div>
+                            <AiOutlineRight style={{ opacity: 0.5 }} />
+                        </div>
+                    </GlassCard>
+                </section>
 
 
                 {/* Premium Features Section - Only for Tier 3/4 */}

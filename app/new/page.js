@@ -36,7 +36,7 @@ export default function WhatsNewPage() {
                             <div>
                                 <strong>Google OAuth Fixed</strong>
                                 <p style={{ fontSize: '14px', opacity: 0.7, margin: '4px 0 0 0' }}>
-                                    Fixed redirect_uri_mismatch and "Access blocked" errors on native Android
+                                    Fixed redirect_uri_mismatch and "Access blocked" errors on native Android.
                                 </p>
                             </div>
                         </div>
@@ -46,7 +46,7 @@ export default function WhatsNewPage() {
                             <div>
                                 <strong>Deep Link Handling</strong>
                                 <p style={{ fontSize: '14px', opacity: 0.7, margin: '4px 0 0 0' }}>
-                                    Improved callback handling for native apps using rkai:// scheme
+                                    Improved callback handling for native apps using rkai:// scheme.
                                 </p>
                             </div>
                         </div>
@@ -56,7 +56,7 @@ export default function WhatsNewPage() {
                             <div>
                                 <strong>Browser Auto-Close</strong>
                                 <p style={{ fontSize: '14px', opacity: 0.7, margin: '4px 0 0 0' }}>
-                                    OAuth browser automatically closes after successful authentication
+                                    OAuth browser automatically closes after successful authentication.
                                 </p>
                             </div>
                         </div>
@@ -66,7 +66,7 @@ export default function WhatsNewPage() {
                             <div>
                                 <strong>Session Stability</strong>
                                 <p style={{ fontSize: '14px', opacity: 0.7, margin: '4px 0 0 0' }}>
-                                    Enhanced session handling for native platforms with proper token sync
+                                    Enhanced session handling for native platforms with proper token sync.
                                 </p>
                             </div>
                         </div>
@@ -86,7 +86,7 @@ export default function WhatsNewPage() {
                             <div>
                                 <strong>Coming Soon</strong>
                                 <p style={{ fontSize: '14px', opacity: 0.7, margin: '4px 0 0 0' }}>
-                                    Google Drive integration temporarily disabled for optimization
+                                    Google Drive integration temporarily disabled for optimization. Only tier 3 and 4 users can contact us to enable it for them.
                                 </p>
                             </div>
                         </div>
@@ -96,7 +96,7 @@ export default function WhatsNewPage() {
                             <div>
                                 <strong>Supabase Storage</strong>
                                 <p style={{ fontSize: '14px', opacity: 0.7, margin: '4px 0 0 0' }}>
-                                    All files continue to be stored securely in Supabase
+                                    All files continue to be stored securely in Supabase.
                                 </p>
                             </div>
                         </div>
@@ -106,7 +106,7 @@ export default function WhatsNewPage() {
                             <div>
                                 <strong>Future Return</strong>
                                 <p style={{ fontSize: '14px', opacity: 0.7, margin: '4px 0 0 0' }}>
-                                    Google Drive will return with better performance and reliability
+                                    Google Drive will return with better performance and reliability.
                                 </p>
                             </div>
                         </div>
@@ -126,7 +126,7 @@ export default function WhatsNewPage() {
                             <div>
                                 <strong>Account Switching Fixed</strong>
                                 <p style={{ fontSize: '14px', opacity: 0.7, margin: '4px 0 0 0' }}>
-                                    Properly clears localStorage when switching Google accounts
+                                    Properly clears localStorage when switching Google accounts.
                                 </p>
                             </div>
                         </div>
@@ -136,7 +136,7 @@ export default function WhatsNewPage() {
                             <div>
                                 <strong>Device Ownership Validation</strong>
                                 <p style={{ fontSize: '14px', opacity: 0.7, margin: '4px 0 0 0' }}>
-                                    Validates device belongs to current user on login/refresh
+                                    Validates device belongs to current user on login/refresh.
                                 </p>
                             </div>
                         </div>
@@ -146,7 +146,7 @@ export default function WhatsNewPage() {
                             <div>
                                 <strong>Mobile Background Fixed</strong>
                                 <p style={{ fontSize: '14px', opacity: 0.7, margin: '4px 0 0 0' }}>
-                                    Grid pattern now visible with proper gradient background on all devices
+                                    Grid pattern now visible with proper gradient background on all devices.
                                 </p>
                             </div>
                         </div>
@@ -156,7 +156,7 @@ export default function WhatsNewPage() {
                             <div>
                                 <strong>Safe Area Padding</strong>
                                 <p style={{ fontSize: '14px', opacity: 0.7, margin: '4px 0 0 0' }}>
-                                    Content no longer hides behind status bar on mobile devices
+                                    Content no longer hides behind status bar on mobile devices.
                                 </p>
                             </div>
                         </div>
@@ -166,7 +166,7 @@ export default function WhatsNewPage() {
                             <div>
                                 <strong>Premium Features for Tier 3/4</strong>
                                 <p style={{ fontSize: '14px', opacity: 0.7, margin: '4px 0 0 0' }}>
-                                    Pro and Studio subscribers can now request new features in Settings
+                                    Pro and Studio subscribers can now request new features in Settings.
                                 </p>
                             </div>
                         </div>
@@ -176,7 +176,7 @@ export default function WhatsNewPage() {
                             <div>
                                 <strong>Theme Persistence</strong>
                                 <p style={{ fontSize: '14px', opacity: 0.7, margin: '4px 0 0 0' }}>
-                                    Selected theme now persists across app refreshes
+                                    Selected theme now persists across app refreshes.
                                 </p>
                             </div>
                         </div>
@@ -186,11 +186,25 @@ export default function WhatsNewPage() {
                             <div>
                                 <strong>Code Cleanup</strong>
                                 <p style={{ fontSize: '14px', opacity: 0.7, margin: '4px 0 0 0' }}>
-                                    Removed debug alerts and console logs for cleaner production environment
+                                    Removed debug alerts and console logs for cleaner production environment.
                                 </p>
                             </div>
                         </div>
                     </div>
+                </GlassCard>
+
+                {/* Technical Improvements */}
+                <GlassCard>
+                    <h3 style={{ marginBottom: '16px', fontSize: '18px' }}>🔧 Technical Improvements</h3>
+                    <ul style={{ paddingLeft: '20px', display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '14px', opacity: 0.9 }}>
+                        <li>Hybrid OAuth architecture: Appwrite for login, Direct Google API for Drive</li>
+                        <li>Enhanced deep link handling with automatic browser closure.</li>
+                        <li>Device ownership validation on session check.</li>
+                        <li>LocalStorage cleanup on logout for clean account switching.</li>
+                        <li>Dynamic viewport height (dvh) support for better mobile display.</li>
+                        <li>Improved gradient visibility with increased opacity.</li>
+                        <li>Feature request system for premium subscribers.</li>
+                    </ul>
                 </GlassCard>
 
                 {/* v2.1.1 Hotfix */}
@@ -217,7 +231,7 @@ export default function WhatsNewPage() {
                             <div>
                                 <strong>Light/Dark Mode Backgrounds</strong>
                                 <p style={{ fontSize: '14px', opacity: 0.7, margin: '4px 0 0 0' }}>
-                                    Fixed background appearing the same in both themes - now properly switches
+                                    Fixed background appearing the same in both themes - now properly switches.
                                 </p>
                             </div>
                         </div>
@@ -226,7 +240,7 @@ export default function WhatsNewPage() {
                             <div>
                                 <strong>Dark Mode Toggle State</strong>
                                 <p style={{ fontSize: '14px', opacity: 0.7, margin: '4px 0 0 0' }}>
-                                    Toggle now correctly reflects whether dark mode is active or not
+                                    Toggle now correctly reflects whether dark mode is active or not.
                                 </p>
                             </div>
                         </div>
@@ -249,21 +263,34 @@ export default function WhatsNewPage() {
                                 </p>
                             </div>
                         </div>
+                        <div className="feature-item">
+                            <AiOutlineCheckCircle size={20} color="#4CAF50" />
+                            <div>
+                                <strong>Device disconnection problem</strong>
+                                <p style={{ fontSize: '14px', opacity: 0.7, margin: '4px 0 0 0' }}>
+                                    Fixed user device automatically getting removed from the app when reloading the app.
+                                </p>
+                            </div>
+                        </div>
+                        <div className="feature-item">
+                            <AiOutlineCheckCircle size={20} color="#4CAF50" />
+                            <div>
+                                <strong>Contact & Support</strong>
+                                <p style={{ fontSize: '14px', opacity: 0.7, margin: '4px 0 0 0' }}>
+                                    Added direct contact and bug report form in Settings for all users.
+                                </p>
+                            </div>
+                        </div>
+                        <div className="feature-item">
+                            <AiOutlineCheckCircle size={20} color="#4CAF50" />
+                            <div>
+                                <strong>Contact & Support</strong>
+                                <p style={{ fontSize: '14px', opacity: 0.7, margin: '4px 0 0 0' }}>
+                                    Added direct contact and bug report form in Settings for all users.
+                                </p>
+                            </div>
+                        </div>
                     </div>
-                </GlassCard>
-
-                {/* Technical Improvements */}
-                <GlassCard>
-                    <h3 style={{ marginBottom: '16px', fontSize: '18px' }}>🔧 Technical Improvements</h3>
-                    <ul style={{ paddingLeft: '20px', display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '14px', opacity: 0.9 }}>
-                        <li>Hybrid OAuth architecture: Appwrite for login, Direct Google API for Drive</li>
-                        <li>Enhanced deep link handling with automatic browser closure.</li>
-                        <li>Device ownership validation on session check.</li>
-                        <li>LocalStorage cleanup on logout for clean account switching.</li>
-                        <li>Dynamic viewport height (dvh) support for better mobile display.</li>
-                        <li>Improved gradient visibility with increased opacity.</li>
-                        <li>Feature request system for premium subscribers.</li>
-                    </ul>
                 </GlassCard>
             </div>
 
