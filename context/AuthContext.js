@@ -230,9 +230,22 @@ export function AuthProvider({ children }) {
             };
 
             if (isNative()) {
-                console.log('[Google Login] Native platform detected, launching in-app callback starter');
-                router.push('/auth/callback?start=google');
-                return;
+                console.log('[Google Login] Native platform detected, opening OAuth in external browser with deep link');
+                try {
+                    const origin = window.location.origin;
+                    const oauthUrl = account.getOAuth2Url(
+                        'google',
+                        'rkai://callback',
+                        `${origin}/login?error=oauth_failed`,
+                        ['https://www.googleapis.com/auth/drive.file']
+                    );
+                    await Browser.open({ url: oauthUrl });
+                    return;
+                } catch (e) {
+                    console.error('[Google Login] External browser OAuth failed, falling back to in-app');
+                    router.push('/auth/callback?start=google');
+                    return;
+                }
             }
 
             // Web: start OAuth directly from this page (auto-redirect is fine for web)
