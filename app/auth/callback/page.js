@@ -83,23 +83,30 @@ export default function OAuthCallbackPage() {
                         console.log('[OAuth Callback] Active session found:', session.$id);
                         alert('✅ Active session found! User ID: ' + session.$id.substring(0, 8));
 
-                        // Get the current session details to extract secret
-                        let sessionSecret = 'session_exists';
+                        // Create JWT token from the browser session
+                        // This JWT can be used by the app to authenticate
+                        let jwtToken = null;
                         try {
-                            const currentSession = await account.getSession('current');
-                            if (currentSession && currentSession.secret) {
-                                sessionSecret = currentSession.secret;
-                                console.log('[OAuth Callback] Got session secret from Appwrite');
-                                alert('🔑 Got session secret!');
+                            const jwt = await account.createJWT();
+                            if (jwt && jwt.jwt) {
+                                jwtToken = jwt.jwt;
+                                console.log('[OAuth Callback] Created JWT token for app');
+                                alert('🔑 Created JWT token!');
                             } else {
-                                console.log('[OAuth Callback] No secret in session, using userId for app login');
-                                // For app, we'll use the userId - the session already exists in browser
-                                sessionSecret = session.$id; // App will check if user already logged in
+                                console.error('[OAuth Callback] JWT creation returned no token');
+                                alert('❌ JWT creation failed');
                             }
-                        } catch (sessionDetailError) {
-                            console.error('[OAuth Callback] Could not get session details:', sessionDetailError);
-                            alert('⚠️ Could not get session secret, using userId');
-                            sessionSecret = session.$id;
+                        } catch (jwtError) {
+                            console.error('[OAuth Callback] Failed to create JWT:', jwtError);
+                            alert('❌ JWT creation error: ' + jwtError.message);
+                            router.push('/login?error=jwt_creation_failed');
+                            return;
+                        }
+
+                        if (!jwtToken) {
+                            alert('❌ No JWT token available');
+                            router.push('/login?error=no_jwt');
+                            return;
                         }
 
                         // Import database functions
@@ -147,7 +154,7 @@ export default function OAuthCallbackPage() {
                         const hasDeviceSlug = typeof localStorage !== 'undefined' && localStorage.getItem('rk_device_slug');
                         const route = hasDeviceSlug ? 'home' : 'connect';
 
-                        // UPDATE the existing document with userId and session info
+                        // UPDATE the existing document with userId and JWT token
                         try {
                             const updatedDoc = await databases.updateDocument(
                                 DATABASE_ID,
@@ -155,13 +162,13 @@ export default function OAuthCallbackPage() {
                                 tokenToUpdate,
                                 {
                                     userId: session.$id,
-                                    secret: sessionSecret, // Store the actual secret or userId
+                                    secret: jwtToken, // Store JWT token so app can authenticate
                                     route: route
                                 }
                             );
 
-                            console.log('[OAuth Callback] Document updated:', updatedDoc);
-                            alert('✅ Updated token in DB with secret!');
+                            console.log('[OAuth Callback] Document updated with JWT');
+                            alert('✅ Updated token in DB with JWT!');
 
                             // Check if mobile
                             const isMobileBrowser = typeof navigator !== 'undefined' && /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
