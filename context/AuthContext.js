@@ -248,14 +248,15 @@ export function AuthProvider({ children }) {
                 }
             }
 
-            // Web: start OAuth directly from this page (auto-redirect is fine for web)
-            console.log('[Google Login] Web platform, using createOAuth2Session');
-            account.createOAuth2Session(
+            // Web: use getOAuth2Url so success callback includes userId & secret
+            console.log('[Google Login] Web platform, using getOAuth2Url');
+            const webOauthUrl = account.getOAuth2Url(
                 'google',
-                callbackUrl,  // Our callback page handles the redirect
+                callbackUrl,
                 failureUrl,
                 ['https://www.googleapis.com/auth/drive.file']
             );
+            window.location.href = webOauthUrl;
         } catch (error) {
             console.error('[Google Login] Google login failed:', error);
             alert('Failed to start Google sign-in. Please try again.');
