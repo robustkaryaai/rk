@@ -38,11 +38,32 @@ export function AuthProvider({ children }) {
                         const navigateTo = url.searchParams.get('navigateTo'); // Callback URL to navigate to
 
                         if (navigateTo) {
-                            // Navigate app's WebView to callback URL to establish session cookies
-                            console.log('[Deep Link] Navigating WebView to callback URL:', navigateTo);
-                            window.location.href = navigateTo;
-                            // The callback page will handle session and redirect
-                            return;
+                            // Parse callback URL to extract OAuth params
+                            try {
+                                const callbackUrl = new URL(navigateTo);
+                                const callbackUserId = callbackUrl.searchParams.get('userId');
+                                const callbackSecret = callbackUrl.searchParams.get('secret');
+                                
+                                if (callbackUserId && callbackSecret) {
+                                    // We have OAuth params in callback URL, create session directly
+                                    console.log('[Deep Link] Creating session from callback URL params');
+                                    await account.createSession(callbackUserId, callbackSecret);
+                                    await checkUser();
+                                    router.push(`/${route}`);
+                                    return;
+                                } else {
+                                    // No params in callback URL, navigate to it and let Appwrite handle via cookies
+                                    console.log('[Deep Link] No OAuth params in callback URL, navigating WebView...');
+                                    window.location.href = navigateTo;
+                                    // The callback page will handle session and redirect
+                                    return;
+                                }
+                            } catch (e) {
+                                console.error('[Deep Link] Error parsing callback URL:', e);
+                                // Fallback: just navigate
+                                window.location.href = navigateTo;
+                                return;
+                            }
                         }
 
                         if (userId && secret) {

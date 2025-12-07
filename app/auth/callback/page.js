@@ -26,22 +26,32 @@ export default function OAuthCallbackPage() {
                     
                     // If we have userId and secret from OAuth callback, establish session
                     if (userId && secret) {
-                        console.log('[OAuth Callback] Deep link with session params, establishing session...');
-                        // Appwrite OAuth callback - session should be automatically established when page loads
-                        // Just wait and check session
-                        await new Promise(resolve => setTimeout(resolve, 1500));
-                        
+                        console.log('[OAuth Callback] Deep link with session params, creating session...');
                         try {
+                            // Create session directly using Appwrite SDK
+                            await account.createSession(userId, secret);
+                            console.log('[OAuth Callback] Session created successfully from deep link');
+                            
+                            // Wait a moment for session to be fully established
+                            await new Promise(resolve => setTimeout(resolve, 500));
+                            
+                            // Verify session
                             const session = await account.get();
                             if (session && session.$id) {
-                                console.log('[OAuth Callback] Session established from deep link');
+                                console.log('[OAuth Callback] Session verified:', session.$id);
                                 const hasDeviceSlug = typeof localStorage !== 'undefined' && localStorage.getItem('rk_device_slug');
                                 const route = hasDeviceSlug ? 'home' : 'connect';
                                 router.push(`/${route}`);
                                 return;
+                            } else {
+                                console.error('[OAuth Callback] Session creation failed - no session after createSession');
+                                router.push('/login?error=session_failed');
+                                return;
                             }
                         } catch (error) {
-                            console.error('[OAuth Callback] Session check failed:', error);
+                            console.error('[OAuth Callback] Session creation error:', error);
+                            router.push('/login?error=session_creation_failed');
+                            return;
                         }
                     }
                     
@@ -192,13 +202,11 @@ export default function OAuthCallbackPage() {
                             window.Capacitor.isNativePlatform && 
                             window.Capacitor.isNativePlatform();
                         
-                        // If mobile browser (opened from Android app), navigate app's WebView to callback URL
-                        // This will establish session cookies in app's WebView context
+                        // If mobile browser (opened from Android app), pass session params to app
                         if (isMobileBrowser && !isAndroidApp) {
-                            console.log('[OAuth Callback] Mobile browser detected, navigating app WebView to callback URL...');
-                            // Navigate app's WebView to callback URL so Appwrite can set cookies there
-                            // The deep link will bring app to foreground, then we navigate WebView
-                            const deepLinkUrl = `rkai://callback?navigateTo=${encodeURIComponent(window.location.href)}&route=${route}`;
+                            console.log('[OAuth Callback] Mobile browser detected, passing session to app...');
+                            // Pass userId and secret to app so it can create session directly
+                            const deepLinkUrl = `rkai://callback?userId=${encodeURIComponent(userId)}&secret=${encodeURIComponent(secret)}&route=${route}`;
                             window.location.href = deepLinkUrl;
                             
                             // Fallback after timeout
