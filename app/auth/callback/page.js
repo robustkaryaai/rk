@@ -69,6 +69,10 @@ export default function OAuthCallbackPage() {
                 const initialSecret = url.searchParams.get('secret');
                 const oauthToken = url.searchParams.get('state'); // Token passed as state parameter
 
+                // DEBUG: Show the complete URL
+                alert('📍 Callback URL:\n' + window.location.href);
+
+                console.log('[OAuth Callback] Complete URL:', window.location.href);
                 console.log('[OAuth Callback] Received params:', {
                     hasUserId: !!initialUserId,
                     hasSecret: !!initialSecret,
