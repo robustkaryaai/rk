@@ -107,21 +107,44 @@ export default function OAuthCallbackPage() {
                     
                     // If in app's WebView, create session directly (Real App Approach)
                     if (isAndroidApp) {
-                        console.log('[OAuth Callback] In app WebView, creating session directly...');
+                        console.log('[OAuth Callback] ✅ In app WebView, creating session directly...');
+                        console.log('[OAuth Callback] userId length:', userId?.length, 'secret length:', secret?.length);
                         try {
                             await account.createSession(userId, secret);
-                            await new Promise(resolve => setTimeout(resolve, 1000));
+                            console.log('[OAuth Callback] createSession call completed');
+                            
+                            // Wait longer for session to be fully established
+                            await new Promise(resolve => setTimeout(resolve, 2000));
                             
                             const session = await account.get();
+                            console.log('[OAuth Callback] Session check - has session:', !!session?.$id);
+                            
                             if (session && session.$id) {
-                                console.log('[OAuth Callback] Session created in app WebView:', session.$id);
+                                console.log('[OAuth Callback] ✅ Session created in app WebView:', session.$id);
                                 const hasDeviceSlug = typeof localStorage !== 'undefined' && localStorage.getItem('rk_device_slug');
                                 const route = hasDeviceSlug ? 'home' : 'connect';
                                 router.push(`/${route}`);
                                 return;
+                            } else {
+                                console.error('[OAuth Callback] ❌ Session not found after createSession in app');
+                                // Try one more time
+                                await new Promise(resolve => setTimeout(resolve, 2000));
+                                const retrySession = await account.get();
+                                if (retrySession && retrySession.$id) {
+                                    console.log('[OAuth Callback] ✅ Session found on retry!');
+                                    const hasDeviceSlug = typeof localStorage !== 'undefined' && localStorage.getItem('rk_device_slug');
+                                    const route = hasDeviceSlug ? 'home' : 'connect';
+                                    router.push(`/${route}`);
+                                    return;
+                                }
                             }
                         } catch (err) {
-                            console.error('[OAuth Callback] Session creation failed in app:', err);
+                            console.error('[OAuth Callback] ❌ Session creation failed in app:', err);
+                            console.error('[OAuth Callback] Error details:', {
+                                message: err.message,
+                                code: err.code,
+                                type: err.type
+                            });
                         }
                     }
                     
