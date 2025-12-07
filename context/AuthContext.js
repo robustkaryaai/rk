@@ -338,7 +338,9 @@ export function AuthProvider({ children }) {
             // Use createOAuth2Session logic but handle native browser opening manually
             // to prevent "disallowed_useragent" error in WebViews
 
-            const scopes = ['https://www.googleapis.com/auth/drive.file'];
+            // Temporary: Use basic scopes to debug "Access blocked"
+            // const scopes = ['https://www.googleapis.com/auth/drive.file'];
+            const scopes = ['email', 'profile', 'openid'];
 
             // Check if native platform
             const isNative = typeof window !== 'undefined' && window.Capacitor && window.Capacitor.isNativePlatform();
@@ -353,8 +355,13 @@ export function AuthProvider({ children }) {
 
                 scopes.forEach(scope => targetUrl.searchParams.append('scopes[]', scope));
 
-                console.log('[Google Login] Opening native browser:', targetUrl.toString());
-                await Browser.open({ url: targetUrl.toString() });
+                const finalUrl = targetUrl.toString();
+                console.log('[Google Login] Opening native browser:', finalUrl);
+
+                // DEBUG: Show URL to check project ID and format
+                alert(`Opening Google Login...\nProject: ${APPWRITE_PROJECT_ID}\nURL: ${finalUrl}`);
+
+                await Browser.open({ url: finalUrl });
             } else {
                 // Web: Use SDK method
                 account.createOAuth2Session(
