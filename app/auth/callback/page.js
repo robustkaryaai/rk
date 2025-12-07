@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
-import { account } from '@/lib/appwrite';
+import { account, databases, DATABASE_ID, COLLECTIONS } from '@/lib/appwrite';
 import { useRouter } from 'next/navigation';
 
 /**
@@ -65,13 +65,71 @@ export default function OAuthCallbackPage() {
                 }
 
                 // IMPORTANT: Capture userId and secret IMMEDIATELY before Appwrite processes them
-                // Store them in sessionStorage so we can use them later if needed
                 const initialUserId = url.searchParams.get('userId');
                 const initialSecret = url.searchParams.get('secret');
-                if (initialUserId && initialSecret) {
-                    sessionStorage.setItem('oauth_userId', initialUserId);
-                    sessionStorage.setItem('oauth_secret', initialSecret);
-                    console.log('[OAuth Callback] Stored OAuth params in sessionStorage');
+                const oauthToken = url.searchParams.get('state'); // Token passed as state parameter
+
+                console.log('[OAuth Callback] Received params:', {
+                    hasUserId: !!initialUserId,
+                    hasSecret: !!initialSecret,
+                    hasToken: !!oauthToken
+                });
+
+                if (initialUserId && initialSecret && oauthToken) {
+                    console.log('[OAuth Callback] Storing OAuth params in database with token:', oauthToken);
+
+                    try {
+                        // Import database functions
+                        const { databases, DATABASE_ID, COLLECTIONS } = await import('@/lib/appwrite');
+
+                        // Determine route based on device slug
+                        const hasDeviceSlug = typeof localStorage !== 'undefined' && localStorage.getItem('rk_device_slug');
+                        const route = hasDeviceSlug ? 'home' : 'connect';
+
+                        // Store OAuth params in database
+                        await databases.createDocument(
+                            DATABASE_ID,
+                            COLLECTIONS.OAUTH_SESSIONS,
+                            oauthToken, // Use token as document ID
+                            {
+                                userId: initialUserId,
+                                secret: initialSecret,
+                                route: route,
+                                createdAt: new Date().toISOString()
+                            }
+                        );
+
+                        console.log('[OAuth Callback] OAuth params stored successfully');
+
+                        // Check if we're on mobile (opened from Android app)
+                        const isMobileBrowser = typeof navigator !== 'undefined' && /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
+                        if (isMobileBrowser) {
+                            // Redirect to app via deep link with token
+                            const deepLinkUrl = `rkai://callback?token=${oauthToken}`;
+                            console.log('[OAuth Callback] Redirecting to app:', deepLinkUrl);
+                            window.location.href = deepLinkUrl;
+
+                            // Fallback: if app doesn't open, show success message
+                            setTimeout(() => {
+                                router.push(`/login?oauth_stored=true&token=${oauthToken}`);
+                            }, 2000);
+                            return;
+                        } else {
+                            // On web, create session directly
+                            console.log('[OAuth Callback] Web platform, creating session directly');
+                            await account.createSession(initialUserId, initialSecret);
+                            await new Promise(resolve => setTimeout(resolve, 500));
+                            router.push(`/${route}`);
+                            return;
+                        }
+
+                    } catch (dbError) {
+                        console.error('[OAuth Callback] Failed to store OAuth params:', dbError);
+                        try { localStorage.setItem('rk_last_oauth_error', 'store_params_failed'); } catch (_) { }
+                        router.push('/login?error=store_params_failed');
+                        return;
+                    }
                 }
 
                 // Android deep link (rkai://callback)
