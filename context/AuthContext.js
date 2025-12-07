@@ -193,6 +193,28 @@ export function AuthProvider({ children }) {
                 await userAPI.syncUserToAppwrite(session);
             }
 
+            // Validate device ownership - check if stored device_slug belongs to current user
+            if (typeof window !== 'undefined' && window.localStorage) {
+                const storedSlug = localStorage.getItem('rk_device_slug');
+                if (storedSlug) {
+                    try {
+                        // Verify device belongs to current user
+                        const { deviceAPI } = await import('@/lib/api');
+                        const device = await deviceAPI.getDeviceBySlug(storedSlug);
+
+                        // If device doesn't belong to current user, clear it
+                        if (device.userId !== session.$id) {
+                            console.warn('[Auth] Device slug belongs to different user, clearing...');
+                            localStorage.removeItem('rk_device_slug');
+                        }
+                    } catch (deviceError) {
+                        // Device not found or error - clear the slug
+                        console.warn('[Auth] Device validation failed, clearing slug:', deviceError.message);
+                        localStorage.removeItem('rk_device_slug');
+                    }
+                }
+            }
+
         } catch (error) {
             setUser(null);
         } finally {
@@ -352,10 +374,23 @@ export function AuthProvider({ children }) {
     const logout = async () => {
         try {
             await account.deleteSession('current');
+
+            // Clear all localStorage to prevent conflicts when switching accounts
+            if (typeof window !== 'undefined' && window.localStorage) {
+                localStorage.clear();
+            }
+
             setUser(null);
             router.push('/login');
         } catch (error) {
             console.error('Logout failed:', error);
+
+            // Even if session delete fails, clear localStorage and redirect
+            if (typeof window !== 'undefined' && window.localStorage) {
+                localStorage.clear();
+            }
+            setUser(null);
+            router.push('/login');
         }
     };
 
