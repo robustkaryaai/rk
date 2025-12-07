@@ -70,7 +70,6 @@ export default function OAuthCallbackPage() {
                 const oauthToken = url.searchParams.get('state'); // Token passed as state parameter
 
                 // DEBUG: Show the complete URL
-                alert('📍 Callback URL:\n' + window.location.href);
 
                 console.log('[OAuth Callback] Complete URL:', window.location.href);
                 console.log('[OAuth Callback] State token:', oauthToken);
@@ -81,7 +80,6 @@ export default function OAuthCallbackPage() {
 
                     if (session && session.$id) {
                         console.log('[OAuth Callback] Active session found:', session.$id);
-                        alert('✅ Active session found! User ID: ' + session.$id.substring(0, 8));
 
                         // Create JWT token from the browser session
                         // This JWT can be used by the app to authenticate
@@ -91,20 +89,16 @@ export default function OAuthCallbackPage() {
                             if (jwt && jwt.jwt) {
                                 jwtToken = jwt.jwt;
                                 console.log('[OAuth Callback] Created JWT token for app');
-                                alert('🔑 Created JWT token!');
                             } else {
                                 console.error('[OAuth Callback] JWT creation returned no token');
-                                alert('❌ JWT creation failed');
                             }
                         } catch (jwtError) {
                             console.error('[OAuth Callback] Failed to create JWT:', jwtError);
-                            alert('❌ JWT creation error: ' + jwtError.message);
                             router.push('/login?error=jwt_creation_failed');
                             return;
                         }
 
                         if (!jwtToken) {
-                            alert('❌ No JWT token available');
                             router.push('/login?error=no_jwt');
                             return;
                         }
@@ -118,7 +112,6 @@ export default function OAuthCallbackPage() {
                         if (!tokenToUpdate) {
                             // No state param - find most recent PENDING document
                             console.log('[OAuth Callback] No state param, searching for PENDING document...');
-                            alert('⚠️ No state param, searching for PENDING document...');
 
                             try {
                                 const docs = await databases.listDocuments(
@@ -134,18 +127,14 @@ export default function OAuthCallbackPage() {
                                 if (docs.documents && docs.documents.length > 0) {
                                     tokenToUpdate = docs.documents[0].$id;
                                     console.log('[OAuth Callback] Found PENDING document:', tokenToUpdate);
-                                    alert('✅ Found PENDING token: ' + tokenToUpdate.substring(0, 8));
                                 }
                             } catch (searchError) {
                                 console.error('[OAuth Callback] Search failed:', searchError);
-                                alert('❌ Search failed: ' + searchError.message);
                             }
                         } else {
-                            alert('🎫 State token: ' + tokenToUpdate.substring(0, 8));
                         }
 
                         if (!tokenToUpdate) {
-                            alert('❌ No token found to update!');
                             router.push('/login?error=no_token');
                             return;
                         }
@@ -168,7 +157,6 @@ export default function OAuthCallbackPage() {
                             );
 
                             console.log('[OAuth Callback] Document updated with JWT');
-                            alert('✅ Updated token in DB with JWT!');
 
                             // Check if mobile
                             const isMobileBrowser = typeof navigator !== 'undefined' && /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
@@ -177,7 +165,6 @@ export default function OAuthCallbackPage() {
                                 // Redirect to app
                                 const deepLinkUrl = `rkai://callback?token=${tokenToUpdate}`;
                                 console.log('[OAuth Callback] Redirecting to app:', deepLinkUrl);
-                                alert('📱 Redirecting to app with token: ' + tokenToUpdate.substring(0, 8));
                                 window.location.href = deepLinkUrl;
 
                                 setTimeout(() => {
@@ -191,23 +178,19 @@ export default function OAuthCallbackPage() {
                             }
                         } catch (updateError) {
                             console.error('[OAuth Callback] Failed to update document:', updateError);
-                            alert('❌ Update failed: ' + (updateError.message || JSON.stringify(updateError)));
                             router.push('/login?error=update_failed');
                             return;
                         }
                     } else {
-                        alert('❌ No active session found');
                         console.log('[OAuth Callback] No active session');
                     }
                 } catch (sessionError) {
                     console.error('[OAuth Callback] Session check failed:', sessionError);
-                    alert('❌ Session check failed: ' + sessionError.message);
                 }
 
                 // Original logic for URL params (if they exist - for web OAuth)
                 if (initialUserId && initialSecret && oauthToken) {
                     console.log('[OAuth Callback] All params present, storing in database...');
-                    alert('✅ All params present! Storing in DB with token: ' + oauthToken.substring(0, 8));
 
                     try {
                         // Import database functions
@@ -234,7 +217,6 @@ export default function OAuthCallbackPage() {
                         );
 
                         console.log('[OAuth Callback] OAuth params stored successfully:', doc);
-                        alert('✅ Stored in DB successfully!');
 
                         // Check if we're on mobile (opened from Android app)
                         const isMobileBrowser = typeof navigator !== 'undefined' && /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
@@ -243,7 +225,6 @@ export default function OAuthCallbackPage() {
                             // Redirect to app via deep link with token
                             const deepLinkUrl = `rkai://callback?token=${oauthToken}`;
                             console.log('[OAuth Callback] Redirecting to app:', deepLinkUrl);
-                            alert('📱 Redirecting to app...');
                             window.location.href = deepLinkUrl;
 
                             // Fallback: if app doesn't open, show success message
@@ -262,14 +243,12 @@ export default function OAuthCallbackPage() {
 
                     } catch (dbError) {
                         console.error('[OAuth Callback] Failed to store OAuth params:', dbError);
-                        alert('❌ DB Error: ' + (dbError.message || JSON.stringify(dbError)));
                         try { localStorage.setItem('rk_last_oauth_error', 'store_params_failed: ' + dbError.message); } catch (_) { }
                         router.push('/login?error=store_params_failed');
                         return;
                     }
                 } else {
                     console.log('[OAuth Callback] Missing params - not storing');
-                    alert('⚠️ Missing params! Will continue to other handlers...');
                 }
 
                 // Android deep link (rkai://callback)

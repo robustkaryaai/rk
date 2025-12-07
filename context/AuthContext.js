@@ -5,6 +5,7 @@ import { account, ID, client, APPWRITE_ENDPOINT, APPWRITE_PROJECT_ID, databases,
 import { useRouter } from 'next/navigation';
 import { userAPI } from '@/lib/api';
 import { App } from '@capacitor/app';
+import { Browser } from '@capacitor/browser';
 
 const AuthContext = createContext();
 
@@ -23,12 +24,10 @@ export function AuthProvider({ children }) {
         try {
             // Listen for when app is opened via deep link (OAuth callback)
             App.addListener('appUrlOpen', async (event) => {
-                alert('✅ appUrlOpen fired');
                 console.log('FULL URL:', event.url);
                 try { localStorage.setItem('rk_last_oauth_url', event.url || ''); } catch (_) { }
 
                 if (!event.url) {
-                    alert('❌ No URL received');
                     return;
                 }
 
@@ -37,11 +36,23 @@ export function AuthProvider({ children }) {
                 const isHttpsCallback = (incomingUrl.protocol === 'https:' || incomingUrl.protocol === 'http:') && incomingUrl.pathname.startsWith('/auth/callback');
 
                 if (!isCustomScheme && !isHttpsCallback) {
-                    alert('⚠️ Not OAuth callback\n' + event.url);
                     return;
                 }
 
-                alert('🔗 OAuth Deep Link Detected');
+                // Check if it's the OAuth callback
+                // Covers: rkai://callback OR https://.../auth/callback
+                if (!event.url.includes('callback')) {
+                    console.log('Ignoring non-callback URL:', event.url);
+                    return;
+                }
+
+                // Close the browser if it was opened for OAuth (Android/iOS)
+                try {
+                    await Browser.close();
+                } catch (e) {
+                    // Ignore error if browser wasn't open
+                }
+
 
                 try {
                     // Try to get token from URL first, then from localStorage
@@ -55,16 +66,13 @@ export function AuthProvider({ children }) {
                     }
 
                     if (!oauthToken) {
-                        alert('❌ No OAuth token found');
                         router.push('/login?error=no_oauth_token');
                         return;
                     }
 
-                    alert('🎫 OAuth Token: ' + oauthToken.substring(0, 8) + '...');
 
                     // Call server endpoint to get session credentials
                     try {
-                        alert('📞 Calling server to create session...');
                         console.log('[Deep Link] Calling server API with token:', oauthToken);
 
                         const response = await fetch(
@@ -78,13 +86,11 @@ export function AuthProvider({ children }) {
                         }
 
                         const sessionData = await response.json();
-                        alert('✅ Got session data from server!');
                         console.log('[Deep Link] Session data received:', sessionData);
 
                         const { userId, secret, route } = sessionData;
 
                         if (!userId || !secret) {
-                            alert('❌ Invalid session data from server');
                             router.push('/login?error=invalid_session_data');
                             return;
                         }
@@ -95,7 +101,6 @@ export function AuthProvider({ children }) {
                             const existingSession = await account.get();
                             if (existingSession && existingSession.$id === userId) {
                                 sessionExists = true;
-                                alert('✅ Session already exists!');
                             }
                         } catch (e) {
                             console.log('[Deep Link] No existing session, will create one');
@@ -103,13 +108,10 @@ export function AuthProvider({ children }) {
 
                         // Create session if it doesn't exist
                         if (!sessionExists) {
-                            alert('🔐 Creating session with secret...');
                             try {
                                 await account.createSession(userId, secret);
-                                alert('✅ Session created!');
                             } catch (createError) {
                                 console.error('[Deep Link] Create session failed:', createError);
-                                alert('❌ Failed to create session: ' + createError.message);
                                 router.push('/login?error=session_creation_failed');
                                 return;
                             }
@@ -118,6 +120,20 @@ export function AuthProvider({ children }) {
                         await checkUser();
                         alert('✅ User verified!');
 
+                        // Sync user profile and tokens
+                        try {
+                            const user = await account.get();
+                            const currentSession = await account.getSession('current');
+                            console.log('[Deep Link] Syncing user and tokens...');
+                            await userAPI.syncUserToAppwrite(
+                                user,
+                                '',
+                                currentSession.providerAccessToken,
+                                currentSession.providerRefreshToken
+                            );
+                        } catch (syncError) {
+                            console.warn('[Deep Link] User sync warning:', syncError);
+                        }
                         // Clean up: delete the OAuth session document and localStorage token
                         try {
                             await databases.deleteDocument(
@@ -132,18 +148,15 @@ export function AuthProvider({ children }) {
                         }
 
                         router.push(`/${route || 'home'}`);
-                        alert('➡️ Navigated!');
 
                     } catch (fetchError) {
                         console.error('[Deep Link] Server request failed:', fetchError);
-                        alert('❌ Server request failed:\n' + fetchError.message);
                         router.push('/login?error=server_request_failed');
                         return;
                     }
 
                 } catch (err) {
                     console.error('DEEP LINK ERROR:', err);
-                    alert('💥 Deep link crash:\n' + err.message);
                     router.push('/login?error=exception');
                 }
             });
@@ -187,7 +200,16 @@ export function AuthProvider({ children }) {
     const login = async (email, password) => {
         try {
             await account.createEmailPasswordSession(email, password);
-            await checkUser(); // This triggers sync
+            await checkUser();
+
+            // Sync user to DB
+            try {
+                const user = await account.get();
+                await userAPI.syncUserToAppwrite(user);
+            } catch (syncErr) {
+                console.warn('Manual login sync warning:', syncErr);
+            }
+
             router.push('/home');
             return { success: true };
         } catch (error) {
@@ -296,10 +318,8 @@ export function AuthProvider({ children }) {
                     }
                 );
                 console.log('[Google Login] Token stored in Appwrite BEFORE OAuth');
-                alert('✅ Token stored in DB: ' + oauthToken.substring(0, 8));
             } catch (dbError) {
                 console.error('[Google Login] Failed to store token:', dbError);
-                alert('❌ Failed to store token: ' + dbError.message);
                 return;
             }
 
@@ -315,18 +335,39 @@ export function AuthProvider({ children }) {
 
             console.log('[Google Login] Starting OAuth with token:', oauthToken);
 
-            // Use createOAuth2Session with token as state parameter
-            // This allows the callback to know which token to use for storing params
-            account.createOAuth2Session(
-                'google',
-                callbackUrl,
-                failureUrl,
-                ['https://www.googleapis.com/auth/drive.file'],
-                oauthToken // Pass token as state parameter
-            );
+            // Use createOAuth2Session logic but handle native browser opening manually
+            // to prevent "disallowed_useragent" error in WebViews
+
+            const scopes = ['https://www.googleapis.com/auth/drive.file'];
+
+            // Check if native platform
+            const isNative = typeof window !== 'undefined' && window.Capacitor && window.Capacitor.isNativePlatform();
+
+            if (isNative) {
+                // Construct OAuth URL manually
+                const targetUrl = new URL(`${APPWRITE_ENDPOINT}/account/sessions/oauth2/google`);
+                targetUrl.searchParams.append('project', APPWRITE_PROJECT_ID);
+                targetUrl.searchParams.append('success', callbackUrl);
+                targetUrl.searchParams.append('failure', failureUrl);
+                targetUrl.searchParams.append('state', oauthToken); // Pass token as state parameter
+
+                scopes.forEach(scope => targetUrl.searchParams.append('scopes[]', scope));
+
+                console.log('[Google Login] Opening native browser:', targetUrl.toString());
+                await Browser.open({ url: targetUrl.toString() });
+            } else {
+                // Web: Use SDK method
+                account.createOAuth2Session(
+                    'google',
+                    callbackUrl,
+                    failureUrl,
+                    scopes,
+                    oauthToken // Pass token as state parameter
+                );
+            }
         } catch (error) {
             console.error('[Google Login] Google login failed:', error);
-            alert('Failed to start Google sign-in: ' + (error.message || 'Please try again.'));
+            alert('Google login failed: ' + error.message);
         }
     };
 
