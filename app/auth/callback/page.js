@@ -99,38 +99,58 @@ export default function OAuthCallbackPage() {
                 
                 // Appwrite OAuth callback with userId and secret
                 if (userId && secret) {
-                    // Appwrite OAuth callback - session should be automatically established
-                    // Wait a moment for Appwrite SDK to process the callback
-                    console.log('[OAuth Callback] Appwrite OAuth callback detected, waiting for session...');
-                    await new Promise(resolve => setTimeout(resolve, 1500));
-                    
-                    // Check if we're in Android app (Capacitor)
+                    // Check if we're in Android app (Capacitor) - if so, create session directly
                     const isAndroidApp = typeof window !== 'undefined' && 
                         window.Capacitor && 
                         window.Capacitor.isNativePlatform && 
                         window.Capacitor.isNativePlatform();
+                    
+                    // If in app's WebView, create session directly (Real App Approach)
+                    if (isAndroidApp) {
+                        console.log('[OAuth Callback] In app WebView, creating session directly...');
+                        try {
+                            await account.createSession(userId, secret);
+                            await new Promise(resolve => setTimeout(resolve, 1000));
+                            
+                            const session = await account.get();
+                            if (session && session.$id) {
+                                console.log('[OAuth Callback] Session created in app WebView:', session.$id);
+                                const hasDeviceSlug = typeof localStorage !== 'undefined' && localStorage.getItem('rk_device_slug');
+                                const route = hasDeviceSlug ? 'home' : 'connect';
+                                router.push(`/${route}`);
+                                return;
+                            }
+                        } catch (err) {
+                            console.error('[OAuth Callback] Session creation failed in app:', err);
+                        }
+                    }
+                    
+                    // Appwrite OAuth callback - session should be automatically established
+                    // Wait a moment for Appwrite SDK to process the callback
+                    console.log('[OAuth Callback] Appwrite OAuth callback detected, waiting for session...');
+                    await new Promise(resolve => setTimeout(resolve, 1500));
                     
                     try {
                         const session = await account.get();
                         if (session && session.$id) {
                             console.log('[OAuth Callback] Session established successfully:', session.$id);
                             
-                            // Always try to redirect to app first (works if opened from Android app's browser)
                             // Check if we're in a mobile browser (likely opened from app)
                             const isMobileBrowser = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
                             
-                            if (isMobileBrowser || isAndroidApp) {
-                                console.log('[OAuth Callback] Mobile browser/app detected, redirecting to app...');
+                            // If in mobile browser (opened from app), redirect to app
+                            if (isMobileBrowser && !isAndroidApp) {
+                                console.log('[OAuth Callback] Mobile browser detected, redirecting to app...');
                                 // Check device slug first to decide route
                                 const hasDeviceSlug = typeof localStorage !== 'undefined' && localStorage.getItem('rk_device_slug');
                                 const route = hasDeviceSlug ? 'home' : 'connect';
                                 
-                                // Navigate app's WebView to the EXACT callback URL (with userId/secret)
-                                // This will allow Appwrite to set cookies in app's WebView context
-                                const currentUrlWithParams = window.location.href;
-                                const deepLinkUrl = `rkai://callback?navigateTo=${encodeURIComponent(currentUrlWithParams)}&route=${route}`;
+                                // REAL APP APPROACH: Pass the full callback URL to app
+                                // App's WebView will load this URL, and Appwrite will automatically process it
+                                const fullCallbackUrl = window.location.href; // Contains userId/secret in URL
+                                const deepLinkUrl = `rkai://callback?url=${encodeURIComponent(fullCallbackUrl)}&route=${route}`;
                                 
-                                console.log('[OAuth Callback] Redirecting to app, will navigate WebView to:', currentUrlWithParams);
+                                console.log('[OAuth Callback] Redirecting to app with full callback URL');
                                 // Redirect to app
                                 window.location.href = deepLinkUrl;
                                 
@@ -142,7 +162,7 @@ export default function OAuthCallbackPage() {
                                 return;
                             }
                             
-                            // Web: normal navigation (check device slug first)
+                            // Web or already in app: normal navigation (check device slug first)
                             const hasDeviceSlug = typeof localStorage !== 'undefined' && localStorage.getItem('rk_device_slug');
                             const route = hasDeviceSlug ? 'home' : 'connect';
                             router.push(`/${route}`);
@@ -167,9 +187,9 @@ export default function OAuthCallbackPage() {
                                 const hasDeviceSlug = typeof localStorage !== 'undefined' && localStorage.getItem('rk_device_slug');
                                 const route = hasDeviceSlug ? 'home' : 'connect';
                                 
-                                // Navigate app's WebView to callback URL with params
-                                const currentUrlWithParams = window.location.href;
-                                const deepLinkUrl = `rkai://callback?navigateTo=${encodeURIComponent(currentUrlWithParams)}&route=${route}`;
+                                // REAL APP APPROACH: Pass full callback URL
+                                const fullCallbackUrl = window.location.href;
+                                const deepLinkUrl = `rkai://callback?url=${encodeURIComponent(fullCallbackUrl)}&route=${route}`;
                                 
                                 window.location.href = deepLinkUrl;
                                 
@@ -225,36 +245,23 @@ export default function OAuthCallbackPage() {
                         if (isMobileBrowser && !isAndroidApp) {
                             console.log('[OAuth Callback] Mobile browser detected, passing session to app...');
                             
-                            // Try to get userId/secret from sessionStorage (stored at page load)
-                            const storedUserId = sessionStorage.getItem('oauth_userId');
-                            const storedSecret = sessionStorage.getItem('oauth_secret');
+                            // REAL APP APPROACH: Pass full callback URL (even if no params, session is in cookies)
+                            // App's WebView will load this URL and Appwrite will process it
+                            const fullCallbackUrl = window.location.href;
+                            const deepLinkUrl = `rkai://callback?url=${encodeURIComponent(fullCallbackUrl)}&route=${route}`;
                             
-                            if (storedUserId && storedSecret) {
-                                console.log('[OAuth Callback] Found stored OAuth params, passing to app');
-                                const deepLinkUrl = `rkai://callback?userId=${encodeURIComponent(storedUserId)}&secret=${encodeURIComponent(storedSecret)}&route=${route}`;
-                                window.location.href = deepLinkUrl;
-                                
-                                // Clean up
-                                sessionStorage.removeItem('oauth_userId');
-                                sessionStorage.removeItem('oauth_secret');
-                                
-                                // Fallback after timeout
-                                setTimeout(() => {
-                                    router.push(`/${route}`);
-                                }, 2000);
-                                return;
-                            } else {
-                                // No stored params, navigate app's WebView to callback URL to establish session
-                                console.log('[OAuth Callback] No stored params, navigating app WebView to callback URL');
-                                const callbackUrlWithParams = `${window.location.origin}/auth/callback?userId=${encodeURIComponent(storedUserId || '')}&secret=${encodeURIComponent(storedSecret || '')}`;
-                                const deepLinkUrl = `rkai://callback?navigateTo=${encodeURIComponent(window.location.href)}&route=${route}`;
-                                window.location.href = deepLinkUrl;
-                                
-                                setTimeout(() => {
-                                    router.push(`/${route}`);
-                                }, 2000);
-                                return;
-                            }
+                            console.log('[OAuth Callback] Redirecting to app with callback URL');
+                            window.location.href = deepLinkUrl;
+                            
+                            // Clean up sessionStorage
+                            sessionStorage.removeItem('oauth_userId');
+                            sessionStorage.removeItem('oauth_secret');
+                            
+                            // Fallback after timeout
+                            setTimeout(() => {
+                                router.push(`/${route}`);
+                            }, 2000);
+                            return;
                         }
                         
                         // Already in app or web, just navigate

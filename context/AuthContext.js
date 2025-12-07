@@ -32,73 +32,81 @@ export function AuthProvider({ children }) {
                     
                     try {
                         const url = new URL(event.url);
-                        const userId = url.searchParams.get('userId');
-                        const secret = url.searchParams.get('secret');
+                        const callbackUrl = url.searchParams.get('url'); // Full callback URL from browser
                         const route = url.searchParams.get('route') || 'home';
-                        const navigateTo = url.searchParams.get('navigateTo'); // Callback URL to navigate to
+                        const userId = url.searchParams.get('userId'); // Legacy support
+                        const secret = url.searchParams.get('secret'); // Legacy support
 
-                        if (navigateTo) {
-                            // Navigate app's WebView to callback URL
-                            // This allows Appwrite to process the OAuth callback and set cookies in app's WebView
-                            console.log('[Deep Link] Navigating WebView to callback URL:', navigateTo);
+                        // REAL APP APPROACH: Load the callback URL in WebView
+                        // This is how real apps work - they load the OAuth callback URL in their WebView
+                        // Appwrite automatically processes it and sets cookies in the WebView context
+                        if (callbackUrl) {
+                            console.log('[Deep Link] Loading callback URL in WebView (Real App Approach):', callbackUrl);
                             
                             try {
-                                const callbackUrl = new URL(navigateTo);
-                                const callbackUserId = callbackUrl.searchParams.get('userId');
-                                const callbackSecret = callbackUrl.searchParams.get('secret');
+                                const parsedUrl = new URL(callbackUrl);
                                 
-                                if (callbackUserId && callbackSecret) {
-                                    // We have OAuth params, try to create session directly first
-                                    console.log('[Deep Link] Found OAuth params in callback URL, creating session...');
-                                    try {
-                                        await account.createSession(callbackUserId, callbackSecret);
-                                        await new Promise(resolve => setTimeout(resolve, 1000));
-                                        const verifySession = await account.get();
-                                        if (verifySession && verifySession.$id) {
-                                            console.log('[Deep Link] Session created successfully from params');
-                                            await checkUser();
-                                            router.push(`/${route}`);
-                                            return;
-                                        }
-                                    } catch (sessionErr) {
-                                        console.warn('[Deep Link] Direct session creation failed, will navigate to callback URL:', sessionErr);
-                                    }
-                                }
+                                // Extract userId/secret from callback URL if present
+                                const callbackUserId = parsedUrl.searchParams.get('userId');
+                                const callbackSecret = parsedUrl.searchParams.get('secret');
                                 
-                                // Navigate to callback URL - Appwrite will process it and set cookies
-                                window.location.href = navigateTo;
-                                // The callback page will handle session and redirect
+                                // Load the callback URL in WebView
+                                // This allows Appwrite SDK to process the OAuth callback properly
+                                window.location.href = callbackUrl;
+                                
+                                // Wait for the callback page to process and establish session
+                                // The callback page will handle the redirect after session is established
                                 return;
                             } catch (e) {
                                 console.error('[Deep Link] Error parsing callback URL:', e);
-                                // Fallback: just navigate
-                                window.location.href = navigateTo;
+                                router.push('/login?error=invalid_callback');
                                 return;
                             }
                         }
 
+                        // Legacy: Direct userId/secret (fallback)
                         if (userId && secret) {
                             // 1️⃣ Create session in-app using Appwrite SDK
                             console.log('[Deep Link] Creating session from userId/secret');
-                            console.log('[Deep Link] userId length:', userId?.length, 'secret length:', secret?.length);
+                            console.log('[Deep Link] userId:', userId?.substring(0, 10) + '...', 'length:', userId?.length);
+                            console.log('[Deep Link] secret:', secret?.substring(0, 10) + '...', 'length:', secret?.length);
+                            
                             try {
-                                const sessionResult = await account.createSession(userId, secret);
-                                console.log('[Deep Link] createSession result:', sessionResult);
+                                // Decode if URL encoded
+                                const decodedUserId = decodeURIComponent(userId);
+                                const decodedSecret = decodeURIComponent(secret);
                                 
-                                // Wait a bit for session to be fully established
-                                await new Promise(resolve => setTimeout(resolve, 1000));
+                                console.log('[Deep Link] Calling account.createSession...');
+                                const sessionResult = await account.createSession(decodedUserId, decodedSecret);
+                                console.log('[Deep Link] createSession completed, result:', sessionResult?.$id || 'no id');
                                 
-                                // Verify session was created
+                                // Wait for session to be fully established
+                                await new Promise(resolve => setTimeout(resolve, 1500));
+                                
+                                // Verify session was created by checking account
+                                console.log('[Deep Link] Verifying session...');
                                 const verifySession = await account.get();
-                                console.log('[Deep Link] Verified session:', verifySession?.$id);
+                                console.log('[Deep Link] Verified session:', verifySession?.$id || 'none');
                                 
                                 if (verifySession && verifySession.$id) {
+                                    console.log('[Deep Link] Session verified successfully!');
+                                    // Update user state
                                     await checkUser();
-                                    console.log('[Deep Link] Session established, navigating to', route);
+                                    console.log('[Deep Link] User state updated, navigating to', route);
                                     router.push(`/${route}`);
                                     return;
                                 } else {
                                     console.error('[Deep Link] Session creation failed - no session after createSession');
+                                    console.error('[Deep Link] verifySession:', verifySession);
+                                    // Try one more time with a longer wait
+                                    await new Promise(resolve => setTimeout(resolve, 2000));
+                                    const retrySession = await account.get();
+                                    if (retrySession && retrySession.$id) {
+                                        console.log('[Deep Link] Session found on retry!');
+                                        await checkUser();
+                                        router.push(`/${route}`);
+                                        return;
+                                    }
                                     router.push('/login?error=session_not_created');
                                     return;
                                 }
@@ -110,6 +118,15 @@ export function AuthProvider({ children }) {
                                     type: err.type,
                                     response: err.response
                                 });
+                                
+                                // Try to get more info about the error
+                                if (err.message) {
+                                    console.error('[Deep Link] Error message:', err.message);
+                                }
+                                if (err.code) {
+                                    console.error('[Deep Link] Error code:', err.code);
+                                }
+                                
                                 router.push('/login?error=session_creation_failed');
                                 return;
                             }
