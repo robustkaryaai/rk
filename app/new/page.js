@@ -1,152 +1,243 @@
 'use client';
 
-import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import BottomNav from '@/components/BottomNav';
 import GlassCard from '@/components/GlassCard';
+import { AiOutlineCheckCircle, AiOutlineAndroid, AiOutlineCloud, AiOutlineBug, AiOutlineArrowLeft } from 'react-icons/ai';
 
 export default function WhatsNewPage() {
     const router = useRouter();
 
-    useEffect(() => {
-        window.scrollTo(0, 0);
-    }, []);
-
     return (
         <>
             <div className="page-container">
-                {/* Hero Section */}
                 <div className="hero-section">
-                    <h1 className="hero-title">🚀 What’s New in RK v2.0</h1>
-                    <p className="hero-subtitle">
-                        A massive upgrade in performance, design & independence.
-                    </p>
-                    <p style={{ fontSize: '13px', opacity: 0.6, marginTop: '8px' }}>
-                        By RK Innovators • Released: 2025
-                    </p>
+                    <h1 className="hero-title">🚀 RK v2.1 - Android Ready!</h1>
+                    <p className="hero-subtitle">Major improvements for Android + Bug fixes</p>
+                    <button
+                        onClick={() => router.back()}
+                        className="btn-ghost"
+                        style={{ marginTop: '16px', display: 'inline-flex', alignItems: 'center', gap: '8px' }}
+                    >
+                        <AiOutlineArrowLeft /> Back
+                    </button>
                 </div>
 
-                <GlassCard style={{ marginBottom: '24px', padding: '32px' }}>
+                {/* Android Optimizations */}
+                <GlassCard style={{ marginBottom: '24px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>
+                        <AiOutlineAndroid size={32} color="#3DDC84" />
+                        <h2 className="section-title" style={{ margin: 0 }}>Android Optimizations</h2>
+                    </div>
 
-                    {/* 1. Custom Authentication */}
-                    <section style={{ marginBottom: '32px' }}>
-                        <h2 style={{ fontSize: '20px', fontWeight: '700', marginBottom: '16px', color: '#667eea' }}>
-                            🔐 Custom Authentication System (No More Clerk)
-                        </h2>
-                        <p style={{ lineHeight: '1.6', opacity: 0.9 }}>
-                            RK is now fully independent from third-party auth providers like Clerk.
-                            Version 2.0 introduces a <b>fully self-hosted authentication system</b> with:
-                        </p>
-                        <ul style={{ lineHeight: '1.8', opacity: 0.9, paddingLeft: '24px', marginTop: '12px' }}>
-                            <li>Secure Email & Password Sign In / Sign Up</li>
-                            <li>Native Google Sign-In (Direct Integration)</li>
-                            <li>Faster login response & better session control</li>
-                            <li>Full control over user data & security layers</li>
-                        </ul>
-                        <p style={{ marginTop: '12px', opacity: 0.85 }}>
-                            This means <b>faster auth, zero vendor lock-in, and maximum privacy.</b>
-                        </p>
-                    </section>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                        <div className="feature-item">
+                            <AiOutlineCheckCircle size={20} color="#4CAF50" />
+                            <div>
+                                <strong>Google OAuth Fixed</strong>
+                                <p style={{ fontSize: '14px', opacity: 0.7, margin: '4px 0 0 0' }}>
+                                    Fixed redirect_uri_mismatch and "Access blocked" errors on native Android
+                                </p>
+                            </div>
+                        </div>
 
-                    {/* 2. Brand New Futuristic UI */}
-                    {/* 2. New Premium Ambient UI */}
-                    <section style={{ marginBottom: '32px' }}>
-                        <h2 style={{ fontSize: '20px', fontWeight: '700', marginBottom: '16px', color: '#a855f7' }}>
-                            ✨ New Premium Animated Background
-                        </h2>
-                        <p style={{ lineHeight: '1.6', opacity: 0.9 }}>
-                            RK v2.0 introduces a completely redesigned ambient UI environment built for focus and elegance:
-                        </p>
-                        <ul style={{ lineHeight: '1.8', opacity: 0.9, paddingLeft: '24px', marginTop: '12px' }}>
-                            <li>Soft radial light glow instead of harsh gradients</li>
-                            <li>Dynamic hue-shifting blur animation</li>
-                            <li>Subtle cinematic grid mesh for depth</li>
-                            <li>Zero visual noise, maximum readability</li>
-                        </ul>
-                        <p style={{ marginTop: '12px', opacity: 0.85 }}>
-                            The interface now feels <b>calm, premium, cinematic, and truly AI-grade.</b>
-                        </p>
-                    </section>
+                        <div className="feature-item">
+                            <AiOutlineCheckCircle size={20} color="#4CAF50" />
+                            <div>
+                                <strong>Deep Link Handling</strong>
+                                <p style={{ fontSize: '14px', opacity: 0.7, margin: '4px 0 0 0' }}>
+                                    Improved callback handling for native apps using rkai:// scheme
+                                </p>
+                            </div>
+                        </div>
 
+                        <div className="feature-item">
+                            <AiOutlineCheckCircle size={20} color="#4CAF50" />
+                            <div>
+                                <strong>Browser Auto-Close</strong>
+                                <p style={{ fontSize: '14px', opacity: 0.7, margin: '4px 0 0 0' }}>
+                                    OAuth browser automatically closes after successful authentication
+                                </p>
+                            </div>
+                        </div>
 
-                    {/* 3. Performance Boost */}
-                    <section style={{ marginBottom: '32px' }}>
-                        <h2 style={{ fontSize: '20px', fontWeight: '700', marginBottom: '16px', color: '#22c55e' }}>
-                            ⚡ Performance & Stability Improvements
-                        </h2>
-                        <ul style={{ lineHeight: '1.8', opacity: 0.9, paddingLeft: '24px' }}>
-                            <li>Faster app startup and navigation</li>
-                            <li>Optimized background animations</li>
-                            <li>Reduced authentication delays</li>
-                            <li>Improved session handling & token security</li>
-                        </ul>
-                    </section>
-
-                    {/* 4. Security Enhancements */}
-                    <section style={{ marginBottom: '32px' }}>
-                        <h2 style={{ fontSize: '20px', fontWeight: '700', marginBottom: '16px', color: '#ef4444' }}>
-                            🛡️ Security Upgrades
-                        </h2>
-                        <ul style={{ lineHeight: '1.8', opacity: 0.9, paddingLeft: '24px' }}>
-                            <li>Encrypted user sessions</li>
-                            <li>Better password hashing & validation</li>
-                            <li>Protected OAuth login with Google</li>
-                            <li>Stronger API request verification</li>
-                        </ul>
-                    </section>
-
-                    {/* 5. Developer Freedom */}
-                    <section style={{ marginBottom: '32px' }}>
-                        <h2 style={{ fontSize: '20px', fontWeight: '700', marginBottom: '16px', color: '#06b6d4' }}>
-                            🧠 Built for Scale & Developer Control
-                        </h2>
-                        <p style={{ lineHeight: '1.6', opacity: 0.9 }}>
-                            With RK v2.0, the platform is now completely controlled by RK Innovators:
-                        </p>
-                        <ul style={{ lineHeight: '1.8', opacity: 0.9, paddingLeft: '24px', marginTop: '12px' }}>
-                            <li>Zero dependency on external auth vendors</li>
-                            <li>Full backend flexibility</li>
-                            <li>Future-ready for enterprise scaling</li>
-                        </ul>
-                    </section>
-
-                    <section style={{ marginBottom: '32px' }}>
-                        <h2 style={{ fontSize: '20px', fontWeight: '700', marginBottom: '16px', color: '#06b6d4' }}>
-                        ⭐ New things in RK v2.0.1
-                        </h2>
-                        <p style={{ lineHeight: '1.6', opacity: 0.9 }}>
-                            With RK v2.0.1, the platform is changing:
-                        </p>
-                        <ul style={{ lineHeight: '1.8', opacity: 0.9, paddingLeft: '24px', marginTop: '12px' }}>
-                            <li>RK is now for android users too</li>
-                            <li>Android users can now sign in with Google</li>
-                            <li>Bug fixes and improvements</li>
-                        </ul>
-                    </section>
-
-                    {/* Closing */}
-                    <section>
-                        <h2 style={{ fontSize: '20px', fontWeight: '700', marginBottom: '16px', color: '#667eea' }}>
-                            🌌 RK v2.0 = Independence + Power
-                        </h2>
-                        <p style={{ lineHeight: '1.6', opacity: 0.9 }}>
-                            RK 2.0 isn’t just an update — it’s a <b>foundation shift</b>.
-                            More control. More speed. More security. More future.
-                        </p>
-                    </section>
+                        <div className="feature-item">
+                            <AiOutlineCheckCircle size={20} color="#4CAF50" />
+                            <div>
+                                <strong>Session Stability</strong>
+                                <p style={{ fontSize: '14px', opacity: 0.7, margin: '4px 0 0 0' }}>
+                                    Enhanced session handling for native platforms with proper token sync
+                                </p>
+                            </div>
+                        </div>
+                    </div>
                 </GlassCard>
 
-                {/* Back Button */}
-                <button
-                    onClick={() => router.back()}
-                    className="btn-ghost"
-                    style={{ width: '100%', marginBottom: '80px' }}
-                >
-                    ← Back
-                </button>
+                {/* Google Drive Updates */}
+                <GlassCard style={{ marginBottom: '24px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>
+                        <AiOutlineCloud size={32} color="#667eea" />
+                        <h2 className="section-title" style={{ margin: 0 }}>Google Drive - Temporarily Disabled</h2>
+                    </div>
+
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                        <div className="feature-item">
+                            <AiOutlineCheckCircle size={20} color="#667eea" />
+                            <div>
+                                <strong>Coming Soon</strong>
+                                <p style={{
+                                    fontSize: '14px', opacity: 0.7', margin: '4px 0 0 0' }}>
+                                    Google Drive integration temporarily disabled for optimization
+                                </p>
+                        </div>
+                    </div>
+
+                    <div className="feature-item">
+                        <AiOutlineCheckCircle size={20} color="#667eea" />
+                        <div>
+                            <strong>Supabase Storage</strong>
+                            <p style={{
+                                fontSize: '14px', opacity: 0.7', margin: '4px 0 0 0' }}>
+                                    All files continue to be stored securely in Supabase
+                                </p>
+                    </div>
             </div>
 
+            <div className="feature-item">
+                <AiOutlineCheckCircle size={20} color="#667eea" />
+                <div>
+                    <strong>Future Return</strong>
+                    <p style={{
+                        fontSize: '14px', opacity: 0.7', margin: '4px 0 0 0' }}>
+                                    Google Drive will return with better performance and reliability
+                                </p>
+            </div>
+        </div >
+                    </div >
+                </GlassCard >
+
+        {/* Bug Fixes */ }
+        < GlassCard style = {{ marginBottom: '24px' }
+}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>
+                        <AiOutlineBug size={32} color="#f5576c" />
+                        <h2 className="section-title" style={{ margin: 0 }}>Bug Fixes & Improvements</h2>
+                    </div>
+                    
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                        <div className="feature-item">
+                            <AiOutlineCheckCircle size={20} color="#4CAF50" />
+                            <div>
+                                <strong>Account Switching Fixed</strong>
+                                <p style={{ fontSize: '14px', opacity: 0.7', margin: '4px 0 0 0' }}>
+                                    Properly clears localStorage when switching Google accounts
+                                </p>
+                            </div>
+                        </div>
+
+                        <div className="feature-item">
+                            <AiOutlineCheckCircle size={20} color="#4CAF50" />
+                            <div>
+                                <strong>Device Ownership Validation</strong>
+                                <p style={{ fontSize: '14px', opacity: 0.7', margin: '4px 0 0 0' }}>
+                                    Validates device belongs to current user on login/refresh
+                                </p>
+                            </div>
+                        </div >
+
+    <div className="feature-item">
+        <AiOutlineCheckCircle size={20} color="#4CAF50" />
+        <div>
+            <strong>Mobile Background Fixed</strong>
+            <p style={{
+                fontSize: '14px', opacity: 0.7', margin: '4px 0 0 0' }}>
+                                    Grid pattern now visible with proper gradient background on all devices
+                                </p>
+    </div>
+                        </div >
+
+    <div className="feature-item">
+        <AiOutlineCheckCircle size={20} color="#4CAF50" />
+        <div>
+            <strong>Safe Area Padding</strong>
+            <p style={{
+                fontSize: '14px', opacity: 0.7', margin: '4px 0 0 0' }}>
+                                    Content no longer hides behind status bar on mobile devices
+                                </p>
+    </div>
+                        </div >
+
+    <div className="feature-item">
+        <AiOutlineCheckCircle size={20} color="#4CAF50" />
+        <div>
+            <strong>Premium Features for Tier 3/4</strong>
+            <p style={{
+                fontSize: '14px', opacity: 0.7', margin: '4px 0 0 0' }}>
+                                    Pro and Studio subscribers can now request new features in Settings
+                                </p>
+    </div>
+                        </div >
+
+    <div className="feature-item">
+        <AiOutlineCheckCircle size={20} color="#4CAF50" />
+        <div>
+            <strong>Theme Persistence</strong>
+            <p style={{
+                fontSize: '14px', opacity: 0.7', margin: '4px 0 0 0' }}>
+                                    Selected theme now persists across app refreshes
+                                </p>
+    </div>
+                        </div >
+
+    <div className="feature-item">
+        <AiOutlineCheckCircle size={20} color="#4CAF50" />
+        <div>
+            <strong>Code Cleanup</strong>
+            <p style={{
+                fontSize: '14px', opacity: 0.7', margin: '4px 0 0 0' }}>
+                                    Removed debug alerts and console logs for cleaner production environment
+                                </p>
+    </div>
+                        </div >
+                    </div >
+                </GlassCard >
+
+    {/* Technical Improvements */ }
+    < GlassCard >
+                    <h3 style={{ marginBottom: '16px', fontSize: '18px' }}>🔧 Technical Improvements</h3>
+                    <ul style={{ paddingLeft: '20px', display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '14px', opacity: 0.9 }}>
+                        <li>Hybrid OAuth architecture: Appwrite for login, Direct Google API for Drive</li>
+                        <li>Enhanced deep link handling with automatic browser closure</li>
+                        <li>Device ownership validation on session check</li>
+                        <li>LocalStorage cleanup on logout for clean account switching</li>
+                        <li>Dynamic viewport height (dvh) support for better mobile display</li>
+                        <li>Improved gradient visibility with increased opacity</li>
+                        <li>Feature request system for premium subscribers</li>
+                    </ul>
+                </GlassCard >
+            </div >
+
             <BottomNav />
+
+            <style jsx>{`
+                .feature-item {
+                    display: flex;
+                    align-items: flex-start;
+                    gap: 12px;
+                    padding: 12px;
+                    border-radius: 12px;
+                    transition: background 0.3s ease;
+                }
+                
+                .feature-item:hover {
+                    background: rgba(102, 126, 234, 0.05);
+                }
+                
+                .feature-item strong {
+                    display: block;
+                    margin-bottom: 2px;
+                }
+            `}</style>
         </>
     );
 }

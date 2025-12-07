@@ -10,6 +10,7 @@ export default function RootLayout({ children }) {
     return (
         <html lang="en" suppressHydrationWarning>
             <body suppressHydrationWarning>
+                <div className='padding-from-top'></div>
                 <script
                     dangerouslySetInnerHTML={{
                         __html: `

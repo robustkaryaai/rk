@@ -1006,7 +1006,7 @@ export default function SettingsPage() {
                 </section>
 
                 <div style={{ textAlign: 'center', marginTop: '32px', opacity: 0.5, fontSize: '12px' }}>
-                    <p>RK v2.0</p>
+                    <p>RK v2.1</p>
                 </div>
             </div>
 
