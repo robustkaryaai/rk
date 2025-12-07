@@ -24,72 +24,27 @@ export function AuthProvider({ children }) {
         try {
             // Listen for when app is opened via deep link (OAuth callback)
             App.addListener('appUrlOpen', async (event) => {
-                alert('✅ appUrlOpen fired');
-                console.log('FULL URL:', event.url);
+                console.log('[Deep Link]', event.url);
 
-                if (!event.url) {
-                    alert('❌ No URL received');
-                    return;
-                }
-
-                if (!event.url.startsWith('rkai://callback')) {
-                    alert('⚠️ Not OAuth callback:\n' + event.url);
-                    return;
-                }
-
-                alert('🔗 OAuth Deep Link Detected');
-
-                try {
-                    const url = new URL(event.url);
-
-                    const userId = url.searchParams.get('userId');
-                    const secret = url.searchParams.get('secret');
-                    const route = url.searchParams.get('route') || 'home';
-
-                    alert(
-                        '🧾 Params:\n' +
-                        'userId: ' + (userId ? '✅ Present' : '❌ Missing') + '\n' +
-                        'secret: ' + (secret ? '✅ Present' : '❌ Missing') + '\n' +
-                        'route: ' + route
-                    );
-
-                    if (!userId || !secret) {
-                        alert('❌ userId or secret missing\nCannot create session');
-                        router.push('/login?error=missing_params');
-                        return;
-                    }
-
-                    alert('🔐 Creating session...');
-
+                if (event.url.startsWith('rkai://callback')) {
                     try {
-                        await account.createSession({
-                            userId,
-                            secret,
-                          });
-                          
-                        alert('✅ createSession success');
+                        // ✅ Appwrite khud session bana chuka hota hai
+                        const session = await account.get();
 
-                        await checkUser();
-                        alert('✅ checkUser done');
+                        if (session && session.$id) {
+                            await checkUser();
+                            router.push('/connect'); // tumhara device flow
+                        } else {
+                            router.push('/login?error=session_missing');
+                        }
 
-                        router.push(`/${route}`);
-                        alert('➡️ Navigated to /' + route);
-
-                    } catch (sessionErr) {
-                        console.error('SESSION ERROR:', sessionErr);
-                        alert(
-                            '❌ createSession failed:\n' +
-                            (sessionErr.message || JSON.stringify(sessionErr))
-                        );
-                        router.push('/login?error=session_failed');
+                    } catch (err) {
+                        console.error('Deep link session error:', err);
+                        router.push('/login');
                     }
-
-                } catch (err) {
-                    console.error('DEEP LINK ERROR:', err);
-                    alert('💥 Deep link crash:\n' + err.message);
-                    router.push('/login?error=exception');
                 }
             });
+
 
 
         } catch (error) {
@@ -181,72 +136,24 @@ export function AuthProvider({ children }) {
 
     const loginWithGoogle = async () => {
         try {
-            console.log('[Google Login] Button clicked, starting OAuth flow...');
-            const origin = window.location.origin;
+            console.log('[Google Login] Starting Native OAuth');
 
-            // Redirect to our callback page which will:
-            // 1. Establish the session
-            // 2. Redirect to /home
-            // 3. (On Android) Deep link will bring app to foreground
-            const callbackUrl = `${origin}/auth/callback`;
-            const failureUrl = `${origin}/login?error=oauth_failed`;
+            const successUrl = 'rkai://callback?route=connect';
+            const failureUrl = 'rkai://callback?error=oauth_failed';
 
-            // Detect native (Capacitor) environment
-            const isNative = () => {
-                try {
-                    const isNativePlatform = !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
-                    console.log('[Google Login] Is Native Platform:', isNativePlatform);
-                    return isNativePlatform;
-                } catch (e) {
-                    console.log('[Google Login] Error checking native platform:', e);
-                    return false;
-                }
-            };
-
-            if (isNative()) {
-                // For Android: Use browser OAuth directly (more reliable than native)
-                console.log('[Google Login] Native platform detected, opening OAuth in browser');
-                try {
-                    const oauthUrl = account.getOAuth2Url(
-                        'google',
-                        'rkai://callback',
-                        'https://yourdomain.com/login?error=oauth_failed'
-                    );
-                    await Browser.open({ url: oauthUrl });
-                    console.log('[Google Login] OAuth URL:', oauthUrl);
-                    console.log('[Google Login] Browser opened successfully');
-                } catch (e) {
-                    console.error('[Google Login] Failed to open browser:', e);
-                    // Fallback: Try direct OAuth session creation
-                    try {
-                        console.log('[Google Login] Trying fallback method...');
-                        account.createOAuth2Session(
-                            'google',
-                            callbackUrl,
-                            failureUrl,
-                            ['https://www.googleapis.com/auth/drive.file']
-                        );
-                    } catch (fallbackError) {
-                        console.error('[Google Login] All methods failed:', fallbackError);
-                        alert('Failed to open Google sign-in. Please check your internet connection and try again.');
-                    }
-                }
-                return;
-            }
-
-            // Web: start OAuth directly from this page (auto-redirect is fine for web)
-            console.log('[Google Login] Web platform, using createOAuth2Session');
-            account.createOAuth2Session(
+            // ✅ THIS is the only correct Android way
+            await account.createOAuth2Session(
                 'google',
-                callbackUrl,  // Our callback page handles the redirect
-                failureUrl,
-                ['https://www.googleapis.com/auth/drive.file']
+                successUrl,
+                failureUrl
             );
+
         } catch (error) {
             console.error('[Google Login] Google login failed:', error);
-            alert('Failed to start Google sign-in. Please try again.');
+            alert('Google sign-in failed');
         }
     };
+
 
     const logout = async () => {
         try {
