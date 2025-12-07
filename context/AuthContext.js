@@ -26,77 +26,53 @@ export function AuthProvider({ children }) {
             App.addListener('appUrlOpen', async (event) => {
                 console.log('[Deep Link] App opened with URL:', event.url);
                 
-                // Check if this is an auth callback (rkai://callback or https://)
+                // Check if this is an auth callback (rkai://callback)
                 if (event.url.startsWith('rkai://callback')) {
                     console.log('[Deep Link] OAuth callback detected:', event.url);
                     
                     try {
-    const url = new URL(event.url);
-    const userId = url.searchParams.get('userId');
-    const secret = url.searchParams.get('secret');
-    const route = url.searchParams.get('route') || 'home';
+                        const url = new URL(event.url);
+                        const userId = url.searchParams.get('userId');
+                        const secret = url.searchParams.get('secret');
+                        const route = url.searchParams.get('route') || 'home';
+                        const sessionEstablished = url.searchParams.get('sessionEstablished') === 'true';
 
-    if (userId && secret) {
-        // 1️⃣ Create session in-app using Appwrite SDK
-        await account.createSession(userId, secret);
-        await checkUser();
-        // 2️⃣ Route to correct page
-        router.push(`/${route}`);
-        return;
-    } else {
-        // fallback - no session params, still try checkUser
-        await checkUser();
-        const session = await account.get();
-        if (session && session.$id) {
-            router.push(`/${route}`);
-        } else {
-            router.push('/login');
-        }
-        return;
-    }
-} catch (err) {
-    console.error('[Deep Link] Error handling callback:', err);
-    router.push('/login');
-}
-                    
-                    // If we have userId and secret, create session first
-                    if (userId && secret) {
-                        console.log('[Deep Link] Creating session from params...');
-                        try {
-                            // Appwrite OAuth callback creates session automatically when you visit the callback URL
-                            // But since we're in app, we need to manually create session using the secret
-                            // Navigate to callback URL in app's WebView to establish session
-                            const callbackUrl = `${window.location.origin}/auth/callback?userId=${encodeURIComponent(userId)}&secret=${encodeURIComponent(secret)}`;
-                            console.log('[Deep Link] Navigating to callback URL to establish session:', callbackUrl);
-                            
-                            // Use window.location to navigate to callback URL in app's WebView
-                            // This will establish the session via Appwrite's OAuth callback handler
-                            window.location.href = callbackUrl;
-                            return; // Let the callback page handle the rest
-                        } catch (error) {
-                            console.error('[Deep Link] Error creating session from params:', error);
-                        }
-                    }
-                    
-                    // Wait a moment for the session to be established
-                    setTimeout(async () => {
-                        console.log('[Deep Link] Checking user session...');
-                        try {
+                        if (userId && secret) {
+                            // 1️⃣ Create session in-app using Appwrite SDK
+                            console.log('[Deep Link] Creating session from userId/secret');
+                            await account.createSession(userId, secret);
                             await checkUser();
-                            // Verify session exists by checking account directly (avoid stale closure)
+                            router.push(`/${route}`);
+                            return;
+                        } else if (sessionEstablished) {
+                            // Session already established in browser, just check in app
+                            console.log('[Deep Link] Session already established, checking...');
+                            await checkUser();
                             const session = await account.get();
                             if (session && session.$id) {
-                                console.log('[Deep Link] Session verified, navigating to', targetRoute);
-                                router.push(`/${targetRoute}`);
+                                console.log('[Deep Link] Session verified in app');
+                                router.push(`/${route}`);
                             } else {
-                                console.log('[Deep Link] No session found, redirecting to login');
+                                console.log('[Deep Link] No session in app, redirecting to login');
                                 router.push('/login');
                             }
-                        } catch (error) {
-                            console.error('[Deep Link] Error checking session:', error);
-                            router.push('/login');
+                            return;
+                        } else {
+                            // fallback - try to check existing session
+                            console.log('[Deep Link] No session params, checking existing session...');
+                            await checkUser();
+                            const session = await account.get();
+                            if (session && session.$id) {
+                                router.push(`/${route}`);
+                            } else {
+                                router.push('/login');
+                            }
+                            return;
                         }
-                    }, 1500);
+                    } catch (err) {
+                        console.error('[Deep Link] Error handling callback:', err);
+                        router.push('/login');
+                    }
                 }
             });
         } catch (error) {

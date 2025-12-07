@@ -174,26 +174,39 @@ export default function OAuthCallbackPage() {
                     return;
                 }
                 
-                // No OAuth params, check if session already exists
+                // No OAuth params in URL, but session might be established via cookies
+                // This happens when Appwrite OAuth completes and sets cookies
                 try {
                     const session = await account.get();
                     if (session && session.$id) {
-                        console.log('[OAuth Callback] Existing session found');
+                        console.log('[OAuth Callback] Session found via cookies:', session.$id);
+                        
                         // Check device slug to decide route
                         const hasDeviceSlug = typeof localStorage !== 'undefined' && localStorage.getItem('rk_device_slug');
                         const route = hasDeviceSlug ? 'home' : 'connect';
                         
-                        // Try to redirect to app if mobile browser
+                        // Check if we're in mobile browser (opened from Android app)
                         const isMobileBrowser = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-                        if (isMobileBrowser) {
-                            const deepLinkUrl = `rkai://callback?success=true&route=${route}`;
+                        const isAndroidApp = typeof window !== 'undefined' && 
+                            window.Capacitor && 
+                            window.Capacitor.isNativePlatform && 
+                            window.Capacitor.isNativePlatform();
+                        
+                        // If mobile browser, redirect to app with session info
+                        // Note: We can't pass userId/secret from cookies, but app can check session
+                        if (isMobileBrowser && !isAndroidApp) {
+                            console.log('[OAuth Callback] Mobile browser detected, redirecting to app...');
+                            const deepLinkUrl = `rkai://callback?success=true&route=${route}&sessionEstablished=true`;
                             window.location.href = deepLinkUrl;
+                            
+                            // Fallback after timeout
                             setTimeout(() => {
                                 router.push(`/${route}`);
                             }, 2000);
                             return;
                         }
                         
+                        // Already in app or web, just navigate
                         router.push(`/${route}`);
                         return;
                     }
