@@ -17,6 +17,16 @@ export default function OAuthCallbackPage() {
         const handleCallback = async () => {
             try {
                 const url = new URL(window.location.href);
+                
+                // IMPORTANT: Capture userId and secret IMMEDIATELY before Appwrite processes them
+                // Store them in sessionStorage so we can use them later if needed
+                const initialUserId = url.searchParams.get('userId');
+                const initialSecret = url.searchParams.get('secret');
+                if (initialUserId && initialSecret) {
+                    sessionStorage.setItem('oauth_userId', initialUserId);
+                    sessionStorage.setItem('oauth_secret', initialSecret);
+                    console.log('[OAuth Callback] Stored OAuth params in sessionStorage');
+                }
 
                 // Android deep link (rkai://callback)
                 if (url.protocol === 'rkai:') {
@@ -71,13 +81,17 @@ export default function OAuthCallbackPage() {
                 // Appwrite OAuth callback (HTTP/HTTPS)
                 // Appwrite redirects here with query params to establish session
                 // Check for Appwrite OAuth callback params
-                const userId = url.searchParams.get('userId');
-                const secret = url.searchParams.get('secret');
+                let userId = url.searchParams.get('userId');
+                let secret = url.searchParams.get('secret');
                 const code = url.searchParams.get('code'); // Google OAuth code (if direct OAuth)
                 
+                // If not in URL, try to get from sessionStorage (stored at page load)
+                if (!userId) userId = sessionStorage.getItem('oauth_userId');
+                if (!secret) secret = sessionStorage.getItem('oauth_secret');
+                
                 console.log('[OAuth Callback] URL params:', { 
-                    userId, 
-                    secret, 
+                    userId: userId ? 'present' : 'missing', 
+                    secret: secret ? 'present' : 'missing', 
                     code: code ? 'present' : 'missing',
                     allParams: Object.fromEntries(url.searchParams.entries()),
                     fullUrl: url.href 
@@ -205,15 +219,37 @@ export default function OAuthCallbackPage() {
                         // If mobile browser (opened from Android app), pass session params to app
                         if (isMobileBrowser && !isAndroidApp) {
                             console.log('[OAuth Callback] Mobile browser detected, passing session to app...');
-                            // Pass userId and secret to app so it can create session directly
-                            const deepLinkUrl = `rkai://callback?userId=${encodeURIComponent(userId)}&secret=${encodeURIComponent(secret)}&route=${route}`;
-                            window.location.href = deepLinkUrl;
                             
-                            // Fallback after timeout
-                            setTimeout(() => {
-                                router.push(`/${route}`);
-                            }, 2000);
-                            return;
+                            // Try to get userId/secret from sessionStorage (stored at page load)
+                            const storedUserId = sessionStorage.getItem('oauth_userId');
+                            const storedSecret = sessionStorage.getItem('oauth_secret');
+                            
+                            if (storedUserId && storedSecret) {
+                                console.log('[OAuth Callback] Found stored OAuth params, passing to app');
+                                const deepLinkUrl = `rkai://callback?userId=${encodeURIComponent(storedUserId)}&secret=${encodeURIComponent(storedSecret)}&route=${route}`;
+                                window.location.href = deepLinkUrl;
+                                
+                                // Clean up
+                                sessionStorage.removeItem('oauth_userId');
+                                sessionStorage.removeItem('oauth_secret');
+                                
+                                // Fallback after timeout
+                                setTimeout(() => {
+                                    router.push(`/${route}`);
+                                }, 2000);
+                                return;
+                            } else {
+                                // No stored params, navigate app's WebView to callback URL to establish session
+                                console.log('[OAuth Callback] No stored params, navigating app WebView to callback URL');
+                                const callbackUrlWithParams = `${window.location.origin}/auth/callback?userId=${encodeURIComponent(storedUserId || '')}&secret=${encodeURIComponent(storedSecret || '')}`;
+                                const deepLinkUrl = `rkai://callback?navigateTo=${encodeURIComponent(window.location.href)}&route=${route}`;
+                                window.location.href = deepLinkUrl;
+                                
+                                setTimeout(() => {
+                                    router.push(`/${route}`);
+                                }, 2000);
+                                return;
+                            }
                         }
                         
                         // Already in app or web, just navigate

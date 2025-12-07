@@ -69,24 +69,49 @@ export function AuthProvider({ children }) {
                         if (userId && secret) {
                             // 1️⃣ Create session in-app using Appwrite SDK
                             console.log('[Deep Link] Creating session from userId/secret');
+                            console.log('[Deep Link] userId length:', userId?.length, 'secret length:', secret?.length);
                             try {
-                                await account.createSession(userId, secret);
-                                await checkUser();
-                                router.push(`/${route}`);
-                                return;
+                                const sessionResult = await account.createSession(userId, secret);
+                                console.log('[Deep Link] createSession result:', sessionResult);
+                                
+                                // Wait a bit for session to be fully established
+                                await new Promise(resolve => setTimeout(resolve, 1000));
+                                
+                                // Verify session was created
+                                const verifySession = await account.get();
+                                console.log('[Deep Link] Verified session:', verifySession?.$id);
+                                
+                                if (verifySession && verifySession.$id) {
+                                    await checkUser();
+                                    console.log('[Deep Link] Session established, navigating to', route);
+                                    router.push(`/${route}`);
+                                    return;
+                                } else {
+                                    console.error('[Deep Link] Session creation failed - no session after createSession');
+                                    router.push('/login?error=session_not_created');
+                                    return;
+                                }
                             } catch (err) {
                                 console.error('[Deep Link] Session creation failed:', err);
-                                router.push('/login');
+                                console.error('[Deep Link] Error details:', {
+                                    message: err.message,
+                                    code: err.code,
+                                    type: err.type,
+                                    response: err.response
+                                });
+                                router.push('/login?error=session_creation_failed');
                                 return;
                             }
                         } else {
                             // fallback - try to check existing session
-                            console.log('[Deep Link] No session params, checking existing session...');
+                            console.log('[Deep Link] No session params (userId:', !!userId, 'secret:', !!secret, '), checking existing session...');
                             await checkUser();
                             const session = await account.get();
                             if (session && session.$id) {
+                                console.log('[Deep Link] Existing session found, navigating to', route);
                                 router.push(`/${route}`);
                             } else {
+                                console.log('[Deep Link] No existing session, redirecting to login');
                                 router.push('/login');
                             }
                             return;
