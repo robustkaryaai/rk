@@ -110,6 +110,20 @@ export default function WhatsNewPage() {
                         </ul>
                     </section>
 
+                    <section style={{ marginBottom: '32px' }}>
+                        <h2 style={{ fontSize: '20px', fontWeight: '700', marginBottom: '16px', color: '#06b6d4' }}>
+                            🧠 New things in RK v2.0.1
+                        </h2>
+                        <p style={{ lineHeight: '1.6', opacity: 0.9 }}>
+                            With RK v2.0.1, the platform is changing:
+                        </p>
+                        <ul style={{ lineHeight: '1.8', opacity: 0.9, paddingLeft: '24px', marginTop: '12px' }}>
+                            <li>RK is now for android users too</li>
+                            <li>Android users can now sign in with Google</li>
+                            <li>Bug fixes and improvements</li>
+                        </ul>
+                    </section>
+
                     {/* Closing */}
                     <section>
                         <h2 style={{ fontSize: '20px', fontWeight: '700', marginBottom: '16px', color: '#667eea' }}>

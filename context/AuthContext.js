@@ -155,25 +155,31 @@ export function AuthProvider({ children }) {
                         return;
                     } else {
                         console.warn('Native exchange failed, falling back to browser OAuth', data);
-                        // Fallback: Open Appwrite OAuth directly in browser
-                        account.createOAuth2Session(
-                            'google',
-                            callbackUrl,
-                            failureUrl,
-                            ['https://www.googleapis.com/auth/drive.file']
-                        );
+                        // Fallback: Get OAuth URL and open in browser manually (prevents auto-redirect)
+                        try {
+                            const oauthUrl = account.getOAuth2Url(
+                                'google',
+                                callbackUrl,
+                                failureUrl,
+                                ['https://www.googleapis.com/auth/drive.file']
+                            );
+                            await Browser.open({ url: oauthUrl });
+                        } catch(e) {
+                            console.error('Browser OAuth fallback failed:', e);
+                        }
                         return;
                     }
                 } catch (nativeErr) {
                     console.warn('Native Google sign-in failed, falling back to browser OAuth', nativeErr.message || nativeErr);
-                    // Fallback: Open Appwrite OAuth directly in browser
+                    // Fallback: Get OAuth URL and open in browser manually (prevents auto-redirect)
                     try {
-                        account.createOAuth2Session(
+                        const oauthUrl = account.getOAuth2Url(
                             'google',
                             callbackUrl,
                             failureUrl,
                             ['https://www.googleapis.com/auth/drive.file']
                         );
+                        await Browser.open({ url: oauthUrl });
                     } catch(e) {
                         console.error('Browser OAuth fallback failed:', e);
                     }
@@ -181,7 +187,7 @@ export function AuthProvider({ children }) {
                 }
             }
 
-            // Web: start OAuth directly from this page
+            // Web: start OAuth directly from this page (auto-redirect is fine for web)
             account.createOAuth2Session(
                 'google',
                 callbackUrl,  // Our callback page handles the redirect
