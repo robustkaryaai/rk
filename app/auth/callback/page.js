@@ -35,20 +35,76 @@ export default function OAuthCallbackPage() {
                 }
 
                 // Appwrite OAuth callback (HTTP/HTTPS)
-                // Appwrite automatically establishes the session when redirecting here
-                // We just need to verify the session exists and redirect to home
+                // Appwrite redirects here with query params to establish session
+                // Check for Appwrite OAuth callback params
+                const userId = url.searchParams.get('userId');
+                const secret = url.searchParams.get('secret');
+                const code = url.searchParams.get('code'); // Google OAuth code (if direct OAuth)
+                
+                console.log('[OAuth Callback] URL params:', { 
+                    userId, 
+                    secret, 
+                    code: code ? 'present' : 'missing',
+                    allParams: Object.fromEntries(url.searchParams.entries()),
+                    fullUrl: url.href 
+                });
+                
+                // Appwrite OAuth callback with userId and secret
+                if (userId && secret) {
+                    // Appwrite OAuth callback - session should be automatically established
+                    // Wait a moment for Appwrite SDK to process the callback
+                    console.log('[OAuth Callback] Appwrite OAuth callback detected, waiting for session...');
+                    await new Promise(resolve => setTimeout(resolve, 1500));
+                    
+                    try {
+                        const session = await account.get();
+                        if (session && session.$id) {
+                            console.log('[OAuth Callback] Session established successfully:', session.$id);
+                            router.push('/home');
+                            return;
+                        }
+                    } catch (sessionError) {
+                        console.error('[OAuth Callback] Session check failed:', sessionError);
+                    }
+                    
+                    // Retry once more
+                    await new Promise(resolve => setTimeout(resolve, 2000));
+                    try {
+                        const session = await account.get();
+                        if (session && session.$id) {
+                            console.log('[OAuth Callback] Session established on retry');
+                            router.push('/home');
+                            return;
+                        }
+                    } catch (retryError) {
+                        console.error('[OAuth Callback] Retry failed:', retryError);
+                    }
+                    
+                    router.push('/login?error=session_failed');
+                    return;
+                }
+                
+                // Note: If we have a Google OAuth code but no userId/secret,
+                // it means Appwrite OAuth didn't complete properly.
+                // This shouldn't happen if using Appwrite's getOAuth2Url()
+                if (code && !userId && !secret) {
+                    console.warn('[OAuth Callback] Google OAuth code present but no Appwrite params - OAuth flow may be incomplete');
+                    // This suggests the OAuth flow wasn't completed through Appwrite
+                    // We should use Appwrite's OAuth, not direct Google OAuth
+                    router.push('/login?error=oauth_incomplete');
+                    return;
+                }
+                
+                // No OAuth params, check if session already exists
                 try {
                     const session = await account.get();
                     if (session && session.$id) {
-                        // Session established successfully, redirect to home
+                        console.log('[OAuth Callback] Existing session found');
                         router.push('/home');
                         return;
                     }
                 } catch (sessionError) {
-                    // Session not established, redirect back to login
-                    console.error('Session check failed:', sessionError);
-                    router.push('/login?error=session_failed');
-                    return;
+                    console.error('[OAuth Callback] No session found:', sessionError);
                 }
 
                 // If we reach here, something went wrong

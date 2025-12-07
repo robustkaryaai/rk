@@ -24,16 +24,22 @@ export function AuthProvider({ children }) {
         try {
             // Listen for when app is opened via deep link (OAuth callback)
             App.addListener('appUrlOpen', async (event) => {
-                const slug = event.url.split('.app').pop();
+                console.log('[Deep Link] App opened with URL:', event.url);
                 
-                // Check if this is an auth callback
-                if (slug && slug.includes('/auth/callback')) {
+                // Check if this is an auth callback (both rkai:// and https://)
+                if (event.url.includes('/auth/callback')) {
                     console.log('[Deep Link] OAuth callback detected:', event.url);
-                    // Wait a moment for the session to be established
+                    // Wait a moment for the session to be established by the callback page
                     setTimeout(() => {
                         console.log('[Deep Link] Checking user session...');
-                        checkUser();
-                    }, 500);
+                        checkUser().then(() => {
+                            // If user is logged in, navigate to home
+                            // The callback page should handle navigation, but this is a backup
+                            if (user) {
+                                router.push('/home');
+                            }
+                        });
+                    }, 1500);
                 }
             });
         } catch (error) {
