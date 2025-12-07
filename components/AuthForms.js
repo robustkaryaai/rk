@@ -113,19 +113,6 @@ export function SignInForm() {
                 <span>Sign in with Google</span>
             </button>
 
-            {(oauthError || lastUrl) && (
-                <div style={{ marginTop: '12px', fontSize: '12px', opacity: 0.8 }}>
-                    {oauthError && (
-                        <div style={{ marginBottom: '6px' }}>Last error: {oauthError}</div>
-                    )}
-                    {lastUrl && (
-                        <div style={{ wordBreak: 'break-all' }}>
-                            {lastUrl}
-                        </div>
-                    )}
-                </div>
-            )}
-
             <div className="link-switch-wrapper">
                 Don&apos;t have an account?{' '}
                 <Link href="/signup" className="link-highlight">
