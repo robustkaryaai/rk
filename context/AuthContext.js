@@ -32,19 +32,27 @@ export function AuthProvider({ children }) {
                     return;
                 }
 
-                if (!event.url.startsWith('rkai://callback')) {
-                    alert('⚠️ Not OAuth callback:\n' + event.url);
+                const incomingUrl = new URL(event.url);
+                const isCustomScheme = incomingUrl.protocol === 'rkai:' && incomingUrl.host === 'callback';
+                const isHttpsCallback = (incomingUrl.protocol === 'https:' || incomingUrl.protocol === 'http:') && incomingUrl.pathname.startsWith('/auth/callback');
+
+                if (!isCustomScheme && !isHttpsCallback) {
+                    alert('⚠️ Not OAuth callback\n' + event.url);
                     return;
                 }
 
                 alert('🔗 OAuth Deep Link Detected');
 
                 try {
-                    const url = new URL(event.url);
+                    let userId = incomingUrl.searchParams.get('userId');
+                    let secret = incomingUrl.searchParams.get('secret');
+                    const route = incomingUrl.searchParams.get('route') || 'home';
 
-                    const userId = url.searchParams.get('userId');
-                    const secret = url.searchParams.get('secret');
-                    const route = url.searchParams.get('route') || 'home';
+                    if ((!userId || !secret) && incomingUrl.searchParams.get('url')) {
+                        const full = new URL(incomingUrl.searchParams.get('url'));
+                        userId = full.searchParams.get('userId');
+                        secret = full.searchParams.get('secret');
+                    }
 
                     alert(
                         '🧾 Params:\n' +
@@ -54,6 +62,10 @@ export function AuthProvider({ children }) {
                     );
 
                     if (!userId || !secret) {
+                        if (isHttpsCallback) {
+                            window.location.href = event.url;
+                            return;
+                        }
                         alert('❌ userId or secret missing\nCannot create session');
                         router.push('/login?error=missing_params');
                         return;
@@ -207,10 +219,11 @@ export function AuthProvider({ children }) {
                 // For Android: Use browser OAuth directly (more reliable than native)
                 console.log('[Google Login] Native platform detected, opening OAuth in browser');
                 try {
+                    const origin = window.location.origin;
                     const oauthUrl = account.getOAuth2Url(
                         'google',
-                        'rkai://callback',
-                        'https://yourdomain.com/login?error=oauth_failed'
+                        `${origin}/auth/callback`,
+                        `${origin}/login?error=oauth_failed`
                     );
                     await Browser.open({ url: oauthUrl });
                     console.log('[Google Login] OAuth URL:', oauthUrl);
