@@ -210,47 +210,17 @@ export function AuthProvider({ children }) {
 
             const callbackUrl = 'https://rk-alpha-nine.vercel.app/auth/callback';
             const failureUrl = 'https://rk-alpha-nine.vercel.app/login?error=oauth_failed';
-            const scopes = ['https://www.googleapis.com/auth/drive.file'];
 
-            // Check if we're in Capacitor native app
-            const isNative = typeof window !== 'undefined' &&
-                window.Capacitor &&
-                window.Capacitor.isNativePlatform &&
-                window.Capacitor.isNativePlatform();
+            console.log('[Google Login] Starting OAuth with callbacks:', { callbackUrl, failureUrl });
 
-            console.log('[Google Login] Is Native Platform:', isNative);
-
-            if (isNative) {
-                // For native, open OAuth in external browser
-                const { Browser } = await import('@capacitor/browser');
-
-                // createOAuth2Session will redirect on web, but we can prevent that
-                // and just use it to get the URL on native
-                try {
-                    // Call createOAuth2Session - in native context it will throw an error
-                    // because it tries to redirect, but we'll catch that and use Browser.open instead
-                    account.createOAuth2Session('google', callbackUrl, failureUrl, scopes);
-
-                    // If it doesn't throw (shouldn't reach here), wait a bit then open in browser
-                    setTimeout(async () => {
-                        // Fallback: if createOAuth2Session didn't redirect, something went wrong
-                        console.log('[Google Login] createOAuth2Session did not redirect, trying alternative');
-                    }, 100);
-                } catch (error) {
-                    // This is expected - createOAuth2Session tries to redirect which fails in native
-                    console.log('[Google Login] createOAuth2Session redirect prevented (expected)');
-
-                    // The redirect attempt will have opened a popup/redirect, which we need to capture
-                    // For now, we  need to construct the URL a different way
-                    // Actually, let's just let createOAuth2Session handle it - it should work
-                }
-
-                console.log('[Google Login] OAuth initiated for native');
-            } else {
-                // For web, use createOAuth2Session normally (it will redirect)
-                console.log('[Google Login] Web platform, using createOAuth2Session');
-                account.createOAuth2Session('google', callbackUrl, failureUrl, scopes);
-            }
+            // Use createOAuth2Session for all platforms
+            // Appwrite SDK will handle opening in browser/WebView appropriately
+            account.createOAuth2Session(
+                'google',
+                callbackUrl,
+                failureUrl,
+                ['https://www.googleapis.com/auth/drive.file']
+            );
         } catch (error) {
             console.error('[Google Login] Google login failed:', error);
             alert('Failed to start Google sign-in: ' + (error.message || 'Please try again.'));
