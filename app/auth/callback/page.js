@@ -21,6 +21,30 @@ export default function OAuthCallbackPage() {
                 // Android deep link (rkai://callback)
                 if (url.protocol === 'rkai:') {
                     const sessionId = url.searchParams.get('sessionId');
+                    const userId = url.searchParams.get('userId');
+                    const secret = url.searchParams.get('secret');
+                    
+                    // If we have userId and secret from OAuth callback, establish session
+                    if (userId && secret) {
+                        console.log('[OAuth Callback] Deep link with session params, establishing session...');
+                        // Appwrite OAuth callback - session should be automatically established when page loads
+                        // Just wait and check session
+                        await new Promise(resolve => setTimeout(resolve, 1500));
+                        
+                        try {
+                            const session = await account.get();
+                            if (session && session.$id) {
+                                console.log('[OAuth Callback] Session established from deep link');
+                                const hasDeviceSlug = typeof localStorage !== 'undefined' && localStorage.getItem('rk_device_slug');
+                                const route = hasDeviceSlug ? 'home' : 'connect';
+                                router.push(`/${route}`);
+                                return;
+                            }
+                        } catch (error) {
+                            console.error('[OAuth Callback] Session check failed:', error);
+                        }
+                    }
+                    
                     if (sessionId) {
                         await fetch('/api/auth/google/native-exchange', {
                             method: 'POST',
@@ -73,12 +97,14 @@ export default function OAuthCallbackPage() {
                             
                             if (isMobileBrowser || isAndroidApp) {
                                 console.log('[OAuth Callback] Mobile browser/app detected, redirecting to app...');
-                                // Build deep link URL - app will handle navigation
+                                // Build deep link URL with session params so app can establish session
                                 // Check device slug first to decide route
                                 const hasDeviceSlug = typeof localStorage !== 'undefined' && localStorage.getItem('rk_device_slug');
                                 const route = hasDeviceSlug ? 'home' : 'connect';
-                                const deepLinkUrl = `rkai://callback?success=true&route=${route}`;
+                                // Pass userId and secret to app so it can create session
+                                const deepLinkUrl = `rkai://callback?success=true&route=${route}&userId=${encodeURIComponent(userId)}&secret=${encodeURIComponent(secret)}`;
                                 
+                                console.log('[OAuth Callback] Redirecting to app with session params');
                                 // Redirect to app
                                 window.location.href = deepLinkUrl;
                                 
@@ -114,7 +140,7 @@ export default function OAuthCallbackPage() {
                                 console.log('[OAuth Callback] Mobile browser/app detected on retry, redirecting to app...');
                                 const hasDeviceSlug = typeof localStorage !== 'undefined' && localStorage.getItem('rk_device_slug');
                                 const route = hasDeviceSlug ? 'home' : 'connect';
-                                const deepLinkUrl = `rkai://callback?success=true&route=${route}`;
+                                const deepLinkUrl = `rkai://callback?success=true&route=${route}&userId=${encodeURIComponent(userId)}&secret=${encodeURIComponent(secret)}`;
                                 
                                 window.location.href = deepLinkUrl;
                                 

@@ -30,8 +30,11 @@ export function AuthProvider({ children }) {
                 if (event.url.includes('/auth/callback') || event.url.startsWith('rkai://callback')) {
                     console.log('[Deep Link] OAuth callback detected:', event.url);
                     
-                    // Parse route from URL if provided
+                    // Parse route and session params from URL
                     let targetRoute = 'home'; // default
+                    let userId = null;
+                    let secret = null;
+                    
                     try {
                         const url = new URL(event.url);
                         const routeParam = url.searchParams.get('route');
@@ -39,11 +42,38 @@ export function AuthProvider({ children }) {
                             targetRoute = routeParam;
                             console.log('[Deep Link] Route parameter found:', targetRoute);
                         }
+                        
+                        // Get session params from deep link
+                        userId = url.searchParams.get('userId');
+                        secret = url.searchParams.get('secret');
+                        
+                        if (userId && secret) {
+                            console.log('[Deep Link] Session params found in deep link');
+                        }
                     } catch (e) {
                         // If URL parsing fails, check device slug to decide route
                         const hasDeviceSlug = typeof localStorage !== 'undefined' && localStorage.getItem('rk_device_slug');
                         targetRoute = hasDeviceSlug ? 'home' : 'connect';
                         console.log('[Deep Link] Using device slug check, route:', targetRoute);
+                    }
+                    
+                    // If we have userId and secret, create session first
+                    if (userId && secret) {
+                        console.log('[Deep Link] Creating session from params...');
+                        try {
+                            // Appwrite OAuth callback creates session automatically when you visit the callback URL
+                            // But since we're in app, we need to manually create session using the secret
+                            // Navigate to callback URL in app's WebView to establish session
+                            const callbackUrl = `${window.location.origin}/auth/callback?userId=${encodeURIComponent(userId)}&secret=${encodeURIComponent(secret)}`;
+                            console.log('[Deep Link] Navigating to callback URL to establish session:', callbackUrl);
+                            
+                            // Use window.location to navigate to callback URL in app's WebView
+                            // This will establish the session via Appwrite's OAuth callback handler
+                            window.location.href = callbackUrl;
+                            return; // Let the callback page handle the rest
+                        } catch (error) {
+                            console.error('[Deep Link] Error creating session from params:', error);
+                        }
                     }
                     
                     // Wait a moment for the session to be established
