@@ -256,14 +256,31 @@ export default function OAuthCallbackPage() {
                 
                 console.log('[OAuth Callback] No userId/secret in URL, checking for session via cookies...');
                 console.log('[OAuth Callback] Is Android App:', isAndroidApp);
+                console.log('[OAuth Callback] Current URL:', window.location.href);
+                
+                // If in app's WebView, Appwrite SDK needs time to process the callback URL
+                // Appwrite might set cookies when the callback URL is loaded
+                if (isAndroidApp) {
+                    console.log('[OAuth Callback] In app WebView - waiting for Appwrite to process callback...');
+                    if (typeof window !== 'undefined' && window.alert) {
+                        alert('📱 In app WebView\n\nWaiting for Appwrite to process OAuth callback...');
+                    }
+                    
+                    // Wait longer for Appwrite SDK to process the callback URL and set cookies
+                    await new Promise(resolve => setTimeout(resolve, 3000));
+                } else {
+                    // In browser, wait a bit
+                    await new Promise(resolve => setTimeout(resolve, 1500));
+                }
                 
                 try {
-                    // Wait a bit for Appwrite to process cookies if any
-                    await new Promise(resolve => setTimeout(resolve, 1500));
-                    
                     const session = await account.get();
                     if (session && session.$id) {
                         console.log('[OAuth Callback] ✅ Session found via cookies:', session.$id);
+                        
+                        if (typeof window !== 'undefined' && window.alert && isAndroidApp) {
+                            alert('✅ Session found!\n\nSession ID: ' + session.$id.substring(0, 15) + '...');
+                        }
                         
                         // Check device slug to decide route
                         const hasDeviceSlug = typeof localStorage !== 'undefined' && localStorage.getItem('rk_device_slug');
@@ -308,8 +325,28 @@ export default function OAuthCallbackPage() {
                     } else {
                         console.error('[OAuth Callback] ❌ No session found via cookies either');
                         if (isAndroidApp) {
-                            // In app but no session - this shouldn't happen
-                            console.error('[OAuth Callback] In app WebView but no session - OAuth might have failed');
+                            // In app but no session - try one more time with longer wait
+                            console.log('[OAuth Callback] Retrying session check in app...');
+                            if (typeof window !== 'undefined' && window.alert) {
+                                alert('⚠️ No session found\n\nRetrying...');
+                            }
+                            
+                            await new Promise(resolve => setTimeout(resolve, 3000));
+                            const retrySession = await account.get();
+                            
+                            if (retrySession && retrySession.$id) {
+                                console.log('[OAuth Callback] ✅ Session found on retry:', retrySession.$id);
+                                const hasDeviceSlug = typeof localStorage !== 'undefined' && localStorage.getItem('rk_device_slug');
+                                const route = hasDeviceSlug ? 'home' : 'connect';
+                                router.push(`/${route}`);
+                                return;
+                            }
+                            
+                            // Still no session - OAuth might have failed
+                            console.error('[OAuth Callback] In app WebView but no session after retry - OAuth might have failed');
+                            if (typeof window !== 'undefined' && window.alert) {
+                                alert('❌ Failed to establish session\n\nPlease try logging in again.');
+                            }
                             router.push('/login?error=no_session_in_app');
                             return;
                         }
@@ -317,6 +354,9 @@ export default function OAuthCallbackPage() {
                 } catch (sessionError) {
                     console.error('[OAuth Callback] Error checking session:', sessionError);
                     if (isAndroidApp) {
+                        if (typeof window !== 'undefined' && window.alert) {
+                            alert('❌ Error checking session:\n' + (sessionError.message || 'Unknown error'));
+                        }
                         router.push('/login?error=session_check_failed');
                         return;
                     }
