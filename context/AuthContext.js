@@ -62,13 +62,15 @@ export function AuthProvider({ children }) {
                     );
 
                     if (!userId || !secret) {
-                        if (isHttpsCallback) {
-                            window.location.href = event.url;
+                        try {
+                            const origin = window.location.origin;
+                            const target = `${origin}/auth/callback?url=${encodeURIComponent(event.url)}&route=${route}`;
+                            window.location.href = target;
+                            return;
+                        } catch (_) {
+                            router.push('/login?error=missing_params');
                             return;
                         }
-                        alert('❌ userId or secret missing\nCannot create session');
-                        router.push('/login?error=missing_params');
-                        return;
                     }
 
                     alert('🔐 Creating session...');

@@ -17,6 +17,21 @@ export default function OAuthCallbackPage() {
         const handleCallback = async () => {
             try {
                 const url = new URL(window.location.href);
+                const nested = url.searchParams.get('url');
+                if (nested) {
+                    try {
+                        const full = new URL(nested);
+                        const nestedUserId = full.searchParams.get('userId');
+                        const nestedSecret = full.searchParams.get('secret');
+                        if (nestedUserId && nestedSecret) {
+                            sessionStorage.setItem('oauth_userId', nestedUserId);
+                            sessionStorage.setItem('oauth_secret', nestedSecret);
+                            console.log('[OAuth Callback] Extracted nested params from url=...');
+                        }
+                    } catch (e) {
+                        console.warn('[OAuth Callback] Failed to parse nested url param:', e);
+                    }
+                }
                 
                 // IMPORTANT: Capture userId and secret IMMEDIATELY before Appwrite processes them
                 // Store them in sessionStorage so we can use them later if needed
