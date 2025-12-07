@@ -24,30 +24,74 @@ export function AuthProvider({ children }) {
         try {
             // Listen for when app is opened via deep link (OAuth callback)
             App.addListener('appUrlOpen', async (event) => {
-                if (!event.url.startsWith('rkai://callback')) return;
-              
-                try {
-                  const url = new URL(event.url);
-                  const userId = url.searchParams.get('userId');
-                  const secret = url.searchParams.get('secret');
-                  const route = url.searchParams.get('route') || 'home';
-              
-                  if (!userId || !secret) {
-                    console.error('Missing userId or secret');
-                    router.push('/login?error=missing_session');
+                alert('✅ appUrlOpen fired');
+                console.log('FULL URL:', event.url);
+
+                if (!event.url) {
+                    alert('❌ No URL received');
                     return;
-                  }
-              
-                  await account.createSession(userId, secret);
-                  await checkUser();
-                  router.push(`/${route}`);
-              
-                } catch (err) {
-                  console.error('Deep link login failed:', err);
-                  router.push('/login?error=session_failed');
                 }
-              });
-              
+
+                if (!event.url.startsWith('rkai://callback')) {
+                    alert('⚠️ Not OAuth callback:\n' + event.url);
+                    return;
+                }
+
+                alert('🔗 OAuth Deep Link Detected');
+
+                try {
+                    const url = new URL(event.url);
+
+                    const userId = url.searchParams.get('userId');
+                    const secret = url.searchParams.get('secret');
+                    const route = url.searchParams.get('route') || 'home';
+
+                    alert(
+                        '🧾 Params:\n' +
+                        'userId: ' + (userId ? '✅ Present' : '❌ Missing') + '\n' +
+                        'secret: ' + (secret ? '✅ Present' : '❌ Missing') + '\n' +
+                        'route: ' + route
+                    );
+
+                    if (!userId || !secret) {
+                        alert('❌ userId or secret missing\nCannot create session');
+                        router.push('/login?error=missing_params');
+                        return;
+                    }
+
+                    alert('🔐 Creating session...');
+
+                    try {
+                        await account.createSession({
+                            userId,
+                            secret,
+                          });
+                          
+                        alert('✅ createSession success');
+
+                        await checkUser();
+                        alert('✅ checkUser done');
+
+                        router.push(`/${route}`);
+                        alert('➡️ Navigated to /' + route);
+
+                    } catch (sessionErr) {
+                        console.error('SESSION ERROR:', sessionErr);
+                        alert(
+                            '❌ createSession failed:\n' +
+                            (sessionErr.message || JSON.stringify(sessionErr))
+                        );
+                        router.push('/login?error=session_failed');
+                    }
+
+                } catch (err) {
+                    console.error('DEEP LINK ERROR:', err);
+                    alert('💥 Deep link crash:\n' + err.message);
+                    router.push('/login?error=exception');
+                }
+            });
+
+
         } catch (error) {
             console.log('Deep link setup note (might not be available in web):', error.message);
         }
