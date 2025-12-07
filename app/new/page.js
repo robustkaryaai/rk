@@ -112,7 +112,7 @@ export default function WhatsNewPage() {
 
                     <section style={{ marginBottom: '32px' }}>
                         <h2 style={{ fontSize: '20px', fontWeight: '700', marginBottom: '16px', color: '#06b6d4' }}>
-                            🧠 New things in RK v2.0.1
+                        ⭐ New things in RK v2.0.1
                         </h2>
                         <p style={{ lineHeight: '1.6', opacity: 0.9 }}>
                             With RK v2.0.1, the platform is changing:
