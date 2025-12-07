@@ -7,7 +7,7 @@ import { useRouter } from 'next/navigation';
 /**
  * OAuth Callback Handler Page
  * Handles:
- *  - Web login via Appwrite OAuth
+ *  - Web login via Appwrite OAuth (HTTP/HTTPS callback)
  *  - Mobile app login via deep link (rkai://callback)
  */
 export default function OAuthCallbackPage() {
@@ -18,7 +18,7 @@ export default function OAuthCallbackPage() {
             try {
                 const url = new URL(window.location.href);
 
-                // Android deep link
+                // Android deep link (rkai://callback)
                 if (url.protocol === 'rkai:') {
                     const sessionId = url.searchParams.get('sessionId');
                     if (sessionId) {
@@ -33,6 +33,26 @@ export default function OAuthCallbackPage() {
                         return;
                     }
                 }
+
+                // Appwrite OAuth callback (HTTP/HTTPS)
+                // Appwrite automatically establishes the session when redirecting here
+                // We just need to verify the session exists and redirect to home
+                try {
+                    const session = await account.get();
+                    if (session && session.$id) {
+                        // Session established successfully, redirect to home
+                        router.push('/home');
+                        return;
+                    }
+                } catch (sessionError) {
+                    // Session not established, redirect back to login
+                    console.error('Session check failed:', sessionError);
+                    router.push('/login?error=session_failed');
+                    return;
+                }
+
+                // If we reach here, something went wrong
+                router.push('/login?error=callback_error');
             } catch (err) {
                 console.error('OAuth callback error:', err);
                 router.push('/login?error=callback_error');

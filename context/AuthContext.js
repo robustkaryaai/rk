@@ -155,14 +155,28 @@ export function AuthProvider({ children }) {
                         return;
                     } else {
                         console.warn('Native exchange failed, falling back to browser OAuth', data);
-                        const oauthStart = `${origin}/login?start_oauth=google`;
-                        await Browser.open({ url: oauthStart });
+                        // Fallback: Open Appwrite OAuth directly in browser
+                        account.createOAuth2Session(
+                            'google',
+                            callbackUrl,
+                            failureUrl,
+                            ['https://www.googleapis.com/auth/drive.file']
+                        );
                         return;
                     }
                 } catch (nativeErr) {
                     console.warn('Native Google sign-in failed, falling back to browser OAuth', nativeErr.message || nativeErr);
-                    const oauthStart = `${origin}/login?start_oauth=google`;
-                    try { await Browser.open({ url: oauthStart }); } catch(e) { console.error(e); }
+                    // Fallback: Open Appwrite OAuth directly in browser
+                    try {
+                        account.createOAuth2Session(
+                            'google',
+                            callbackUrl,
+                            failureUrl,
+                            ['https://www.googleapis.com/auth/drive.file']
+                        );
+                    } catch(e) {
+                        console.error('Browser OAuth fallback failed:', e);
+                    }
                     return;
                 }
             }

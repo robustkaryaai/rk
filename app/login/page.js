@@ -4,7 +4,6 @@ import { SignInForm } from '@/components/AuthForms';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
-import { account } from '@/lib/appwrite';
 
 export default function LoginPage() {
   const { user, loading } = useAuth();
@@ -16,29 +15,6 @@ export default function LoginPage() {
       router.push('/home');
     }
   }, [user, loading, router]);
-
-  // Auto-start Google OAuth
-  useEffect(() => {
-  if (typeof window === 'undefined') return;
-
-  const startGoogleOAuth = async () => {
-    const callbackUrl = 'rkai://callback'; // Android deep link
-    const failureUrl = 'rkai://login?error=oauth_failed';
-
-    try {
-      account.createOAuth2Session('google', callbackUrl, failureUrl);
-      // Open in external browser using Capacitor
-      if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.Browser) {
-        const oauthUrl = account.getOAuth2Url('google', callbackUrl, failureUrl);
-        await window.Capacitor.Plugins.Browser.open({ url: oauthUrl });
-      }
-    } catch (err) {
-      console.warn('OAuth failed:', err);
-    }
-  };
-
-  startGoogleOAuth();
-}, []);
 
 
   if (loading) {
