@@ -1,3 +1,4 @@
+"use client";
 // OAuth Callback Handler Page
 import { useEffect } from 'react';
 import { account } from '@/lib/appwrite';
