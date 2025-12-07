@@ -26,6 +26,7 @@ export function AuthProvider({ children }) {
             App.addListener('appUrlOpen', async (event) => {
                 alert('✅ appUrlOpen fired');
                 console.log('FULL URL:', event.url);
+                try { localStorage.setItem('rk_last_oauth_url', event.url || ''); } catch (_) {}
 
                 if (!event.url) {
                     alert('❌ No URL received');
@@ -65,9 +66,11 @@ export function AuthProvider({ children }) {
                         try {
                             const origin = window.location.origin;
                             const target = `${origin}/auth/callback?url=${encodeURIComponent(event.url)}&route=${route}`;
+                            try { localStorage.setItem('rk_last_oauth_error', 'missing_params'); } catch (_) {}
                             window.location.href = target;
                             return;
                         } catch (_) {
+                            try { localStorage.setItem('rk_last_oauth_error', 'missing_params'); } catch (_) {}
                             router.push('/login?error=missing_params');
                             return;
                         }
@@ -95,6 +98,7 @@ export function AuthProvider({ children }) {
                             '❌ createSession failed:\n' +
                             (sessionErr.message || JSON.stringify(sessionErr))
                         );
+                        try { localStorage.setItem('rk_last_oauth_error', 'session_failed'); } catch (_) {}
                         router.push('/login?error=session_failed');
                     }
 

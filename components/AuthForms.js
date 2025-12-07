@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { AiOutlineGoogle, AiOutlineMail, AiOutlineLock, AiOutlineUser, AiOutlineUpload } from 'react-icons/ai';
 import Link from 'next/link';
@@ -12,6 +12,25 @@ export function SignInForm() {
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
+    const [lastUrl, setLastUrl] = useState(() =>
+        typeof window !== 'undefined' ? (localStorage.getItem('rk_last_oauth_url') || '') : ''
+    );
+    const [oauthError, setOauthError] = useState(() =>
+        typeof window !== 'undefined' ? (localStorage.getItem('rk_last_oauth_error') || '') : ''
+    );
+
+    useEffect(() => {
+        const onFocus = () => {
+            try {
+                const u = localStorage.getItem('rk_last_oauth_url') || '';
+                const e = localStorage.getItem('rk_last_oauth_error') || '';
+                setLastUrl(u);
+                setOauthError(e);
+            } catch (_) {}
+        };
+        window.addEventListener('focus', onFocus);
+        return () => window.removeEventListener('focus', onFocus);
+    }, []);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -94,8 +113,21 @@ export function SignInForm() {
                 <span>Sign in with Google</span>
             </button>
 
+            {(oauthError || lastUrl) && (
+                <div style={{ marginTop: '12px', fontSize: '12px', opacity: 0.8 }}>
+                    {oauthError && (
+                        <div style={{ marginBottom: '6px' }}>Last error: {oauthError}</div>
+                    )}
+                    {lastUrl && (
+                        <div style={{ wordBreak: 'break-all' }}>
+                            {lastUrl}
+                        </div>
+                    )}
+                </div>
+            )}
+
             <div className="link-switch-wrapper">
-                Don't have an account?{' '}
+                Don&apos;t have an account?{' '}
                 <Link href="/signup" className="link-highlight">
                     Sign up
                 </Link>

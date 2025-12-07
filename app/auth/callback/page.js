@@ -17,6 +17,7 @@ export default function OAuthCallbackPage() {
         const handleCallback = async () => {
             try {
                 const url = new URL(window.location.href);
+                try { localStorage.setItem('rk_last_oauth_url', url.href); } catch (_) {}
                 const nested = url.searchParams.get('url');
                 if (nested) {
                     try {
@@ -75,6 +76,7 @@ export default function OAuthCallbackPage() {
                             }
                         } catch (error) {
                             console.error('[OAuth Callback] Session creation error:', error);
+                            try { localStorage.setItem('rk_last_oauth_error', 'session_creation_failed'); } catch (_) {}
                             router.push('/login?error=session_creation_failed');
                             return;
                         }
@@ -208,6 +210,7 @@ export default function OAuthCallbackPage() {
                         }
                     } catch (sessionError) {
                         console.error('[OAuth Callback] Session check failed:', sessionError);
+                        try { localStorage.setItem('rk_last_oauth_error', 'session_check_failed'); } catch (_) {}
                     }
                     
                     // Retry once more
@@ -244,8 +247,10 @@ export default function OAuthCallbackPage() {
                         }
                     } catch (retryError) {
                         console.error('[OAuth Callback] Retry failed:', retryError);
+                        try { localStorage.setItem('rk_last_oauth_error', 'retry_failed'); } catch (_) {}
                     }
                     
+                    try { localStorage.setItem('rk_last_oauth_error', 'session_failed'); } catch (_) {}
                     router.push('/login?error=session_failed');
                     return;
                 }
@@ -255,6 +260,7 @@ export default function OAuthCallbackPage() {
                 // This shouldn't happen if using Appwrite's getOAuth2Url()
                 if (code && !userId && !secret) {
                     console.warn('[OAuth Callback] Google OAuth code present but no Appwrite params - OAuth flow may be incomplete');
+                    try { localStorage.setItem('rk_last_oauth_error', 'oauth_incomplete'); } catch (_) {}
                     // This suggests the OAuth flow wasn't completed through Appwrite
                     // We should use Appwrite's OAuth, not direct Google OAuth
                     router.push('/login?error=oauth_incomplete');
@@ -341,6 +347,7 @@ export default function OAuthCallbackPage() {
                 router.push('/login?error=callback_error');
             } catch (err) {
                 console.error('OAuth callback error:', err);
+                try { localStorage.setItem('rk_last_oauth_error', 'callback_error'); } catch (_) {}
                 router.push('/login?error=callback_error');
             }
         };
