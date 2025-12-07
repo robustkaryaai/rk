@@ -85,51 +85,47 @@ export default function WhatsNewPage() {
                             <AiOutlineCheckCircle size={20} color="#667eea" />
                             <div>
                                 <strong>Coming Soon</strong>
-                                <p style={{
-                                    fontSize: '14px', opacity: 0.7', margin: '4px 0 0 0' }}>
+                                <p style={{ fontSize: '14px', opacity: 0.7, margin: '4px 0 0 0' }}>
                                     Google Drive integration temporarily disabled for optimization
                                 </p>
+                            </div>
                         </div>
-                    </div>
 
-                    <div className="feature-item">
-                        <AiOutlineCheckCircle size={20} color="#667eea" />
-                        <div>
-                            <strong>Supabase Storage</strong>
-                            <p style={{
-                                fontSize: '14px', opacity: 0.7', margin: '4px 0 0 0' }}>
+                        <div className="feature-item">
+                            <AiOutlineCheckCircle size={20} color="#667eea" />
+                            <div>
+                                <strong>Supabase Storage</strong>
+                                <p style={{ fontSize: '14px', opacity: 0.7, margin: '4px 0 0 0' }}>
                                     All files continue to be stored securely in Supabase
                                 </p>
-                    </div>
-            </div>
+                            </div>
+                        </div>
 
-            <div className="feature-item">
-                <AiOutlineCheckCircle size={20} color="#667eea" />
-                <div>
-                    <strong>Future Return</strong>
-                    <p style={{
-                        fontSize: '14px', opacity: 0.7', margin: '4px 0 0 0' }}>
+                        <div className="feature-item">
+                            <AiOutlineCheckCircle size={20} color="#667eea" />
+                            <div>
+                                <strong>Future Return</strong>
+                                <p style={{ fontSize: '14px', opacity: 0.7, margin: '4px 0 0 0' }}>
                                     Google Drive will return with better performance and reliability
                                 </p>
-            </div>
-        </div >
-                    </div >
-                </GlassCard >
+                            </div>
+                        </div>
+                    </div>
+                </GlassCard>
 
-        {/* Bug Fixes */ }
-        < GlassCard style = {{ marginBottom: '24px' }
-}>
+                {/* Bug Fixes */}
+                <GlassCard style={{ marginBottom: '24px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>
                         <AiOutlineBug size={32} color="#f5576c" />
                         <h2 className="section-title" style={{ margin: 0 }}>Bug Fixes & Improvements</h2>
                     </div>
-                    
+
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                         <div className="feature-item">
                             <AiOutlineCheckCircle size={20} color="#4CAF50" />
                             <div>
                                 <strong>Account Switching Fixed</strong>
-                                <p style={{ fontSize: '14px', opacity: 0.7', margin: '4px 0 0 0' }}>
+                                <p style={{ fontSize: '14px', opacity: 0.7, margin: '4px 0 0 0' }}>
                                     Properly clears localStorage when switching Google accounts
                                 </p>
                             </div>
@@ -139,71 +135,66 @@ export default function WhatsNewPage() {
                             <AiOutlineCheckCircle size={20} color="#4CAF50" />
                             <div>
                                 <strong>Device Ownership Validation</strong>
-                                <p style={{ fontSize: '14px', opacity: 0.7', margin: '4px 0 0 0' }}>
+                                <p style={{ fontSize: '14px', opacity: 0.7, margin: '4px 0 0 0' }}>
                                     Validates device belongs to current user on login/refresh
                                 </p>
                             </div>
-                        </div >
+                        </div>
 
-    <div className="feature-item">
-        <AiOutlineCheckCircle size={20} color="#4CAF50" />
-        <div>
-            <strong>Mobile Background Fixed</strong>
-            <p style={{
-                fontSize: '14px', opacity: 0.7', margin: '4px 0 0 0' }}>
+                        <div className="feature-item">
+                            <AiOutlineCheckCircle size={20} color="#4CAF50" />
+                            <div>
+                                <strong>Mobile Background Fixed</strong>
+                                <p style={{ fontSize: '14px', opacity: 0.7, margin: '4px 0 0 0' }}>
                                     Grid pattern now visible with proper gradient background on all devices
                                 </p>
-    </div>
-                        </div >
+                            </div>
+                        </div>
 
-    <div className="feature-item">
-        <AiOutlineCheckCircle size={20} color="#4CAF50" />
-        <div>
-            <strong>Safe Area Padding</strong>
-            <p style={{
-                fontSize: '14px', opacity: 0.7', margin: '4px 0 0 0' }}>
+                        <div className="feature-item">
+                            <AiOutlineCheckCircle size={20} color="#4CAF50" />
+                            <div>
+                                <strong>Safe Area Padding</strong>
+                                <p style={{ fontSize: '14px', opacity: 0.7, margin: '4px 0 0 0' }}>
                                     Content no longer hides behind status bar on mobile devices
                                 </p>
-    </div>
-                        </div >
+                            </div>
+                        </div>
 
-    <div className="feature-item">
-        <AiOutlineCheckCircle size={20} color="#4CAF50" />
-        <div>
-            <strong>Premium Features for Tier 3/4</strong>
-            <p style={{
-                fontSize: '14px', opacity: 0.7', margin: '4px 0 0 0' }}>
+                        <div className="feature-item">
+                            <AiOutlineCheckCircle size={20} color="#4CAF50" />
+                            <div>
+                                <strong>Premium Features for Tier 3/4</strong>
+                                <p style={{ fontSize: '14px', opacity: 0.7, margin: '4px 0 0 0' }}>
                                     Pro and Studio subscribers can now request new features in Settings
                                 </p>
-    </div>
-                        </div >
+                            </div>
+                        </div>
 
-    <div className="feature-item">
-        <AiOutlineCheckCircle size={20} color="#4CAF50" />
-        <div>
-            <strong>Theme Persistence</strong>
-            <p style={{
-                fontSize: '14px', opacity: 0.7', margin: '4px 0 0 0' }}>
+                        <div className="feature-item">
+                            <AiOutlineCheckCircle size={20} color="#4CAF50" />
+                            <div>
+                                <strong>Theme Persistence</strong>
+                                <p style={{ fontSize: '14px', opacity: 0.7, margin: '4px 0 0 0' }}>
                                     Selected theme now persists across app refreshes
                                 </p>
-    </div>
-                        </div >
+                            </div>
+                        </div>
 
-    <div className="feature-item">
-        <AiOutlineCheckCircle size={20} color="#4CAF50" />
-        <div>
-            <strong>Code Cleanup</strong>
-            <p style={{
-                fontSize: '14px', opacity: 0.7', margin: '4px 0 0 0' }}>
+                        <div className="feature-item">
+                            <AiOutlineCheckCircle size={20} color="#4CAF50" />
+                            <div>
+                                <strong>Code Cleanup</strong>
+                                <p style={{ fontSize: '14px', opacity: 0.7, margin: '4px 0 0 0' }}>
                                     Removed debug alerts and console logs for cleaner production environment
                                 </p>
-    </div>
-                        </div >
-                    </div >
-                </GlassCard >
+                            </div>
+                        </div>
+                    </div>
+                </GlassCard>
 
-    {/* Technical Improvements */ }
-    < GlassCard >
+                {/* Technical Improvements */}
+                <GlassCard>
                     <h3 style={{ marginBottom: '16px', fontSize: '18px' }}>🔧 Technical Improvements</h3>
                     <ul style={{ paddingLeft: '20px', display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '14px', opacity: 0.9 }}>
                         <li>Hybrid OAuth architecture: Appwrite for login, Direct Google API for Drive</li>
@@ -214,8 +205,8 @@ export default function WhatsNewPage() {
                         <li>Improved gradient visibility with increased opacity</li>
                         <li>Feature request system for premium subscribers</li>
                     </ul>
-                </GlassCard >
-            </div >
+                </GlassCard>
+            </div>
 
             <BottomNav />
 
