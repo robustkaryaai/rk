@@ -62,10 +62,10 @@ export function AuthProvider({ children }) {
                     alert('🔐 Creating session...');
 
                     try {
-                        await account.createSession({
+                        await account.createSession(
                             userId,
-                            secret,
-                          });
+                            secret
+                        );
                           
                         alert('✅ createSession success');
 
