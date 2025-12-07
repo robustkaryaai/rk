@@ -281,23 +281,26 @@ export default function SubscriptionPage() {
 
                                 {plan.tier !== currentTier && (
                                     <button
-                                        onClick={() => {
-                                            // For high tiers (Pro & Studio), redirect to contact form
-                                            if (plan.tier === 3 || plan.tier === 4) {
-                                                router.push('/tiersonlycontact');
-                                            } else {
-                                                handleSubscribe(plan);
-                                            }
-                                        }}
+                                        onClick={() => handleSubscribe(plan)}
                                         className={plan.tier < currentTier ? "btn-ghost" : "btn-primary"}
                                         style={{ width: '100%' }}
                                     >
-                                        {plan.tier < currentTier
-                                            ? 'Downgrade'
-                                            : (plan.tier === 3 || plan.tier === 4)
-                                                ? 'Request Features & Get it Sooner'
-                                                : 'Upgrade Now'
-                                        }
+                                        {plan.tier < currentTier ? 'Downgrade' : 'Upgrade Now'}
+                                    </button>
+                                )}
+
+                                {/* Feature Request button - only for current Tier 3/4 users */}
+                                {plan.tier === currentTier && (plan.tier === 3 || plan.tier === 4) && (
+                                    <button
+                                        onClick={() => router.push('/tiersonlycontact')}
+                                        className="btn-ghost"
+                                        style={{
+                                            width: '100%',
+                                            marginTop: '12px',
+                                            border: '1px solid rgba(102, 126, 234, 0.5)'
+                                        }}
+                                    >
+                                        💡 Request a Feature
                                     </button>
                                 )}
                             </GlassCard>

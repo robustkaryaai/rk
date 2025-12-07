@@ -944,6 +944,51 @@ export default function SettingsPage() {
                 </section>
 
 
+
+                {/* Premium Features Section - Only for Tier 3/4 */}
+                {subscription && (subscription.tier === 3 || subscription.tier === 4) && (
+                    <section style={{ marginBottom: '24px' }}>
+                        <h2 className="section-title">Premium Features</h2>
+                        <GlassCard className="settings-card">
+                            <div
+                                className="settings-item menu-item-hover"
+                                onClick={() => router.push('/tiersonlycontact')}
+                                style={{
+                                    cursor: 'pointer',
+                                    transition: 'all 0.3s ease',
+                                    borderRadius: '12px'
+                                }}
+                                onMouseEnter={(e) => {
+                                    e.currentTarget.style.background = 'rgba(102, 126, 234, 0.1)';
+                                }}
+                                onMouseLeave={(e) => {
+                                    e.currentTarget.style.background = 'transparent';
+                                }}
+                            >
+                                <div className="settings-info" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                    <div style={{
+                                        width: '40px',
+                                        height: '40px',
+                                        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                                        borderRadius: '12px',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        fontSize: '20px'
+                                    }}>
+                                        💡
+                                    </div>
+                                    <div>
+                                        <div style={{ fontWeight: '600', marginBottom: '4px' }}>Request a Feature</div>
+                                        <div style={{ fontSize: '12px', opacity: 0.7 }}>Tell us what you'd like to see</div>
+                                    </div>
+                                </div>
+                                <AiOutlineRight style={{ opacity: 0.5 }} />
+                            </div>
+                        </GlassCard>
+                    </section>
+                )}
+
                 {/* Account Section */}
                 <section>
                     <h2 className="section-title">Account</h2>

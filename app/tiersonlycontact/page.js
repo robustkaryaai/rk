@@ -113,7 +113,7 @@ export default function TiersOnlyContactPage() {
 
     return (
         <>
-            <div className="page-container">
+            <div className="page-container" style={{ paddingTop: 'max(80px, env(safe-area-inset-top))' }}>
                 <div className="hero-section">
                     <h1 className="hero-title">Request a Feature</h1>
                     <p className="hero-subtitle">Tell us what you'd like to see in RK AI</p>
