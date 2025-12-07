@@ -44,7 +44,7 @@ export async function GET(request) {
         const magicUrl = await account.createMagicURLToken(
             'unique()', // Generate unique ID for the token
             user.email,
-            'rkai://callback' // Redirect URL (not used by app but required)
+            'https://rk-alpha-nine.vercel.app/auth/callback' // Use registered web domain
         );
 
         // Return the userId and secret to the app
