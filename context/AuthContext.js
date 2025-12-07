@@ -137,20 +137,16 @@ export function AuthProvider({ children }) {
                                     }
                                 } else {
                                     console.error('[Deep Link] ❌ No userId/secret in callback URL');
-                                    console.log('[Deep Link] Appwrite might be using cookies. Loading callback URL in WebView...');
+                                    console.log('[Deep Link] Trying fallback: Load callback URL in WebView to let Appwrite process it...');
                                     
-                                    // FALLBACK: If no userId/secret, Appwrite is likely using cookies
-                                    // Load the callback URL in WebView - Appwrite SDK will process it automatically
+                                    // FALLBACK: If no userId/secret, load the callback URL in WebView
+                                    // Appwrite might have set cookies in browser, and loading the URL will transfer them
                                     if (typeof window !== 'undefined' && window.alert) {
-                                        alert('⚠️ No userId/secret in URL\n\nAppwrite using cookies.\nLoading callback URL in app WebView...');
+                                        alert('⚠️ No userId/secret found\n\nTrying fallback: Loading callback URL in app...');
                                     }
                                     
-                                    // Load the callback URL - Appwrite SDK will automatically process it
-                                    // The callback page will detect it's in app and check for session via cookies
+                                    // Load the callback URL - Appwrite will process it and set cookies in WebView
                                     window.location.href = decodedCallbackUrl;
-                                    
-                                    // Don't return here - let the callback page handle it
-                                    // The callback page will check for session and navigate accordingly
                                     return;
                                 }
                             } catch (e) {
