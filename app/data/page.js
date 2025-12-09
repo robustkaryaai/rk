@@ -5,13 +5,15 @@ import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
 import BottomNav from '@/components/BottomNav';
 import GlassCard from '@/components/GlassCard';
+import FileViewerModal from '@/components/FileViewerModal';
 import {
     AiOutlineFile,
     AiOutlineDownload,
     AiOutlineFileImage,
     AiOutlineFileText,
     AiOutlineVideoCameraAdd,
-    AiOutlineDelete
+    AiOutlineDelete,
+    AiOutlineEye
 } from 'react-icons/ai';
 import { mediaAPI } from '@/lib/api';
 
@@ -26,6 +28,7 @@ export default function DataPage() {
     const [dataLoading, setDataLoading] = useState(true);
     const [deviceSlug, setDeviceSlug] = useState('');
     const [files, setFiles] = useState([]);
+    const [viewingFile, setViewingFile] = useState(null);
 
     useEffect(() => {
         if (isLoaded && !isSignedIn) {
@@ -195,6 +198,29 @@ export default function DataPage() {
                                         </div>
                                     </div>
                                     <div style={{ display: 'flex', gap: '8px' }}>
+                                        {/* View Button (for text files) */}
+                                        {file.name.toLowerCase().endsWith('.txt') && (
+                                            <div
+                                                onClick={() => setViewingFile(file)}
+                                                style={{
+                                                    cursor: 'pointer',
+                                                    padding: '8px',
+                                                    borderRadius: '8px',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    transition: 'all 0.2s'
+                                                }}
+                                                onMouseEnter={(e) => {
+                                                    e.currentTarget.style.background = 'rgba(52, 211, 153, 0.1)';
+                                                }}
+                                                onMouseLeave={(e) => {
+                                                    e.currentTarget.style.background = 'transparent';
+                                                }}
+                                            >
+                                                <AiOutlineEye size={20} color="#34d399" />
+                                            </div>
+                                        )}
+
                                         {/* Download Button */}
                                         <div
                                             onClick={() => handleDownload(file.name, file.id, file.source)}
@@ -250,6 +276,16 @@ export default function DataPage() {
                     </GlassCard>
                 )}
             </div>
+
+            {/* File Viewer Modal */}
+            {viewingFile && (
+                <FileViewerModal
+                    file={viewingFile}
+                    deviceSlug={deviceSlug}
+                    onClose={() => setViewingFile(null)}
+                    onDownload={handleDownload}
+                />
+            )}
 
             <BottomNav />
         </>

@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { AiOutlineHome, AiOutlineDatabase, AiOutlineSetting, AiOutlineUser } from 'react-icons/ai';
+import { AiOutlineHome, AiOutlineDatabase, AiOutlineSetting, AiOutlineUser, AiOutlineControl } from 'react-icons/ai';
 
 export default function BottomNav() {
     const pathname = usePathname();
@@ -10,6 +10,7 @@ export default function BottomNav() {
     const navItems = [
         { name: 'Home', href: '/home', icon: AiOutlineHome },
         { name: 'Data', href: '/data', icon: AiOutlineDatabase },
+        { name: 'Control', href: '/control', icon: AiOutlineControl }, // New Control Item
         { name: 'Settings', href: '/settings', icon: AiOutlineSetting },
         { name: 'Profile', href: '/profile', icon: AiOutlineUser },
     ];
