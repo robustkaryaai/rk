@@ -5,7 +5,8 @@ const config: CapacitorConfig = {
   appName: 'RK',
   webDir: 'public',
   server: {
-    url: process.env.CAP_SERVER_URL || 'https://rk-alpha-nine.vercel.app',
+    url: process.env.CAP_SERVER_URL,
+    androidScheme: 'https',
     cleartext: true
   }
 };
