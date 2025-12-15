@@ -413,6 +413,7 @@ export default function SettingsPage() {
                     <div style={{ width: '100%', maxWidth: '400px' }}>
                         <BluetoothSetup
                             slug={deviceSlug}
+                            initialStep="wifi"
                             onComplete={() => setShowWifiUpdate(false)}
                             onCancel={() => setShowWifiUpdate(false)}
                         />

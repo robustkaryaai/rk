@@ -13,8 +13,8 @@ const SERVICE_UUID = '6e400001-b5a3-f393-e0a9-e50e24dcca9e';
 const CHARACTERISTIC_UUID_RX = '6e400002-b5a3-f393-e0a9-e50e24dcca9e'; // Write to device
 const CHARACTERISTIC_UUID_TX = '6e400003-b5a3-f393-e0a9-e50e24dcca9e'; // Read from device
 
-export default function BluetoothSetup({ slug, onComplete, onCancel }) {
-    const [step, setStep] = useState('connect'); // connect, wifi, writing, success, error
+export default function BluetoothSetup({ slug, onComplete, onCancel, initialStep = 'connect' }) {
+    const [step, setStep] = useState(initialStep);
     const [device, setDevice] = useState(null);
     const [server, setServer] = useState(null);
     const [characteristic, setCharacteristic] = useState(null);
@@ -164,7 +164,37 @@ export default function BluetoothSetup({ slug, onComplete, onCancel }) {
         setError('');
 
         try {
-            if (!characteristic) throw new Error('No connection to device');
+            if (!characteristic) {
+                if (isNative) {
+                    await BleClient.initialize({ androidNeverForLocation: true });
+                    const enabled = await BleClient.isEnabled();
+                    if (!enabled) {
+                        await BleClient.requestEnable();
+                    }
+                    let found = null;
+                    await BleClient.requestLEScan({ allowDuplicates: false }, (res) => {
+                        const name = res.device?.name || '';
+                        const trimmed = getTrimmedSlug(name);
+                        if (trimmed && trimmed === String(slug)) {
+                            found = res.device;
+                        }
+                    });
+                    await new Promise(resolve => setTimeout(resolve, 6000));
+                    await BleClient.stopLEScan();
+                    if (!found) {
+                        const bonded = await BleClient.getBondedDevices();
+                        found = bonded.find(d => getTrimmedSlug(d.name) === String(slug));
+                    }
+                    if (!found) throw new Error('Device not found');
+                    await BleClient.connect(found.deviceId);
+                    setDevice(found);
+                    setServer('native');
+                    setCharacteristic({ mode: 'native', deviceId: found.deviceId });
+                    try { localStorage.setItem('rk_ble_connected', 'true'); } catch {}
+                } else {
+                    throw new Error('No connection to device');
+                }
+            }
             const trimmed = getTrimmedSlug(device?.name || '');
             const nameOk = trimmed && trimmed === String(slug);
             if (!nameOk) {

@@ -172,19 +172,19 @@ export default function HomePage() {
                     <div className="hero-section" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'end' }}>
                         <div>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-                                <div className={`status-dot ${device.status === 'online' ? 'online' : 'offline'}`}></div>
-                                <span style={{ fontSize: '14px', opacity: 0.8, textTransform: 'capitalize' }}>{device.status}</span>
+                                <div className={`status-dot ${bleConnected ? 'online' : 'offline'}`}></div>
+                                <span style={{ fontSize: '14px', opacity: 0.8, textTransform: 'capitalize' }}>{bleConnected ? 'online' : 'offline'}</span>
                             </div>
                             <h1 className="hero-title" style={{ fontSize: '28px', marginBottom: '4px' }}>Device: {device.name}</h1>
                         </div>
                         <div className="device-icon-large">
                             <AiOutlineRobot
                                 size={48}
-                                color={device.status === 'online' ? '#10b981' : 'white'}
+                                color={bleConnected ? '#10b981' : 'white'}
                                 style={{
-                                    opacity: device.status === 'online' ? 1 : 0.2,
-                                    filter: device.status === 'online' ? 'drop-shadow(0 0 6px rgba(16,185,129,0.6))' : 'none',
-                                    transform: device.status === 'online' ? 'scale(1.05)' : 'none'
+                                    opacity: bleConnected ? 1 : 0.2,
+                                    filter: bleConnected ? 'drop-shadow(0 0 6px rgba(16,185,129,0.6))' : 'none',
+                                    transform: bleConnected ? 'scale(1.05)' : 'none'
                                 }}
                             />
                         </div>
