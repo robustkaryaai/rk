@@ -196,9 +196,9 @@ export default function BluetoothSetup({ slug, onComplete, onCancel, initialStep
                 }
             }
             const trimmed = getTrimmedSlug(device?.name || '');
-            const nameOk = trimmed && trimmed === String(slug);
+            const nameOk = !trimmed || trimmed === String(slug);
             if (!nameOk) {
-                throw new Error('Connected device slug does not match.');
+                addLog('Connected device name differs from expected slug. Proceeding to send.');
             }
 
             // JSON format: { "s": "slug", "w": "ssid", "p": "password" }
