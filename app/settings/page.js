@@ -724,7 +724,7 @@ export default function SettingsPage() {
                             }}
                         >
                             <div className="settings-info">
-                                <span style={{ transition: 'all 0.3s' }}>What's New?</span>
+                                <span style={{ transition: 'all 0.3s' }}>What&#39;s New?</span>
                             </div>
                             <AiOutlineRight style={{ opacity: 0.5 }} />
                         </div>
@@ -1031,7 +1031,7 @@ export default function SettingsPage() {
                                     </div>
                                     <div>
                                         <div style={{ fontWeight: '600', marginBottom: '4px' }}>Request a Feature</div>
-                                        <div style={{ fontSize: '12px', opacity: 0.7 }}>Tell us what you'd like to see</div>
+                                        <div style={{ fontSize: '12px', opacity: 0.7 }}>Tell us what you&#39;d like to see</div>
                                     </div>
                                 </div>
                                 <AiOutlineRight style={{ opacity: 0.5 }} />

@@ -30,12 +30,19 @@ export default function BluetoothSetup({ slug, onComplete, onCancel }) {
         const sub = App.addListener('appStateChange', async ({ isActive }) => {
             if (isActive && step === 'connect') {
                 try {
-                    addLog('Scanning for device...');
+                    addLog('Checking Bluetooth state...');
                     await BleClient.initialize({ androidNeverForLocation: true });
-                    const bonded = await BleClient.getBondedDevices();
-                    const target = bonded.find(d => {
+                    const enabled = await BleClient.isEnabled();
+                    if (!enabled) {
+                        await BleClient.requestEnable();
+                    }
+                    addLog('Scanning for connected devices...');
+                    const connected = await BleClient.getConnectedDevices([SERVICE_UUID]);
+                    const slugPattern = new RegExp(`^rk-ai-${slug}$`, 'i');
+                    const nineDigitPattern = /^rk-ai-\d{9}$/i;
+                    const target = (connected.length ? connected : await BleClient.getBondedDevices()).find(d => {
                         const n = (d.name || '').toLowerCase();
-                        return n === `rk-ai-${slug}` || n.startsWith('rk-ai-');
+                        return slugPattern.test(n) && nineDigitPattern.test(n);
                     });
                     if (target) {
                         addLog(`Connecting to ${target.name || target.deviceId}...`);
@@ -45,6 +52,8 @@ export default function BluetoothSetup({ slug, onComplete, onCancel }) {
                         setCharacteristic({ mode: 'native', deviceId: target.deviceId });
                         setStep('wifi');
                         addLog('Connected.');
+                    } else {
+                        addLog('No matching RK-AI device found.');
                     }
                 } catch (e) {
                     setError(`Connection Failed: ${e.message}`);
@@ -125,6 +134,10 @@ export default function BluetoothSetup({ slug, onComplete, onCancel }) {
 
         try {
             if (!characteristic) throw new Error('No connection to device');
+            const nameOk = device && device.name && new RegExp(`^rk-ai-${slug}$`, 'i').test(device.name) && /^rk-ai-\d{9}$/i.test(device.name);
+            if (!nameOk) {
+                throw new Error('Connected device slug does not match.');
+            }
 
             // JSON format: { "s": "slug", "w": "ssid", "p": "password" }
             // Using shorthand keys to save bytes if needed, but standard JSON is fine

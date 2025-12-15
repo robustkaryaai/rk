@@ -76,7 +76,7 @@ export default function WhatsNewPage() {
                             <div>
                                 <strong>Google OAuth Fixed</strong>
                                 <p style={{ fontSize: '14px', opacity: 0.7, margin: '4px 0 0 0' }}>
-                                    Fixed redirect_uri_mismatch and "Access blocked" errors on native Android.
+                                    Fixed redirect_uri_mismatch and &quot;Access blocked&quot; errors on native Android.
                                 </p>
                             </div>
                         </div>
