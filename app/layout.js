@@ -12,29 +12,31 @@ export default function RootLayout({ children }) {
         <html lang="en" suppressHydrationWarning>
             <head>
                 <Analytics />
-            </head>
-            <body suppressHydrationWarning>
-                <div className='padding-from-top'></div>
                 <script
                     dangerouslySetInnerHTML={{
                         __html: `
                             (function() {
                                 try {
-                                    const theme = localStorage.getItem('theme');
-                                    // If theme is explicitly 'dark', OR if no preference and system is dark
-                                    if (theme === 'dark' || (!theme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-                                        document.body.classList.add('dark');
-                                        document.documentElement.classList.add('dark');
+                                    var theme = localStorage.getItem('theme');
+                                    var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+                                    var shouldDark = theme === 'dark' || (!theme && prefersDark);
+                                    var html = document.documentElement;
+                                    var body = document.body;
+                                    if (shouldDark) {
+                                        html.classList.add('dark');
+                                        body.classList.add('dark');
                                     } else {
-                                        // Ensure dark class is removed if theme is 'light'
-                                        document.body.classList.remove('dark');
-                                        document.documentElement.classList.remove('dark');
+                                        html.classList.remove('dark');
+                                        body.classList.remove('dark');
                                     }
                                 } catch (e) {}
                             })();
                         `,
                     }}
                 />
+            </head>
+            <body suppressHydrationWarning>
+                <div className='padding-from-top'></div>
                 <AuthProvider>
                     <div className="gradient-blob-1"></div>
                     <div className="gradient-blob-2"></div>
@@ -44,4 +46,3 @@ export default function RootLayout({ children }) {
         </html>
     );
 }
-

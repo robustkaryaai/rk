@@ -73,6 +73,7 @@ export default function BluetoothSetup({ slug, onComplete, onCancel }) {
                         setDevice(found);
                         setServer('native');
                         setCharacteristic({ mode: 'native', deviceId: found.deviceId });
+                        try { localStorage.setItem('rk_ble_connected', 'true'); } catch {}
                         addLog('Connected.');
                         const hasCreds = !!ssid && !!password;
                         if (hasCreds) {
@@ -152,6 +153,7 @@ export default function BluetoothSetup({ slug, onComplete, onCancel }) {
         if (step !== 'success') {
             setError('Device disconnected unexpectedly.');
         }
+        try { localStorage.setItem('rk_ble_connected', 'false'); } catch {}
     };
 
     const sendCredentials = async (e) => {
