@@ -10,6 +10,8 @@ import {
     AiOutlineHistory,
 } from 'react-icons/ai';
 import { deviceAPI, mediaAPI } from '@/lib/api';
+import { Capacitor } from '@capacitor/core';
+import { BleClient, numbersToDataView } from '@capacitor-community/bluetooth-le';
 
 export default function HomePage() {
     const { user, loading: authLoading } = useAuth();
@@ -19,6 +21,8 @@ export default function HomePage() {
     const [chatHistory, setChatHistory] = useState([]);
     const [loading, setLoading] = useState(true);
     const [isOnline, setIsOnline] = useState(true);
+    const [bleConnected, setBleConnected] = useState(false);
+    const [sentWifi, setSentWifi] = useState(false);
 
     const isSignedIn = !!user;
     const isLoaded = !authLoading;
@@ -43,6 +47,64 @@ export default function HomePage() {
         return () => {
             window.removeEventListener('online', handleOnline);
             window.removeEventListener('offline', handleOffline);
+        };
+    }, []);
+
+    useEffect(() => {
+        const isNative = typeof Capacitor !== 'undefined' && typeof Capacitor.getPlatform === 'function' ? Capacitor.getPlatform() !== 'web' : false;
+        if (!isNative) return;
+        let timer;
+        let initialized = false;
+        const SERVICE_UUID = '6e400001-b5a3-f393-e0a9-e50e24dcca9e';
+        const CHARACTERISTIC_UUID_RX = '6e400002-b5a3-f393-e0a9-e50e24dcca9e';
+        const getTrimmedSlug = (name) => {
+            if (!name) return null;
+            const n = name.toLowerCase();
+            if (!n.startsWith('rk-ai-')) return null;
+            return n.slice(6);
+        };
+        const checkAndSend = async () => {
+            try {
+                if (!initialized) {
+                    await BleClient.initialize({ androidNeverForLocation: true });
+                    const enabled = await BleClient.isEnabled();
+                    if (!enabled) {
+                        await BleClient.requestEnable();
+                    }
+                    initialized = true;
+                }
+                const slug = typeof localStorage !== 'undefined' ? localStorage.getItem('rk_device_slug') : null;
+                if (!slug) return;
+                const connected = await BleClient.getConnectedDevices([SERVICE_UUID]);
+                let target = connected.find(d => getTrimmedSlug(d.name) === String(slug));
+                if (!target) {
+                    const bonded = await BleClient.getBondedDevices();
+                    target = bonded.find(d => getTrimmedSlug(d.name) === String(slug));
+                }
+                const isConn = !!target;
+                setBleConnected(isConn);
+                if (isConn && !sentWifi) {
+                    try {
+                        await BleClient.connect(target.deviceId);
+                    } catch {}
+                    const ssid = typeof localStorage !== 'undefined' ? localStorage.getItem('rk_wifi_ssid') : '';
+                    const pass = typeof localStorage !== 'undefined' ? localStorage.getItem('rk_wifi_pass') : '';
+                    if (ssid && pass) {
+                        const payload = JSON.stringify({ slug, ssid, pass });
+                        const encoder = new TextEncoder();
+                        const bytes = Array.from(encoder.encode(payload));
+                        await BleClient.write(target.deviceId, SERVICE_UUID, CHARACTERISTIC_UUID_RX, numbersToDataView(bytes));
+                        setSentWifi(true);
+                    }
+                }
+            } catch (e) {
+                // ignore transient errors
+            }
+        };
+        checkAndSend();
+        timer = setInterval(checkAndSend, 10000);
+        return () => {
+            if (timer) clearInterval(timer);
         };
     }, []);
 
@@ -94,6 +156,8 @@ export default function HomePage() {
                             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
                                 <div className={`status-dot ${device.status === 'online' ? 'online' : 'offline'}`}></div>
                                 <span style={{ fontSize: '14px', opacity: 0.8, textTransform: 'capitalize' }}>{device.status}</span>
+                                <div className={`status-dot ${bleConnected ? 'online' : 'offline'}`} style={{ marginLeft: '8px' }}></div>
+                                <span style={{ fontSize: '14px', opacity: 0.8 }}>Bluetooth {bleConnected ? 'connected' : 'disconnected'}</span>
                             </div>
                             <h1 className="hero-title" style={{ fontSize: '28px', marginBottom: '4px' }}>Device: {device.name}</h1>
                             <p className="hero-subtitle" style={{ fontSize: '14px' }}>ID: {device.id}</p>

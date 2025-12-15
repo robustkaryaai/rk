@@ -33,6 +33,15 @@ export default function BluetoothSetup({ slug, onComplete, onCancel }) {
     };
 
     useEffect(() => {
+        try {
+            const s = typeof localStorage !== 'undefined' ? localStorage.getItem('rk_wifi_ssid') : '';
+            const p = typeof localStorage !== 'undefined' ? localStorage.getItem('rk_wifi_pass') : '';
+            if (s) setSsid(s);
+            if (p) setPassword(p);
+        } catch {}
+    }, []);
+
+    useEffect(() => {
         if (!isNative) return;
         const sub = App.addListener('appStateChange', async ({ isActive }) => {
             if (isActive && step === 'connect') {
@@ -64,8 +73,14 @@ export default function BluetoothSetup({ slug, onComplete, onCancel }) {
                         setDevice(found);
                         setServer('native');
                         setCharacteristic({ mode: 'native', deviceId: found.deviceId });
-                        setStep('wifi');
                         addLog('Connected.');
+                        const hasCreds = !!ssid && !!password;
+                        if (hasCreds) {
+                            setStep('writing');
+                            await sendCredentials({ preventDefault: () => {} });
+                        } else {
+                            setStep('wifi');
+                        }
                     } else {
                         addLog('No matching RK-AI device found.');
                     }
@@ -232,8 +247,11 @@ export default function BluetoothSetup({ slug, onComplete, onCancel }) {
                             <input
                                 type="text"
                                 className="ai-command-input"
-                                value={ssid}
-                                onChange={(e) => setSsid(e.target.value)}
+                        value={ssid}
+                                onChange={(e) => {
+                                    setSsid(e.target.value);
+                                    try { localStorage.setItem('rk_wifi_ssid', e.target.value); } catch {}
+                                }}
                                 placeholder="Enter WiFi Name"
                                 required
                             />
@@ -246,8 +264,11 @@ export default function BluetoothSetup({ slug, onComplete, onCancel }) {
                             <input
                                 type="password"
                                 className="ai-command-input"
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
+                        value={password}
+                                onChange={(e) => {
+                                    setPassword(e.target.value);
+                                    try { localStorage.setItem('rk_wifi_pass', e.target.value); } catch {}
+                                }}
                                 placeholder="Enter WiFi Password"
                                 required
                             />
