@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react';
 import { AiOutlineWifi, AiOutlineLoading3Quarters, AiOutlineCheckCircle } from 'react-icons/ai';
 import { MdBluetooth } from 'react-icons/md';
 import GlassCard from '@/components/GlassCard';
-import { Capacitor } from '@capacitor/core';
 
 // Standard Nordic UART Service UUIDs - Update these if your microcontroller uses different ones!
 const SERVICE_UUID = '6e400001-b5a3-f393-e0a9-e50e24dcca9e';
@@ -28,43 +27,31 @@ export default function BluetoothSetup({ slug, onComplete, onCancel }) {
             setError('');
             addLog('Requesting Bluetooth Device...');
 
-            const hasWebBluetooth = typeof navigator !== 'undefined' && navigator.bluetooth && typeof navigator.bluetooth.requestDevice === 'function';
-            const isNative = Capacitor.isNativePlatform();
+            // Name prefix based on user request: rk-ai-XXXX
+            const device = await navigator.bluetooth.requestDevice({
+                filters: [{ namePrefix: 'rk-ai-' }],
+                optionalServices: [SERVICE_UUID]
+            });
 
-            if (hasWebBluetooth) {
-                const device = await navigator.bluetooth.requestDevice({
-                    filters: [{ namePrefix: 'rk-ai-' }],
-                    optionalServices: [SERVICE_UUID]
-                });
+            console.log('Device selected:', device.name);
+            addLog(`Device selected: ${device.name}`);
+            setDevice(device);
 
-                console.log('Device selected:', device.name);
-                addLog(`Device selected: ${device.name}`);
-                setDevice(device);
+            addLog('Connecting to GATT Server...');
+            const server = await device.gatt.connect();
+            setServer(server);
+            addLog('Hold tight, finding services...');
 
-                addLog('Connecting to GATT Server...');
-                const server = await device.gatt.connect();
-                setServer(server);
-                addLog('Hold tight, finding services...');
+            const service = await server.getPrimaryService(SERVICE_UUID);
+            addLog('Service found.');
 
-                const service = await server.getPrimaryService(SERVICE_UUID);
-                addLog('Service found.');
+            const characteristic = await service.getCharacteristic(CHARACTERISTIC_UUID_RX);
+            addLog('Characteristic found. Ready to write.');
+            setCharacteristic(characteristic);
 
-                const characteristic = await service.getCharacteristic(CHARACTERISTIC_UUID_RX);
-                addLog('Characteristic found. Ready to write.');
-                setCharacteristic({ mode: 'web', ref: characteristic });
+            setStep('wifi');
 
-                setStep('wifi');
-
-                device.addEventListener('gattserverdisconnected', onDisconnected);
-            } else if (isNative) {
-                const { Browser } = await import('@capacitor/browser');
-                addLog('Web Bluetooth not available in Android WebView.');
-                addLog('Opening external browser for pairing...');
-                await Browser.open({ url: 'https://rk-alpha-nine.vercel.app/connect' });
-                throw new Error('WebView does not support Bluetooth; opened pairing in browser');
-            } else {
-                throw new Error('Bluetooth not supported on this platform');
-            }
+            device.addEventListener('gattserverdisconnected', onDisconnected);
 
         } catch (err) {
             console.error('Bluetooth Error:', err);
@@ -100,11 +87,7 @@ export default function BluetoothSetup({ slug, onComplete, onCancel }) {
             });
 
             const encoder = new TextEncoder();
-            if (characteristic.mode === 'web') {
-                await characteristic.ref.writeValue(encoder.encode(payload));
-            } else {
-                throw new Error('Unsupported BLE mode');
-            }
+            await characteristic.writeValue(encoder.encode(payload));
             addLog('Credentials sent successfully!');
 
             // Wait a moment for device to process
@@ -113,11 +96,9 @@ export default function BluetoothSetup({ slug, onComplete, onCancel }) {
             setStep('success');
 
             // Disconnect after success
-            try {
-                if (characteristic.mode === 'web' && device && device.gatt?.connected) {
-                    device.gatt.disconnect();
-                }
-            } catch {}
+            if (device && device.gatt.connected) {
+                device.gatt.disconnect();
+            }
 
             setTimeout(() => {
                 onComplete();

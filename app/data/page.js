@@ -16,7 +16,6 @@ import {
     AiOutlineEye
 } from 'react-icons/ai';
 import { mediaAPI } from '@/lib/api';
-import { Capacitor } from '@capacitor/core';
 
 export default function DataPage() {
     const { user, loading } = useAuth();
@@ -69,14 +68,7 @@ export default function DataPage() {
             const url = await mediaAPI.getDownloadUrl(deviceSlug, fileName, fileId, source);
             if (!url) return;
 
-            const isNative = Capacitor.isNativePlatform();
-
-            if (isNative) {
-                const { Browser } = await import('@capacitor/browser');
-                await Browser.open({ url });
-                return;
-            }
-
+            // For Google Drive, URL is already a blob URL
             if (source === 'google') {
                 const link = document.createElement('a');
                 link.href = url;
@@ -86,14 +78,21 @@ export default function DataPage() {
                 document.body.removeChild(link);
                 URL.revokeObjectURL(url);
             } else {
+                // Fetch the file as a blob to bypass CORS issues
                 const response = await fetch(url);
                 const blob = await response.blob();
+
+                // Create a blob URL
                 const blobUrl = window.URL.createObjectURL(blob);
+
+                // Create temporary anchor and trigger download
                 const link = document.createElement('a');
                 link.href = blobUrl;
                 link.download = fileName;
                 document.body.appendChild(link);
                 link.click();
+
+                // Cleanup
                 document.body.removeChild(link);
                 window.URL.revokeObjectURL(blobUrl);
             }

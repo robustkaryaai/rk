@@ -12,8 +12,8 @@ export default function WhatsNewPage() {
         <>
             <div className="page-container">
                 <div className="hero-section">
-                    <h1 className="hero-title">🚀 RK v2.1.3 - Android Fixes & Improvements</h1>
-                    <p className="hero-subtitle">Bluetooth pairing and downloads fixed on Android app</p>
+                    <h1 className="hero-title">🚀 RK v2.1.1 - Polish & Fixes!</h1>
+                    <p className="hero-subtitle">CSS improvements + Dark mode toggle fixed</p>
                     <button
                         onClick={() => router.back()}
                         className="btn-ghost"
@@ -22,36 +22,6 @@ export default function WhatsNewPage() {
                         <AiOutlineArrowLeft /> Back
                     </button>
                 </div>
-
-                {/* v2.1.3 Release Notes */}
-                <GlassCard style={{ marginBottom: '24px', border: '1px solid rgba(102, 126, 234, 0.3)' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>
-                        <AiOutlineAndroid size={32} color="#3DDC84" />
-                        <h2 className="section-title" style={{ margin: 0 }}>v2.1.3 - Android WebView Fixes</h2>
-                    </div>
-
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                        <div className="feature-item">
-                            <AiOutlineCheckCircle size={20} color="#4CAF50" />
-                            <div>
-                                <strong>Bluetooth Pairing on Android</strong>
-                                <p style={{ fontSize: '14px', opacity: 0.7, margin: '4px 0 0 0' }}>
-                                    Resolved error &quot;Cannot read properties of undefined (reading &apos;requestDevice&apos;)&quot; by
-                                    detecting platform and opening the system browser for Web Bluetooth pairing when running in the app.
-                                </p>
-                            </div>
-                        </div>
-                        <div className="feature-item">
-                            <AiOutlineCheckCircle size={20} color="#4CAF50" />
-                            <div>
-                                <strong>Reliable File Downloads on Android</strong>
-                                <p style={{ fontSize: '14px', opacity: 0.7, margin: '4px 0 0 0' }}>
-                                    Implemented native fallback using system browser so files download correctly from the app.
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                </GlassCard>
 
                 {/* v2.1.2 Hotfix */}
                 <GlassCard style={{ marginBottom: '24px', border: '1px solid rgba(245, 87, 108, 0.3)' }}>
