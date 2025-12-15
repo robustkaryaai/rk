@@ -81,6 +81,17 @@ export default function HomePage() {
                     const bonded = await BleClient.getBondedDevices();
                     target = bonded.find(d => getTrimmedSlug(d.name) === String(slug));
                 }
+                if (!target) {
+                    await BleClient.requestLEScan({ services: [SERVICE_UUID], allowDuplicates: false }, (res) => {
+                        const name = res.device?.name || '';
+                        const trimmed = getTrimmedSlug(name);
+                        if (trimmed && trimmed === String(slug)) {
+                            target = res.device;
+                        }
+                    });
+                    await new Promise(resolve => setTimeout(resolve, 5000));
+                    await BleClient.stopLEScan();
+                }
                 const isConn = !!target;
                 setBleConnected(isConn);
                 if (isConn && !sentWifi) {
@@ -90,7 +101,7 @@ export default function HomePage() {
                     const ssid = typeof localStorage !== 'undefined' ? localStorage.getItem('rk_wifi_ssid') : '';
                     const pass = typeof localStorage !== 'undefined' ? localStorage.getItem('rk_wifi_pass') : '';
                     if (ssid && pass) {
-                        const payload = JSON.stringify({ slug, ssid, pass });
+                        const payload = JSON.stringify({ slug, ssid, pass, password: pass });
                         const encoder = new TextEncoder();
                         const bytes = Array.from(encoder.encode(payload));
                         await BleClient.write(target.deviceId, SERVICE_UUID, CHARACTERISTIC_UUID_RX, numbersToDataView(bytes));

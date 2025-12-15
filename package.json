@@ -4,18 +4,21 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build && next export",
+    "build": "next build",
+    "build:app": "NEXT_OUTPUT_EXPORT=1 next build && next export",
+    "build:web": "next build",
     "start": "next start",
     "lint": "eslint . --ignore-pattern 'android/**' --ignore-pattern 'android/app/**' --ignore-pattern 'android/app/src/main/assets/**'"
   },
   "dependencies": {
+    "@capacitor-community/bluetooth-le": "^7.2.0",
     "@capacitor/android": "^7.4.4",
     "@capacitor/app": "^7.1.0",
     "@capacitor/browser": "^7.0.2",
     "@capacitor/core": "^7.4.4",
-    "@capacitor-community/bluetooth-le": "^7.2.0",
     "@headlessui/react": "^2.2.9",
     "@supabase/supabase-js": "^2.86.0",
+    "@vercel/analytics": "^1.6.1",
     "@yudiel/react-qr-scanner": "^2.1.0",
     "appwrite": "^21.5.0",
     "framer-motion": "^12.23.24",

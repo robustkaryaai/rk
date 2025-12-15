@@ -1,4 +1,5 @@
 import { AuthProvider } from '@/context/AuthContext';
+import { Analytics } from "@vercel/analytics/next"
 import './globals.css';
 
 export const metadata = {
@@ -9,6 +10,9 @@ export const metadata = {
 export default function RootLayout({ children }) {
     return (
         <html lang="en" suppressHydrationWarning>
+            <head>
+                <Analytics />
+            </head>
             <body suppressHydrationWarning>
                 <div className='padding-from-top'></div>
                 <script

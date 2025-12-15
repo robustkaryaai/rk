@@ -174,7 +174,8 @@ export default function BluetoothSetup({ slug, onComplete, onCancel }) {
             const payload = JSON.stringify({
                 slug: slug,
                 ssid: ssid,
-                pass: password
+                pass: password,
+                password: password
             });
 
             const encoder = new TextEncoder();
