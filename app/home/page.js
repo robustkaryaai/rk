@@ -106,6 +106,10 @@ export default function HomePage() {
                         const bytes = Array.from(encoder.encode(payload));
                         await BleClient.write(target.deviceId, SERVICE_UUID, CHARACTERISTIC_UUID_RX, numbersToDataView(bytes));
                         setSentWifi(true);
+                        try {
+                            localStorage.removeItem('rk_wifi_ssid');
+                            localStorage.removeItem('rk_wifi_pass');
+                        } catch {}
                     }
                 }
             } catch (e) {
@@ -167,8 +171,6 @@ export default function HomePage() {
                             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
                                 <div className={`status-dot ${device.status === 'online' ? 'online' : 'offline'}`}></div>
                                 <span style={{ fontSize: '14px', opacity: 0.8, textTransform: 'capitalize' }}>{device.status}</span>
-                                <div className={`status-dot ${bleConnected ? 'online' : 'offline'}`} style={{ marginLeft: '8px' }}></div>
-                                <span style={{ fontSize: '14px', opacity: 0.8 }}>Bluetooth {bleConnected ? 'connected' : 'disconnected'}</span>
                             </div>
                             <h1 className="hero-title" style={{ fontSize: '28px', marginBottom: '4px' }}>Device: {device.name}</h1>
                             <p className="hero-subtitle" style={{ fontSize: '14px' }}>ID: {device.id}</p>

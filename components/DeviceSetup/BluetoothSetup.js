@@ -189,6 +189,10 @@ export default function BluetoothSetup({ slug, onComplete, onCancel }) {
 
             // Wait a moment for device to process
             await new Promise(resolve => setTimeout(resolve, 2000));
+            try {
+                localStorage.removeItem('rk_wifi_ssid');
+                localStorage.removeItem('rk_wifi_pass');
+            } catch {}
 
             setStep('success');
 
