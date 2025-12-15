@@ -5,6 +5,8 @@ import { AiOutlineWifi, AiOutlineLoading3Quarters, AiOutlineCheckCircle } from '
 import { MdBluetooth } from 'react-icons/md';
 import GlassCard from '@/components/GlassCard';
 import { Capacitor } from '@capacitor/core';
+import { BleClient, numbersToDataView } from '@capacitor-community/bluetooth-le';
+import { App } from '@capacitor/app';
 
 // Standard Nordic UART Service UUIDs - Update these if your microcontroller uses different ones!
 const SERVICE_UUID = '6e400001-b5a3-f393-e0a9-e50e24dcca9e';
@@ -22,6 +24,38 @@ export default function BluetoothSetup({ slug, onComplete, onCancel }) {
     const [logs, setLogs] = useState([]);
 
     const addLog = (msg) => setLogs(prev => [...prev, msg]);
+    const isNative = typeof Capacitor !== 'undefined' && typeof Capacitor.getPlatform === 'function' ? Capacitor.getPlatform() !== 'web' : false;
+    useEffect(() => {
+        if (!isNative) return;
+        const sub = App.addListener('appStateChange', async ({ isActive }) => {
+            if (isActive && step === 'connect') {
+                try {
+                    addLog('Scanning for device...');
+                    await BleClient.initialize({ androidNeverForLocation: true });
+                    const bonded = await BleClient.getBondedDevices();
+                    const target = bonded.find(d => {
+                        const n = (d.name || '').toLowerCase();
+                        return n === `rk-ai-${slug}` || n.startsWith('rk-ai-');
+                    });
+                    if (target) {
+                        addLog(`Connecting to ${target.name || target.deviceId}...`);
+                        await BleClient.connect(target.deviceId);
+                        setDevice(target);
+                        setServer('native');
+                        setCharacteristic({ mode: 'native', deviceId: target.deviceId });
+                        setStep('wifi');
+                        addLog('Connected.');
+                    }
+                } catch (e) {
+                    setError(`Connection Failed: ${e.message}`);
+                    addLog(`Error: ${e.message}`);
+                }
+            }
+        });
+        return () => {
+            if (sub && typeof sub.remove === 'function') sub.remove();
+        };
+    }, [isNative, step, slug]);
 
     const connectBluetooth = async () => {
         try {
@@ -29,7 +63,6 @@ export default function BluetoothSetup({ slug, onComplete, onCancel }) {
             addLog('Requesting Bluetooth Device...');
 
             const hasWebBluetooth = typeof navigator !== 'undefined' && navigator.bluetooth && typeof navigator.bluetooth.requestDevice === 'function';
-            const isNative = typeof Capacitor !== 'undefined' && typeof Capacitor.isNativePlatform === 'function' ? Capacitor.isNativePlatform() : false;
 
             if (hasWebBluetooth) {
                 const device = await navigator.bluetooth.requestDevice({
@@ -57,10 +90,13 @@ export default function BluetoothSetup({ slug, onComplete, onCancel }) {
 
                 device.addEventListener('gattserverdisconnected', onDisconnected);
             } else if (isNative) {
-                const { Browser } = await import('@capacitor/browser');
-                addLog('Opening browser for Bluetooth pairing...');
-                await Browser.open({ url: 'https://rk-alpha-nine.vercel.app/connect' });
-                throw new Error('Web Bluetooth unavailable in Android WebView');
+                await BleClient.initialize({ androidNeverForLocation: true });
+                const enabled = await BleClient.isEnabled();
+                if (!enabled) {
+                    await BleClient.requestEnable();
+                }
+                await BleClient.openBluetoothSettings();
+                addLog('Open system Bluetooth settings to pair RK-AI device.');
             } else {
                 throw new Error('Bluetooth not supported on this platform');
             }
@@ -99,7 +135,12 @@ export default function BluetoothSetup({ slug, onComplete, onCancel }) {
             });
 
             const encoder = new TextEncoder();
-            await characteristic.writeValue(encoder.encode(payload));
+            if (characteristic && characteristic.mode === 'native') {
+                const bytes = Array.from(encoder.encode(payload));
+                await BleClient.write(characteristic.deviceId, SERVICE_UUID, CHARACTERISTIC_UUID_RX, numbersToDataView(bytes));
+            } else {
+                await characteristic.writeValue(encoder.encode(payload));
+            }
             addLog('Credentials sent successfully!');
 
             // Wait a moment for device to process
@@ -108,8 +149,10 @@ export default function BluetoothSetup({ slug, onComplete, onCancel }) {
             setStep('success');
 
             // Disconnect after success
-            if (device && device.gatt.connected) {
+            if (device && device.gatt && device.gatt.connected) {
                 device.gatt.disconnect();
+            } else if (device && device.deviceId) {
+                try { await BleClient.disconnect(device.deviceId); } catch {}
             }
 
             setTimeout(() => {
