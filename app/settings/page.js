@@ -699,7 +699,7 @@ export default function SettingsPage() {
                             <div className="settings-info">
                                 <span>Version</span>
                             </div>
-                            <div className="settings-value">2.0</div>
+                            <div className="settings-value">2.1.3</div>
                         </div>
                         <div
                             onClick={() => router.push('/new')}
