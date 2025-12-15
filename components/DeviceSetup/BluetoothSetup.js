@@ -25,6 +25,13 @@ export default function BluetoothSetup({ slug, onComplete, onCancel }) {
 
     const addLog = (msg) => setLogs(prev => [...prev, msg]);
     const isNative = typeof Capacitor !== 'undefined' && typeof Capacitor.getPlatform === 'function' ? Capacitor.getPlatform() !== 'web' : false;
+    const getTrimmedSlug = (name) => {
+        if (!name) return null;
+        const n = name.toLowerCase();
+        if (!n.startsWith('rk-ai-')) return null;
+        return n.slice(6);
+    };
+
     useEffect(() => {
         if (!isNative) return;
         const sub = App.addListener('appStateChange', async ({ isActive }) => {
@@ -36,20 +43,27 @@ export default function BluetoothSetup({ slug, onComplete, onCancel }) {
                     if (!enabled) {
                         await BleClient.requestEnable();
                     }
-                    addLog('Scanning for connected devices...');
-                    const connected = await BleClient.getConnectedDevices([SERVICE_UUID]);
-                    const slugPattern = new RegExp(`^rk-ai-${slug}$`, 'i');
-                    const nineDigitPattern = /^rk-ai-\d{9}$/i;
-                    const target = (connected.length ? connected : await BleClient.getBondedDevices()).find(d => {
-                        const n = (d.name || '').toLowerCase();
-                        return slugPattern.test(n) && nineDigitPattern.test(n);
+                    addLog('Scanning for RK-AI devices...');
+                    let found = null;
+                    await BleClient.requestLEScan({ allowDuplicates: false }, (res) => {
+                        const name = res.device?.name || '';
+                        const trimmed = getTrimmedSlug(name);
+                        if (trimmed && trimmed === String(slug)) {
+                            found = res.device;
+                        }
                     });
-                    if (target) {
-                        addLog(`Connecting to ${target.name || target.deviceId}...`);
-                        await BleClient.connect(target.deviceId);
-                        setDevice(target);
+                    await new Promise(resolve => setTimeout(resolve, 8000));
+                    await BleClient.stopLEScan();
+                    if (!found) {
+                        const bonded = await BleClient.getBondedDevices();
+                        found = bonded.find(d => getTrimmedSlug(d.name) === String(slug));
+                    }
+                    if (found) {
+                        addLog(`Connecting to ${found.name || found.deviceId}...`);
+                        await BleClient.connect(found.deviceId);
+                        setDevice(found);
                         setServer('native');
-                        setCharacteristic({ mode: 'native', deviceId: target.deviceId });
+                        setCharacteristic({ mode: 'native', deviceId: found.deviceId });
                         setStep('wifi');
                         addLog('Connected.');
                     } else {
@@ -134,7 +148,8 @@ export default function BluetoothSetup({ slug, onComplete, onCancel }) {
 
         try {
             if (!characteristic) throw new Error('No connection to device');
-            const nameOk = device && device.name && new RegExp(`^rk-ai-${slug}$`, 'i').test(device.name) && /^rk-ai-\d{9}$/i.test(device.name);
+            const trimmed = getTrimmedSlug(device?.name || '');
+            const nameOk = trimmed && trimmed === String(slug);
             if (!nameOk) {
                 throw new Error('Connected device slug does not match.');
             }
