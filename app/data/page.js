@@ -159,25 +159,25 @@ export default function DataPage() {
                                             {getFileIcon(file.name)}
                                         </div>
                                         <div className="flex flex-col min-w-0">
-                                            <div className="text-sm font-medium truncate text-gray-900">{file.name}</div>
-                                            <div className="text-xs text-gray-500">{formatFileSize(file.size)}</div>
+                                            <div className="text-sm font-medium truncate text-gray-100">{file.name}</div>
+                                            <div className="text-xs text-gray-400">{formatFileSize(file.size)}</div>
                                         </div>
                                     </div>
 
                                     <div className="flex items-center gap-2 pl-2">
                                         {/* View (Text) */}
                                         {file.name.toLowerCase().endsWith('.txt') && (
-                                            <button onClick={() => setViewingFile(file)} className="p-2 text-green-500 hover:bg-green-50 rounded">
-                                                <AiOutlineEye size={18} />
+                                            <button onClick={() => setViewingFile(file)} className="p-2 text-green-400 hover:bg-white/10 rounded transition-colors">
+                                                <AiOutlineEye size={20} />
                                             </button>
                                         )}
                                         {/* Download */}
-                                        <button onClick={() => handleDownload(file.name, file.id, file.source)} className="p-2 text-blue-500 hover:bg-blue-50 rounded">
-                                            <AiOutlineDownload size={18} />
+                                        <button onClick={() => handleDownload(file.name, file.id, file.source)} className="p-2 text-blue-400 hover:bg-white/10 rounded transition-colors">
+                                            <AiOutlineDownload size={20} />
                                         </button>
                                         {/* Delete */}
-                                        <button onClick={() => handleDelete(file.name, file.id, file.source)} className="p-2 text-red-500 hover:bg-red-50 rounded">
-                                            <AiOutlineDelete size={18} />
+                                        <button onClick={() => handleDelete(file.name, file.id, file.source)} className="p-2 text-red-400 hover:bg-white/10 rounded transition-colors">
+                                            <AiOutlineDelete size={20} />
                                         </button>
                                     </div>
                                 </div>
