@@ -3,13 +3,11 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
-import GlassCard from '@/components/GlassCard';
-import { AiOutlineLink, AiOutlineLoading3Quarters, AiOutlineQrcode, AiOutlineClose } from 'react-icons/ai';
+import { AiOutlineLink, AiOutlineQrcode, AiOutlineClose } from 'react-icons/ai';
 import { deviceAPI } from '@/lib/api';
 import BluetoothSetup from '@/components/DeviceSetup/BluetoothSetup';
 import dynamic from 'next/dynamic';
 
-// Dynamic import for QR Reader to avoid SSR issues
 // Dynamic import for QR Reader to avoid SSR issues
 const QrScanner = dynamic(
     () => import('@yudiel/react-qr-scanner').then((mod) => mod.Scanner),
@@ -39,13 +37,9 @@ export default function ConnectPage() {
         setError('');
 
         try {
-            // Validate slug via API
             const device = await deviceAPI.validateSlug(slug);
-
             if (device) {
-                // Save slug to localStorage for persistence
                 localStorage.setItem('rk_device_slug', slug);
-                // Switch to Bluetooth Setup Mode
                 setSetupMode(true);
             } else {
                 setError('Invalid Device ID. Please check and try again.');
@@ -61,7 +55,6 @@ export default function ConnectPage() {
     const handleScan = (result) => {
         if (result && result.length > 0) {
             const rawValue = result[0].rawValue;
-            // Handle both JSON and plain text
             try {
                 const data = JSON.parse(rawValue);
                 if (data.s) {
@@ -69,7 +62,6 @@ export default function ConnectPage() {
                     setShowScanner(false);
                 }
             } catch (e) {
-                // Plain text fallback
                 if (rawValue) {
                     setSlug(rawValue);
                     setShowScanner(false);
@@ -83,12 +75,16 @@ export default function ConnectPage() {
     };
 
     if (!user) {
-        return <div className="spinner"></div>;
+        return (
+            <div className="page-container" style={{ justifyContent: 'center', height: '100vh' }}>
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+            </div>
+        );
     }
 
     if (setupMode) {
         return (
-            <div className="login-wrapper">
+            <div className="page-container">
                 <div style={{ width: '100%', maxWidth: '400px' }}>
                     <BluetoothSetup
                         slug={slug}
@@ -101,108 +97,78 @@ export default function ConnectPage() {
     }
 
     return (
-        <div className="login-wrapper">
-            <div className="card-container-wrapper">
-                <div className="glass-panel">
-                    <div style={{ textAlign: 'center', marginBottom: '24px' }}>
-                        <div style={{
-                            width: '64px',
-                            height: '64px',
-                            background: 'rgba(99, 102, 241, 0.1)',
-                            borderRadius: '16px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            margin: '0 auto 16px'
-                        }}>
-                            <AiOutlineLink size={32} color="#6366f1" />
-                        </div>
-                        <h1 className="brand-title" style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>Connect Device</h1>
-                        <p className="brand-subtitle" style={{ fontSize: '0.875rem', color: '#94a3b8' }}>
-                            Enter your RK AI Device ID to continue
-                        </p>
+        <div className="page-container">
+            <div className="auth-header">
+                <div style={{
+                    width: '64px', height: '64px',
+                    background: 'var(--bg-secondary)',
+                    borderRadius: '16px',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    margin: '0 auto 16px'
+                }}>
+                    <AiOutlineLink size={32} style={{ color: 'var(--text-primary)' }} />
+                </div>
+                <h1 className="brand-title">Connect Device</h1>
+                <p className="brand-subtitle">Enter your RK AI Device ID</p>
+            </div>
+
+            <div className="auth-card">
+                {showScanner ? (
+                    <div style={{ position: 'relative', borderRadius: 'var(--radius-lg)', overflow: 'hidden', border: '1px solid var(--border-color)' }}>
+                        <QrScanner
+                            onScan={handleScan}
+                            styles={{ container: { width: '100%' } }}
+                        />
+                        <button
+                            onClick={() => setShowScanner(false)}
+                            style={{
+                                position: 'absolute', top: '10px', right: '10px',
+                                background: 'rgba(0,0,0,0.5)', color: 'white',
+                                border: 'none', borderRadius: '50%',
+                                width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center'
+                            }}
+                        >
+                            <AiOutlineClose />
+                        </button>
                     </div>
-
-                    {showScanner ? (
-                        <div style={{ marginBottom: '24px', position: 'relative', borderRadius: '16px', overflow: 'hidden' }}>
-                            <QrScanner
-                                onScan={handleScan}
-                                styles={{ container: { width: '100%' } }}
+                ) : (
+                    <form onSubmit={handleConnect}>
+                        <div className="form-group">
+                            <label className="form-label">Device ID</label>
+                            <input
+                                type="text"
+                                className="form-input"
+                                placeholder="e.g. 123456"
+                                value={slug}
+                                onChange={(e) => setSlug(e.target.value)}
+                                disabled={loading}
                             />
-                            <button
-                                onClick={() => setShowScanner(false)}
-                                style={{
-                                    position: 'absolute',
-                                    top: '10px',
-                                    right: '10px',
-                                    background: 'rgba(0,0,0,0.5)',
-                                    color: 'white',
-                                    border: 'none',
-                                    borderRadius: '50%',
-                                    width: '32px',
-                                    height: '32px',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    cursor: 'pointer'
-                                }}
-                            >
-                                <AiOutlineClose />
-                            </button>
                         </div>
-                    ) : (
-                        <form onSubmit={handleConnect}>
-                            <div className="auth-form-group">
-                                <label className="auth-label">Device Slug</label>
-                                <div className="input-wrapper">
-                                    <div className="input-icon-left">
-                                        <AiOutlineQrcode />
-                                    </div>
-                                    <input
-                                        type="text"
-                                        className="auth-input"
-                                        placeholder="e.g. 12345"
-                                        value={slug}
-                                        onChange={(e) => setSlug(e.target.value)}
-                                        disabled={loading}
-                                    />
-                                </div>
-                                {error && (
-                                    <div className="error-box" style={{ marginTop: '1rem', marginBottom: '0' }}>
-                                        <div className="error-dot"></div>
-                                        {error}
-                                    </div>
-                                )}
-                            </div>
 
-                            <button
-                                type="submit"
-                                className="btn-primary-gradient"
-                                disabled={loading || !slug.trim()}
-                            >
-                                {loading ? 'Connecting...' : 'Connect & Setup'}
-                            </button>
-                        </form>
-                    )}
+                        {error && <div className="error-banner">{error}</div>}
 
-                    {!showScanner && (
-                        <div className="divider-wrapper">
-                            <div className="divider-line"></div>
-                            <span className="divider-text">OR</span>
-                            <div className="divider-line"></div>
-                        </div>
-                    )}
+                        <button
+                            type="submit"
+                            className={`btn btn-primary ${loading ? 'btn-disabled' : ''}`}
+                            disabled={loading || !slug.trim()}
+                        >
+                            {loading ? <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div> : 'Connect'}
+                        </button>
+                    </form>
+                )}
 
-                    {!showScanner && (
+                {!showScanner && (
+                    <>
+                        <div className="divider"><span>OR</span></div>
                         <button
                             onClick={() => setShowScanner(true)}
-                            className="btn-google-outline"
+                            className="btn btn-outline"
                         >
-                            <AiOutlineQrcode className="text-xl" />
+                            <AiOutlineQrcode className="icon-lg" />
                             <span>Scan QR Code</span>
                         </button>
-                    )}
-                </div>
+                    </>
+                )}
             </div>
         </div>
     );
