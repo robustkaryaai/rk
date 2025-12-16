@@ -192,7 +192,21 @@ export default function BluetoothSetup({ slug, onComplete, onCancel, initialStep
                     setCharacteristic({ mode: 'native', deviceId: found.deviceId });
                     try { localStorage.setItem('rk_ble_connected', 'true'); } catch {}
                 } else {
-                    throw new Error('No connection to device');
+                    const hasWebBluetooth = typeof navigator !== 'undefined' && navigator.bluetooth && typeof navigator.bluetooth.requestDevice === 'function';
+                    if (!hasWebBluetooth) {
+                        throw new Error('Bluetooth not supported on this platform');
+                    }
+                    const webDevice = await navigator.bluetooth.requestDevice({
+                        filters: [{ namePrefix: 'rk-ai-' }],
+                        optionalServices: [SERVICE_UUID]
+                    });
+                    setDevice(webDevice);
+                    const server = await webDevice.gatt.connect();
+                    setServer(server);
+                    const service = await server.getPrimaryService(SERVICE_UUID);
+                    const ch = await service.getCharacteristic(CHARACTERISTIC_UUID_RX);
+                    setCharacteristic(ch);
+                    try { localStorage.setItem('rk_ble_connected', 'true'); } catch {}
                 }
             }
             const trimmed = getTrimmedSlug(device?.name || '');
