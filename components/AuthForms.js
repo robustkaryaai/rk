@@ -24,6 +24,7 @@ export function SignInForm() {
     const envEndpoint = typeof process !== 'undefined' ? (process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT ? 'set' : 'missing') : 'unknown';
 
     useEffect(() => {
+        if (typeof window !== 'undefined' && window.alert) alert('DEBUG: SignInForm Mounted');
         const onFocus = () => {
             try {
                 const u = localStorage.getItem('rk_last_oauth_url') || '';

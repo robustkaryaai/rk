@@ -246,13 +246,16 @@ body.dark input:focus {
 /* Layout Containers */
 .login-wrapper {
   position: relative;
-  z-index: 10;
+  z-index: 9999;
+  /* Force high z-index */
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   min-height: 100vh;
   padding: 2rem;
+  pointer-events: auto !important;
+  /* Force clicks to work */
 }
 
 .brand-container {
