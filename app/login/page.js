@@ -9,7 +9,6 @@ export default function LoginPage() {
   const { user, loading } = useAuth();
   const router = useRouter();
 
-  // Redirect if already logged in
   useEffect(() => {
     if (!loading && user) {
       router.push('/home');
@@ -19,20 +18,21 @@ export default function LoginPage() {
 
   if (loading) {
     return (
-      <div className="login-container">
-        <div className="spinner"></div>
+      <div className="page-container">
+        {/* Simple spinner */}
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
       </div>
     );
   }
 
   return (
     <div className="page-container">
-      <div className="brand-header">
-        <h1 className="brand-title gradient-text-brand">RK AI</h1>
-        <p className="brand-subtitle">Authentication Portal</p>
+      <div className="auth-header">
+        <h1 className="brand-title">Welcome back</h1>
+        <p className="brand-subtitle">Sign in to your account</p>
       </div>
 
-      <div className="glass-card">
+      <div className="auth-card">
         <SignInForm />
       </div>
     </div>

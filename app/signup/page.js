@@ -16,24 +16,24 @@ export default function SignUpPage() {
 
     if (loading) {
         return (
-            <div className="login-container">
-                <div className="spinner"></div>
+            <div className="page-container">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
             </div>
         );
     }
 
     return (
         <div className="page-container">
-            <div className="brand-header">
-                <h1 className="brand-title gradient-text-brand">
-                    Join RK AI
+            <div className="auth-header">
+                <h1 className="brand-title">
+                    Create account
                 </h1>
                 <p className="brand-subtitle">
-                    Create your workspace
+                    Join RK AI today
                 </p>
             </div>
 
-            <div className="glass-card">
+            <div className="auth-card">
                 <SignUpForm />
             </div>
         </div>

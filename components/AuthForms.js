@@ -1,10 +1,9 @@
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
+import { useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
-import { AiOutlineGoogle, AiOutlineMail, AiOutlineLock, AiOutlineUser, AiOutlineUpload } from 'react-icons/ai';
 import Link from 'next/link';
-import { supabase } from '@/lib/supabase';
+import { AiOutlineGoogle, AiOutlineLoading3Quarters } from 'react-icons/ai';
 
 export function SignInForm() {
     const { login, loginWithGoogle } = useAuth();
@@ -12,30 +11,7 @@ export function SignInForm() {
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
-    const [lastUrl, setLastUrl] = useState(() =>
-        typeof window !== 'undefined' ? (localStorage.getItem('rk_last_oauth_url') || '') : ''
-    );
-    const [oauthError, setOauthError] = useState(() =>
-        typeof window !== 'undefined' ? (localStorage.getItem('rk_last_oauth_error') || '') : ''
-    );
     const [googleLoading, setGoogleLoading] = useState(false);
-    const [googleError, setGoogleError] = useState('');
-    const envProject = typeof process !== 'undefined' ? (process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID ? 'set' : 'missing') : 'unknown';
-    const envEndpoint = typeof process !== 'undefined' ? (process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT ? 'set' : 'missing') : 'unknown';
-
-    useEffect(() => {
-        if (typeof window !== 'undefined' && window.alert) alert('DEBUG: SignInForm Mounted');
-        const onFocus = () => {
-            try {
-                const u = localStorage.getItem('rk_last_oauth_url') || '';
-                const e = localStorage.getItem('rk_last_oauth_error') || '';
-                setLastUrl(u);
-                setOauthError(e);
-            } catch (_) { }
-        };
-        window.addEventListener('focus', onFocus);
-        return () => window.removeEventListener('focus', onFocus);
-    }, []);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -48,132 +24,86 @@ export function SignInForm() {
             setError(result.error);
             setLoading(false);
         }
+        // If success, router.push handled in context
     };
 
     const handleGoogle = async () => {
-        if (typeof window !== 'undefined' && window.alert){
-
-        alert('Google Button Clicked');
-        setGoogleError('');
         setGoogleLoading(true);
+        setError('');
         try {
             await loginWithGoogle();
         } catch (err) {
-            const msg = err?.message || 'Google sign-in failed';
-            setGoogleError(msg);
-            try { localStorage.setItem('rk_last_oauth_error', msg); } catch (_) { }
-        } finally {
+            setError(err.message || 'Google sign-in failed');
             setGoogleLoading(false);
-            try {
-                const u = localStorage.getItem('rk_last_oauth_url') || '';
-                const e = localStorage.getItem('rk_last_oauth_error') || '';
-                setLastUrl(u);
-                setOauthError(e);
-            } catch (_) { }
         }
-    }
     };
 
     return (
         <div className="w-full">
+            {error && <div className="error-banner">{error}</div>}
+
             <form onSubmit={handleSubmit}>
-                <div className="auth-form-group">
-                    <label className="auth-label">Email Address</label>
-                    <div className="input-wrapper">
-                        <div className="input-icon-left">
-                            <AiOutlineMail />
-                        </div>
-                        <input
-                            type="email"
-                            required
-                            className="auth-input"
-                            placeholder="name@example.com"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                        />
-                    </div>
+                <div className="form-group">
+                    <label className="form-label">Email</label>
+                    <input
+                        type="email"
+                        required
+                        className="form-input"
+                        placeholder="name@example.com"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        disabled={loading || googleLoading}
+                    />
                 </div>
 
-                <div className="auth-form-group">
-                    <label className="auth-label">Password</label>
-                    <div className="input-wrapper">
-                        <div className="input-icon-left">
-                            <AiOutlineLock />
-                        </div>
-                        <input
-                            type="password"
-                            required
-                            className="auth-input"
-                            placeholder="••••••••"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                        />
-                    </div>
+                <div className="form-group">
+                    <label className="form-label">Password</label>
+                    <input
+                        type="password"
+                        required
+                        className="form-input"
+                        placeholder="••••••••"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        disabled={loading || googleLoading}
+                    />
                 </div>
-
-                {error && (
-                    <div className="error-box">
-                        <div className="error-dot"></div>
-                        {error}
-                    </div>
-                )}
 
                 <button
                     type="submit"
-                    disabled={loading}
-                    className="btn-primary-gradient"
+                    className={`btn btn-primary ${loading ? 'btn-disabled' : ''}`}
+                    disabled={loading || googleLoading}
                 >
-                    {loading ? 'Signing in...' : 'Sign In'}
+                    {loading ? <AiOutlineLoading3Quarters className="animate-spin" /> : 'Sign In'}
                 </button>
             </form>
 
-            <div className="divider-wrapper">
-                <div className="divider-line"></div>
-                <span className="divider-text">Or continue with</span>
-                <div className="divider-line"></div>
+            <div className="divider">
+                <span>OR</span>
             </div>
 
             <button
-                onClick={handleGoogle}
                 type="button"
-                className="btn-google-outline"
+                onClick={handleGoogle}
+                className={`btn btn-outline ${googleLoading ? 'btn-disabled' : ''}`}
+                disabled={loading || googleLoading}
             >
-                <AiOutlineGoogle className="text-xl" />
-                <span>{googleLoading ? 'Opening Google…' : 'Sign in with Google'}</span>
+                {googleLoading ? (
+                    <AiOutlineLoading3Quarters className="animate-spin icon-lg" />
+                ) : (
+                    <>
+                        <AiOutlineGoogle className="icon-lg" />
+                        <span>Continue with Google</span>
+                    </>
+                )}
             </button>
 
-            {googleError && (
-                <div className="error-box" style={{ marginTop: '12px' }}>
-                    <div className="error-dot"></div>
-                    {googleError}
-                </div>
-            )}
-
-            {(oauthError || lastUrl) && (
-                <div className="glass-card" style={{ marginTop: '12px', padding: '12px' }}>
-                    <div className="info-item">
-                        <div className="info-label">Last OAuth Error</div>
-                        <div className="info-value">{oauthError || 'None'}</div>
-                    </div>
-                    <div className="info-item">
-                        <div className="info-label">Last OAuth URL</div>
-                        <div className="info-value" style={{ wordBreak: 'break-all' }}>{lastUrl || 'None'}</div>
-                    </div>
-                    <div className="info-item">
-                        <div className="info-label">Appwrite Project</div>
-                        <div className="info-value">{envProject}</div>
-                    </div>
-                    <div className="info-item">
-                        <div className="info-label">Appwrite Endpoint</div>
-                        <div className="info-value">{envEndpoint}</div>
-                    </div>
-                </div>
-            )}
-
-            <div className="link-switch-wrapper">
-                Don&apos;t have an account?{' '}
-                <Link href="/signup" className="link-highlight">
-                    Sign up
+            <div style={{ marginTop: '32px', textAlign: 'center' }}>
+                <span style={{ color: 'var(--text-secondary)', fontSize: '14px' }}>
+                    New here?{' '}
+                </span>
+                <Link href="/signup" className="link-text">
+                    Create account
                 </Link>
             </div>
         </div>
@@ -185,56 +115,16 @@ export function SignUpForm() {
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const [avatarFile, setAvatarFile] = useState(null);
-    const [avatarPreview, setAvatarPreview] = useState(null);
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
-    const fileInputRef = useRef(null);
     const [googleLoading, setGoogleLoading] = useState(false);
-    const [googleError, setGoogleError] = useState('');
-
-    const handleFileChange = (e) => {
-        const file = e.target.files[0];
-        if (file) {
-            setAvatarFile(file);
-            const previewUrl = URL.createObjectURL(file);
-            setAvatarPreview(previewUrl);
-        }
-    };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
         setLoading(true);
 
-        let avatarUrl = '';
-
-        if (avatarFile) {
-            try {
-                // Upload to Supabase
-                const fileName = `avatars/${Date.now()}_${avatarFile.name}`;
-                const { data, error: uploadError } = await supabase
-                    .storage
-                    .from('rk-ai-storage-base') // Using existing bucket
-                    .upload(fileName, avatarFile);
-
-                if (uploadError) {
-                    console.error('Avatar upload failed:', uploadError);
-                    // Continue without avatar if fails, but log it
-                } else {
-                    const { data: publicUrlData } = supabase
-                        .storage
-                        .from('rk-ai-storage-base')
-                        .getPublicUrl(fileName);
-                    avatarUrl = publicUrlData.publicUrl;
-                }
-
-            } catch (err) {
-                console.error('Avatar upload exception:', err);
-            }
-        }
-
-        const result = await signup(email, password, name, avatarUrl);
+        const result = await signup(email, password, name);
 
         if (!result.success) {
             setError(result.error);
@@ -242,138 +132,96 @@ export function SignUpForm() {
         }
     };
 
+    const handleGoogle = async () => {
+        setGoogleLoading(true);
+        setError('');
+        try {
+            await loginWithGoogle();
+        } catch (err) {
+            setError(err.message || 'Google sign-in failed');
+            setGoogleLoading(false);
+        }
+    };
+
     return (
         <div className="w-full">
+            {error && <div className="error-banner">{error}</div>}
+
             <form onSubmit={handleSubmit}>
-                {/* Avatar Upload */}
-                <div className="avatar-section">
-                    <div
-                        className="avatar-upload-circle"
-                        onClick={() => fileInputRef.current.click()}
-                    >
-                        {avatarPreview ? (
-                            <img src={avatarPreview} alt="Avatar" className="avatar-preview-img" />
-                        ) : (
-                            <div className="avatar-placeholder">
-                                <AiOutlineUpload className="avatar-icon" />
-                                <span className="avatar-label-text">Add Photo</span>
-                            </div>
-                        )}
-                        <input
-                            type="file"
-                            ref={fileInputRef}
-                            onChange={handleFileChange}
-                            accept="image/*"
-                            className="hidden"
-                        />
-                    </div>
+                <div className="form-group">
+                    <label className="form-label">Full Name</label>
+                    <input
+                        type="text"
+                        required
+                        className="form-input"
+                        placeholder="John Doe"
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        disabled={loading || googleLoading}
+                    />
                 </div>
 
-                <div className="auth-form-group">
-                    <label className="auth-label">Full Name</label>
-                    <div className="input-wrapper">
-                        <div className="input-icon-left">
-                            <AiOutlineUser />
-                        </div>
-                        <input
-                            type="text"
-                            required
-                            className="auth-input"
-                            placeholder="John Doe"
-                            value={name}
-                            onChange={(e) => setName(e.target.value)}
-                        />
-                    </div>
+                <div className="form-group">
+                    <label className="form-label">Email</label>
+                    <input
+                        type="email"
+                        required
+                        className="form-input"
+                        placeholder="name@example.com"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        disabled={loading || googleLoading}
+                    />
                 </div>
 
-                <div className="auth-form-group">
-                    <label className="auth-label">Email Address</label>
-                    <div className="input-wrapper">
-                        <div className="input-icon-left">
-                            <AiOutlineMail />
-                        </div>
-                        <input
-                            type="email"
-                            required
-                            className="auth-input"
-                            placeholder="you@example.com"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                        />
-                    </div>
+                <div className="form-group">
+                    <label className="form-label">Password</label>
+                    <input
+                        type="password"
+                        required
+                        minLength={8}
+                        className="form-input"
+                        placeholder="••••••••"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        disabled={loading || googleLoading}
+                    />
                 </div>
-
-                <div className="auth-form-group">
-                    <label className="auth-label">Password</label>
-                    <div className="input-wrapper">
-                        <div className="input-icon-left">
-                            <AiOutlineLock />
-                        </div>
-                        <input
-                            type="password"
-                            required
-                            minLength={8}
-                            className="auth-input"
-                            placeholder="••••••••"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                        />
-                    </div>
-                </div>
-
-                {error && (
-                    <div className="error-box">
-                        <div className="error-dot"></div>
-                        {error}
-                    </div>
-                )}
 
                 <button
                     type="submit"
-                    disabled={loading}
-                    className="btn-primary-gradient"
+                    className={`btn btn-primary ${loading ? 'btn-disabled' : ''}`}
+                    disabled={loading || googleLoading}
                 >
-                    {loading ? 'Creating Account...' : 'Sign Up'}
+                    {loading ? <AiOutlineLoading3Quarters className="animate-spin" /> : 'Create Account'}
                 </button>
             </form>
 
-            <div className="divider-wrapper">
-                <div className="divider-line"></div>
-                <span className="divider-text">Or continue with</span>
-                <div className="divider-line"></div>
+            <div className="divider">
+                <span>OR</span>
             </div>
 
             <button
-                onClick={async () => {
-                    setGoogleError('');
-                    setGoogleLoading(true);
-                    try {
-                        await loginWithGoogle();
-                    } catch (err) {
-                        const msg = err?.message || 'Google sign-in failed';
-                        setGoogleError(msg);
-                        try { localStorage.setItem('rk_last_oauth_error', msg); } catch (_) { }
-                    } finally {
-                        setGoogleLoading(false);
-                    }
-                }}
                 type="button"
-                className="btn-google-outline"
+                onClick={handleGoogle}
+                className={`btn btn-outline ${googleLoading ? 'btn-disabled' : ''}`}
+                disabled={loading || googleLoading}
             >
-                <AiOutlineGoogle className="text-xl" />
-                <span>{googleLoading ? 'Opening Google…' : 'Sign in with Google'}</span>
+                {googleLoading ? (
+                    <AiOutlineLoading3Quarters className="animate-spin icon-lg" />
+                ) : (
+                    <>
+                        <AiOutlineGoogle className="icon-lg" />
+                        <span>Continue with Google</span>
+                    </>
+                )}
             </button>
 
-            {googleError && (
-                <div className="error-box" style={{ marginTop: '12px' }}>
-                    <div className="error-dot"></div>
-                    {googleError}
-                </div>
-            )}
-
-            <div className="link-switch-wrapper">
-                Already have an account?{' '}
-                <Link href="/login" className="link-highlight">
+            <div style={{ marginTop: '32px', textAlign: 'center' }}>
+                <span style={{ color: 'var(--text-secondary)', fontSize: '14px' }}>
+                    Already have an account?{' '}
+                </span>
+                <Link href="/login" className="link-text">
                     Sign in
                 </Link>
             </div>
