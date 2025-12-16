@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { userAPI } from '@/lib/api';
 import { App } from '@capacitor/app';
 import { Browser } from '@capacitor/browser';
+import { Capacitor } from '@capacitor/core';
 
 const AuthContext = createContext();
 
@@ -358,8 +359,9 @@ export function AuthProvider({ children }) {
                 throw new Error('Missing Appwrite configuration');
             }
 
-            // Check if native platform
-            const isNative = typeof window !== 'undefined' && window.Capacitor && window.Capacitor.isNativePlatform();
+            const isNative =
+                (typeof window !== 'undefined' && window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()) ||
+                (typeof Capacitor !== 'undefined' && Capacitor.isNativePlatform && Capacitor.isNativePlatform());
 
             if (isNative) {
                 // Construct OAuth URL manually
@@ -372,7 +374,14 @@ export function AuthProvider({ children }) {
                 scopes.forEach(scope => targetUrl.searchParams.append('scopes[]', scope));
 
                 const finalUrl = targetUrl.toString();
-                await Browser.open({ url: finalUrl });
+                try { localStorage.setItem('rk_last_oauth_url', finalUrl); } catch (_) {}
+                try {
+                    await Browser.open({ url: finalUrl });
+                } catch (e) {
+                    try {
+                        window.location.href = finalUrl;
+                    } catch (_) {}
+                }
             } else {
                 // Web: Use SDK method
                 account.createOAuth2Session(
