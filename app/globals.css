@@ -750,17 +750,7 @@ body.dark .glass-card:hover {
   box-shadow: 0 12px 40px var(--shadow-dark);
 }
 
-html.dark .glass-card {
-  background: var(--glass-bg-dark) !important;
-  border-color: var(--glass-border-dark) !important;
-  box-shadow: 0 8px 32px var(--shadow-dark) !important;
-}
 
-body:not(.dark) .glass-card {
-  background: var(--glass-bg-light) !important;
-  border-color: var(--glass-border-light) !important;
-  box-shadow: 0 8px 32px var(--shadow-light) !important;
-}
 
 /* Button Styles */
 .btn-primary {

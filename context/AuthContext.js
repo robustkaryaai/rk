@@ -79,8 +79,9 @@ export function AuthProvider({ children }) {
                     try {
                         console.log('[Deep Link] Calling server API with token:', oauthToken);
 
+                        const apiBaseUrl = process.env.NEXT_PUBLIC_APP_URL || window.location.origin;
                         const response = await fetch(
-                            `${window.location.origin}/api/auth/create-app-session?token=${oauthToken}`,
+                            `${apiBaseUrl}/api/auth/create-app-session?token=${oauthToken}`,
                             { method: 'GET' }
                         );
 
