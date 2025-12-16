@@ -2,224 +2,172 @@
 
 import { useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
-import Link from 'next/link';
-import { AiOutlineGoogle, AiOutlineLoading3Quarters } from 'react-icons/ai';
+import { AiOutlineGoogle, AiOutlineEye, AiOutlineEyeInvisible, AiOutlineArrowRight } from 'react-icons/ai';
 
-export function SignInForm() {
-    const { login, loginWithGoogle } = useAuth();
+export default function AuthForms() {
+    const { login, signup, loginWithGoogle } = useAuth();
+    const [isLogin, setIsLogin] = useState(true);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
+
+    // Form State
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const [error, setError] = useState('');
-    const [loading, setLoading] = useState(false);
-    const [googleLoading, setGoogleLoading] = useState(false);
-
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        setError('');
-        setLoading(true);
-
-        const result = await login(email, password);
-
-        if (!result.success) {
-            setError(result.error);
-            setLoading(false);
-        }
-        // If success, router.push handled in context
-    };
-
-    const handleGoogle = async () => {
-        setGoogleLoading(true);
-        setError('');
-        try {
-            await loginWithGoogle();
-        } catch (err) {
-            setError(err.message || 'Google sign-in failed');
-            setGoogleLoading(false);
-            alert(error)
-        }
-    };
-
-    return (
-        <div className="w-full">
-            {error && <div className="error-banner">{error}</div>}
-
-            <form onSubmit={handleSubmit}>
-                <div className="form-group">
-                    <label className="form-label">Email</label>
-                    <input
-                        type="email"
-                        required
-                        className="form-input"
-                        placeholder="name@example.com"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        disabled={loading || googleLoading}
-                    />
-                </div>
-
-                <div className="form-group">
-                    <label className="form-label">Password</label>
-                    <input
-                        type="password"
-                        required
-                        className="form-input"
-                        placeholder="••••••••"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        disabled={loading || googleLoading}
-                    />
-                </div>
-
-                <button
-                    type="submit"
-                    className={`btn btn-primary ${loading ? 'btn-disabled' : ''}`}
-                    disabled={loading || googleLoading}
-                >
-                    {loading ? <AiOutlineLoading3Quarters className="animate-spin" /> : 'Sign In'}
-                </button>
-            </form>
-
-            <div className="divider">
-                <span>OR</span>
-            </div>
-
-            <button
-                type="button"
-                onClick={handleGoogle}
-                className={`btn btn-outline`}
-            >
-                <>
-                        <AiOutlineGoogle className="icon-lg" />
-                        <span>Continue with Google</span>
-                    </>
-            </button>
-
-            <div style={{ marginTop: '32px', textAlign: 'center' }}>
-                <span style={{ color: 'var(--text-secondary)', fontSize: '14px' }}>
-                    New here?{' '}
-                </span>
-                <Link href="/signup" className="link-text">
-                    Create account
-                </Link>
-            </div>
-        </div>
-    );
-}
-
-export function SignUpForm() {
-    const { signup, loginWithGoogle } = useAuth();
     const [name, setName] = useState('');
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
-    const [error, setError] = useState('');
-    const [loading, setLoading] = useState(false);
-    const [googleLoading, setGoogleLoading] = useState(false);
+
+    const handleGoogle = async () => {
+        // Clear previous errors
+        setError('');
+        // We do NOT set loading states that disable the button to prevent "frozen" UI
+        // The browser/Appwrite SDK handles the redirect or popup
+        try {
+            await loginWithGoogle();
+        } catch (err) {
+            setError(err.message || 'Google sign-in failed. Please try again.');
+        }
+    };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
         setLoading(true);
 
-        const result = await signup(email, password, name);
+        try {
+            let result;
+            if (isLogin) {
+                result = await login(email, password);
+            } else {
+                result = await signup(email, password, name);
+            }
 
-        if (!result.success) {
-            setError(result.error);
+            if (!result.success) {
+                setError(result.error);
+                setLoading(false);
+            }
+            // If success,AuthContext handles redirect
+        } catch (err) {
+            setError(err.message || 'Authentication failed');
             setLoading(false);
         }
     };
 
-    const handleGoogle = async () => {
-        setGoogleLoading(true);
+    // Toggle Mode
+    const toggleMode = () => {
+        setIsLogin(!isLogin);
         setError('');
-        try {
-            await loginWithGoogle();
-        } catch (err) {
-            setError(err.message || 'Google sign-in failed');
-            setGoogleLoading(false);
-        }
+        setEmail('');
+        setPassword('');
+        setName('');
     };
 
     return (
-        <div className="w-full">
-            {error && <div className="error-banner">{error}</div>}
-
-            <form onSubmit={handleSubmit}>
-                <div className="form-group">
-                    <label className="form-label">Full Name</label>
-                    <input
-                        type="text"
-                        required
-                        className="form-input"
-                        placeholder="John Doe"
-                        value={name}
-                        onChange={(e) => setName(e.target.value)}
-                        disabled={loading || googleLoading}
-                    />
-                </div>
-
-                <div className="form-group">
-                    <label className="form-label">Email</label>
-                    <input
-                        type="email"
-                        required
-                        className="form-input"
-                        placeholder="name@example.com"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        disabled={loading || googleLoading}
-                    />
-                </div>
-
-                <div className="form-group">
-                    <label className="form-label">Password</label>
-                    <input
-                        type="password"
-                        required
-                        minLength={8}
-                        className="form-input"
-                        placeholder="••••••••"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        disabled={loading || googleLoading}
-                    />
-                </div>
-
-                <button
-                    type="submit"
-                    className={`btn btn-primary ${loading ? 'btn-disabled' : ''}`}
-                    disabled={loading || googleLoading}
-                >
-                    {loading ? <AiOutlineLoading3Quarters className="animate-spin" /> : 'Create Account'}
-                </button>
-            </form>
+        <div className="auth-card">
+            {/* Google Button - Primary Action */}
+            <button
+                type="button"
+                onClick={handleGoogle}
+                className="btn btn-outline"
+                style={{ marginBottom: '16px', justifyContent: 'center' }}
+            >
+                <AiOutlineGoogle size={22} />
+                <span>Continue with Google</span>
+            </button>
 
             <div className="divider">
                 <span>OR</span>
             </div>
 
-            <button
-                type="button"
-                onClick={handleGoogle}
-                className={`btn btn-outline ${googleLoading ? 'btn-disabled' : ''}`}
-                disabled={loading || googleLoading}
-            >
-                {googleLoading ? (
-                    <AiOutlineLoading3Quarters className="animate-spin icon-lg" />
-                ) : (
-                    <>
-                        <AiOutlineGoogle className="icon-lg" />
-                        <span>Continue with Google</span>
-                    </>
+            <form onSubmit={handleSubmit}>
+                {!isLogin && (
+                    <div className="form-group">
+                        <label className="form-label">Name</label>
+                        <input
+                            type="text"
+                            className="form-input"
+                            placeholder="Your Name"
+                            value={name}
+                            onChange={(e) => setName(e.target.value)}
+                            required={!isLogin}
+                        />
+                    </div>
                 )}
-            </button>
 
-            <div style={{ marginTop: '32px', textAlign: 'center' }}>
-                <span style={{ color: 'var(--text-secondary)', fontSize: '14px' }}>
-                    Already have an account?{' '}
-                </span>
-                <Link href="/login" className="link-text">
-                    Sign in
-                </Link>
+                <div className="form-group">
+                    <label className="form-label">Email</label>
+                    <input
+                        type="email"
+                        className="form-input"
+                        placeholder="you@example.com"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        required
+                    />
+                </div>
+
+                <div className="form-group">
+                    <label className="form-label">Password</label>
+                    <div style={{ position: 'relative' }}>
+                        <input
+                            type={showPassword ? 'text' : 'password'}
+                            className="form-input"
+                            placeholder="••••••••"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            required
+                        />
+                        <button
+                            type="button"
+                            onClick={() => setShowPassword(!showPassword)}
+                            aria-label="Toggle password visibility"
+                            style={{
+                                position: 'absolute',
+                                right: '12px',
+                                top: '50%',
+                                transform: 'translateY(-50%)',
+                                background: 'none',
+                                border: 'none',
+                                color: 'var(--text-secondary)',
+                                cursor: 'pointer',
+                                padding: '4px',
+                                display: 'flex'
+                            }}
+                        >
+                            {showPassword ? <AiOutlineEyeInvisible size={20} /> : <AiOutlineEye size={20} />}
+                        </button>
+                    </div>
+                </div>
+
+                {error && <div className="error-banner">{error}</div>}
+
+                <button
+                    type="submit"
+                    className={`btn btn-primary ${loading ? 'btn-disabled' : ''}`}
+                    disabled={loading}
+                    style={{ marginTop: '16px' }}
+                >
+                    {loading ? (
+                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                    ) : (
+                        <>
+                            <span>{isLogin ? 'Sign In' : 'Create Account'}</span>
+                            <AiOutlineArrowRight />
+                        </>
+                    )}
+                </button>
+            </form>
+
+            <div style={{ textAlign: 'center', marginTop: '24px' }}>
+                <p style={{ color: 'var(--text-secondary)', fontSize: '14px', margin: 0 }}>
+                    {isLogin ? "Don't have an account? " : "Already have an account? "}
+                    <button
+                        onClick={toggleMode}
+                        className="link-text"
+                        style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
+                    >
+                        {isLogin ? 'Sign Up' : 'Log In'}
+                    </button>
+                </p>
             </div>
         </div>
     );
