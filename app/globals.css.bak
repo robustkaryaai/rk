@@ -87,7 +87,7 @@ body {
 }
 
 /* Dark Mode Override */
-body.dark {
+html.dark body {
   background-color: #0a0a0f;
   background: linear-gradient(180deg, #05050A 0%, #0a0a15 50%, #05050A 100%);
   color: var(--text-dark);
@@ -115,7 +115,7 @@ body::before {
 }
 
 /* Dark Mode Override */
-body.dark::before {
+html.dark body::before {
   background:
     radial-gradient(circle at 50% 10%, rgba(138, 92, 246, 0.25) 0%, transparent 35%),
     radial-gradient(circle at 15% 50%, rgba(99, 102, 241, 0.2) 0%, transparent 30%),
@@ -163,7 +163,7 @@ body::after {
 }
 
 /* Dark Mode Override */
-body.dark::after {
+html.dark body::after {
   background-image:
     linear-gradient(rgba(99, 102, 241, 0.08) 1px, transparent 1px),
     linear-gradient(90deg, rgba(99, 102, 241, 0.08) 1px, transparent 1px);
@@ -172,7 +172,15 @@ body.dark::after {
 
 
 
-/* Removed conflicting early glass-card block */
+/* Premium Glass Card */
+.glass-card {
+  background: var(--bg-card);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid var(--glass-border);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), inset 0 0 0 1px var(--glass-highlight);
+  border-radius: 24px;
+}
 
 /* Text Gradients */
 .text-gradient {
@@ -293,7 +301,7 @@ body.dark input:focus {
   font-size: 2.25rem;
   /* text-4xl */
   font-weight: 700;
-  color: var(--text-light);
+  color: #ffffff;
   margin-bottom: 1rem;
   letter-spacing: -0.025em;
   text-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
@@ -303,21 +311,12 @@ body.dark input:focus {
   font-size: 1.25rem;
   /* text-xl */
   font-weight: 500;
-  color: var(--text-light);
+  color: #cbd5e1;
   /* text-slate-300 */
   max-width: 32rem;
   margin-left: auto;
   margin-right: auto;
   line-height: 1.625;
-}
-
-body.dark .brand-title {
-  color: var(--text-dark);
-}
-
-body.dark .brand-subtitle {
-  color: var(--text-dark);
-  opacity: 0.85;
 }
 
 .copyright-text {
@@ -345,18 +344,6 @@ body.dark .glass-panel {
   background: rgba(20, 20, 25, 0.6);
   border: 1px solid rgba(255, 255, 255, 0.08);
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-}
-
-html.dark .glass-panel {
-  background: rgba(20, 20, 25, 0.6) !important;
-  border: 1px solid rgba(255, 255, 255, 0.08) !important;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5) !important;
-}
-
-body:not(.dark) .glass-panel {
-  background: rgba(255, 255, 255, 0.8) !important;
-  border: 1px solid rgba(0, 0, 0, 0.1) !important;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15) !important;
 }
 
 /* Form Elements */
@@ -707,6 +694,22 @@ body.dark {
   color: var(--text-dark);
 }
 
+body.dark *:not(.btn-primary):not(.btn-secondary):not(.plan-badge) {
+  color: var(--text-dark);
+}
+
+body.dark h1,
+body.dark h2,
+body.dark h3,
+body.dark h4,
+body.dark h5,
+body.dark h6,
+body.dark p,
+body.dark span,
+body.dark div:not([class*="gradient"]):not([class*="blob"]) {
+  color: var(--text-dark);
+}
+
 body.dark .page-title,
 body.dark .section-title,
 body.dark .hero-title {
@@ -748,18 +751,6 @@ body.dark .glass-card {
 
 body.dark .glass-card:hover {
   box-shadow: 0 12px 40px var(--shadow-dark);
-}
-
-html.dark .glass-card {
-  background: var(--glass-bg-dark) !important;
-  border-color: var(--glass-border-dark) !important;
-  box-shadow: 0 8px 32px var(--shadow-dark) !important;
-}
-
-body:not(.dark) .glass-card {
-  background: var(--glass-bg-light) !important;
-  border-color: var(--glass-border-light) !important;
-  box-shadow: 0 8px 32px var(--shadow-light) !important;
 }
 
 /* Button Styles */
