@@ -11,10 +11,12 @@
   --neon-pink: #ec4899;
 
   /* Glass */
-  --glass-bg: rgba(255, 255, 255, 0.03);
-  --glass-border: rgba(255, 255, 255, 0.08);
-  --glass-highlight: rgba(255, 255, 255, 0.15);
-  --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  --glass-bg: rgba(255, 255, 255, 0.035);
+  --glass-border: rgba(255, 255, 255, 0.1);
+  --glass-highlight: rgba(255, 255, 255, 0.2);
+  --glass-shadow:
+    0 20px 50px rgba(0, 0, 0, 0.55),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
 
   /* Text */
   --text-primary: #ffffff;
@@ -22,8 +24,11 @@
   --text-muted: #64748b;
 
   /* Inputs */
-  --input-bg: rgba(0, 0, 0, 0.3);
-  --input-border: rgba(255, 255, 255, 0.1);
+  --input-bg: rgba(0, 0, 0, 0.35);
+  --input-border: rgba(255, 255, 255, 0.14);
+
+  /* Motion */
+  --ease-smooth: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 * {
@@ -41,9 +46,9 @@ body {
 
   /* Premium Fixed Background */
   background-image:
-    radial-gradient(circle at 50% 0%, rgba(120, 119, 198, 0.2) 0%, transparent 40%),
-    radial-gradient(circle at 0% 100%, rgba(59, 130, 246, 0.15) 0%, transparent 40%),
-    radial-gradient(circle at 100% 100%, rgba(168, 85, 247, 0.15) 0%, transparent 40%);
+    radial-gradient(circle at 50% 0%, rgba(120, 119, 198, 0.22) 0%, transparent 40%),
+    radial-gradient(circle at 0% 100%, rgba(59, 130, 246, 0.18) 0%, transparent 40%),
+    radial-gradient(circle at 100% 100%, rgba(168, 85, 247, 0.18) 0%, transparent 40%);
   background-attachment: fixed;
 }
 
@@ -57,7 +62,12 @@ body {
 }
 
 .gradient-text-brand {
-  background: linear-gradient(to right, var(--neon-blue), var(--neon-purple), var(--neon-pink));
+  background: linear-gradient(
+    to right,
+    var(--neon-blue),
+    var(--neon-purple),
+    var(--neon-pink)
+  );
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
@@ -66,7 +76,6 @@ body {
 
 /* ================= CONTAINERS ================= */
 
-/* Replaces old .simple-login-wrapper */
 .page-container {
   display: flex;
   flex-direction: column;
@@ -81,15 +90,16 @@ body {
 .brand-header {
   text-align: center;
   margin-bottom: 2.5rem;
-  animation: fadeInDown 0.8s ease-out;
+  animation: fadeInDown 0.9s var(--ease-smooth);
 }
 
 .brand-title {
   font-size: 3.5rem;
   letter-spacing: -0.05em;
-  margin: 0;
   line-height: 1.1;
-  text-shadow: 0 0 40px rgba(168, 85, 247, 0.3);
+  text-shadow:
+    0 0 40px rgba(168, 85, 247, 0.35),
+    0 0 80px rgba(59, 130, 246, 0.15);
 }
 
 .brand-subtitle {
@@ -101,24 +111,31 @@ body {
 
 /* ================= CARDS ================= */
 
-/* Replaces old .simple-card / .glass-panel */
 .glass-card {
   width: 100%;
   max-width: 420px;
-  padding: 2.5rem;
+  padding: 2.6rem;
 
-  background: var(--glass-bg);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  background:
+    linear-gradient(
+      to bottom right,
+      rgba(255, 255, 255, 0.08),
+      var(--glass-bg)
+    );
 
+  backdrop-filter: blur(28px) saturate(180%);
+  -webkit-backdrop-filter: blur(28px) saturate(180%);
+
+  border-radius: 28px;
   border: 1px solid var(--glass-border);
-  border-top: 1px solid var(--glass-highlight);
-  border-radius: 24px;
 
-  box-shadow: var(--glass-shadow),
-    0 0 0 1px rgba(255, 255, 255, 0.02) inset;
+  box-shadow: var(--glass-shadow);
+  animation: fadeInUp 0.9s var(--ease-smooth) backwards;
+  transition: transform 0.35s var(--ease-smooth);
+}
 
-  animation: fadeInUp 0.8s ease-out 0.2s backwards;
+.glass-card:hover {
+  transform: translateY(-4px) scale(1.01);
 }
 
 /* ================= FORMS ================= */
@@ -138,7 +155,6 @@ body {
 
 .input-wrapper {
   position: relative;
-  transition: transform 0.2s ease;
 }
 
 .input-icon-left {
@@ -161,17 +177,19 @@ body {
   padding: 1rem 1rem 1rem 3rem;
   background: var(--input-bg);
   border: 1px solid var(--input-border);
-  border-radius: 12px;
+  border-radius: 14px;
   color: var(--text-primary);
   font-size: 1rem;
-  transition: all 0.3s ease;
+  transition: all 0.35s var(--ease-smooth);
   outline: none;
 }
 
 .auth-input:focus {
   border-color: var(--neon-blue);
-  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15);
-  background: rgba(0, 0, 0, 0.5);
+  box-shadow:
+    0 0 0 4px rgba(59, 130, 246, 0.2),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+  background: rgba(0, 0, 0, 0.55);
 }
 
 /* ================= BUTTONS ================= */
@@ -180,26 +198,43 @@ body {
   width: 100%;
   padding: 1rem;
   border: none;
-  border-radius: 12px;
-  background: linear-gradient(135deg, var(--neon-blue) 0%, var(--neon-purple) 100%);
+  border-radius: 14px;
+  background: linear-gradient(
+    135deg,
+    var(--neon-blue),
+    var(--neon-purple)
+  );
   color: white;
   font-weight: 600;
   font-size: 1rem;
   cursor: pointer;
-  transition: all 0.3s ease;
   position: relative;
   overflow: hidden;
-  box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
+  transition: all 0.35s var(--ease-smooth);
+  box-shadow:
+    0 10px 30px rgba(59, 130, 246, 0.45);
+}
+
+.btn-primary-gradient::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    circle at 30% 30%,
+    rgba(255, 255, 255, 0.35),
+    transparent 60%
+  );
+  opacity: 0;
+  transition: opacity 0.3s ease;
 }
 
 .btn-primary-gradient:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(168, 85, 247, 0.5);
-  filter: brightness(1.1);
+  transform: translateY(-3px);
+  box-shadow: 0 18px 45px rgba(168, 85, 247, 0.6);
 }
 
-.btn-primary-gradient:active {
-  transform: translateY(0);
+.btn-primary-gradient:hover::after {
+  opacity: 1;
 }
 
 .btn-google-outline {
@@ -209,19 +244,18 @@ body {
   justify-content: center;
   gap: 0.75rem;
   padding: 1rem;
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(255, 255, 255, 0.06);
   border: 1px solid var(--glass-border);
-  border-radius: 12px;
+  border-radius: 14px;
   color: white;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.3s var(--ease-smooth);
 }
 
 .btn-google-outline:hover {
-  background: rgba(255, 255, 255, 0.1);
-  border-color: rgba(255, 255, 255, 0.2);
-  transform: translateY(-1px);
+  background: rgba(255, 255, 255, 0.12);
+  transform: translateY(-2px);
 }
 
 /* ================= OTHER ================= */
@@ -236,29 +270,32 @@ body {
 .divider-line {
   flex: 1;
   height: 1px;
-  background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.1), transparent);
+  background: linear-gradient(
+    to right,
+    transparent,
+    rgba(255, 255, 255, 0.15),
+    transparent
+  );
 }
 
 .divider-text {
   padding: 0 1rem;
   font-size: 0.8rem;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
 }
 
 .link-switch-wrapper {
   margin-top: 2rem;
   text-align: center;
   color: var(--text-secondary);
-  font-size: 0.95rem;
 }
 
 .link-highlight {
   color: var(--neon-blue);
   text-decoration: none;
   font-weight: 500;
-  margin-left: 0.3rem;
-  transition: color 0.2s;
+  transition: color 0.25s ease;
 }
 
 .link-highlight:hover {
@@ -268,41 +305,27 @@ body {
 /* ================= ANIMATIONS ================= */
 
 @keyframes fadeInDown {
-  from {
-    opacity: 0;
-    transform: translateY(-20px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(-25px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(25px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
-/* ================= UTILS FOR ERROR ================= */
+/* ================= ERROR ================= */
+
 .error-box {
-  background: rgba(239, 68, 68, 0.1);
-  border: 1px solid rgba(239, 68, 68, 0.3);
-  color: #fca5a5;
+  background: rgba(239, 68, 68, 0.12);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  color: #fecaca;
   padding: 0.75rem;
-  border-radius: 8px;
+  border-radius: 10px;
   margin-bottom: 1rem;
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  font-size: 0.9rem;
 }
 
 .error-dot {
@@ -310,5 +333,5 @@ body {
   height: 6px;
   background: #ef4444;
   border-radius: 50%;
-  box-shadow: 0 0 8px #ef4444;
+  box-shadow: 0 0 10px #ef4444;
 }
