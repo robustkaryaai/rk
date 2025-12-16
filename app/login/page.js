@@ -26,20 +26,14 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="login-wrapper">
-      <div className="brand-container">
-        <div className="brand-logo">RK</div>
-        <h1 className="brand-title">Only app for the only RK AI</h1>
-        <p className="brand-subtitle">
-          View chat history and manage AI files in one premium workspace.
-        </p>
+    <div className="simple-login-wrapper">
+      <div className="simple-brand-header">
+        <h1 className="simple-brand-title">RK AI</h1>
+        <p className="simple-brand-subtitle">Login to your account</p>
       </div>
 
-      <div className="card-container-wrapper">
-        <div className="glass-panel">
-          <SignInForm />
-        </div>
-        <p className="copyright-text">&copy; 2025 RK Innovators</p>
+      <div className="simple-card">
+        <SignInForm />
       </div>
     </div>
   );

@@ -94,24 +94,17 @@ body.dark {
 }
 
 /* Premium Animated Background - Light Mode */
+/* Premium Animated Background - DISABLED FOR MOBILE STABILITY */
 body::before {
-  content: '';
+  display: none;
+  /*   content: '';
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  min-height: 100vh;
-  min-height: 100dvh;
-  background:
-    radial-gradient(circle at 50% 10%, rgba(138, 92, 246, 0.08) 0%, transparent 25%),
-    radial-gradient(circle at 15% 50%, rgba(99, 102, 241, 0.06) 0%, transparent 30%),
-    radial-gradient(circle at 85% 30%, rgba(168, 85, 247, 0.06) 0%, transparent 30%);
-  z-index: -2;
-  pointer-events: none;
-  filter: blur(80px);
-  animation: bg-shift 15s ease-in-out infinite alternate;
-  background-size: 200% 200%;
+  ... (disabled)
+*/
 }
 
 /* Dark Mode Override */
@@ -244,7 +237,62 @@ body.dark input:focus {
 
 /* ========================================= Login Page Specific Styles (Vanilla CSS) ========================================= */
 /* Layout Containers */
+/* Simple Login Styles (Mobile Robust) */
+.simple-login-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 1.5rem;
+  background-color: var(--bg-light);
+  z-index: 1000;
+  position: relative;
+}
+
+body.dark .simple-login-wrapper {
+  background-color: var(--bg-dark);
+}
+
+.simple-brand-header {
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+.simple-brand-title {
+  font-size: 2.5rem;
+  font-weight: 800;
+  margin-bottom: 0.5rem;
+  background: linear-gradient(to right, #6366f1, #a855f7);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.simple-brand-subtitle {
+  color: var(--text-secondary);
+}
+
+.simple-card {
+  width: 100%;
+  max-width: 400px;
+  background: var(--bg-light);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 1rem;
+  padding: 1.5rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+body.dark .simple-card {
+  background: #1e1e24;
+  /* Solid dark color, no glass */
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Legacy Overrides */
 .login-wrapper {
+  display: none !important;
+  /* Hide old wrapper if it exists */
   position: relative;
   z-index: 9999;
   /* Force high z-index */

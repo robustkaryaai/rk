@@ -23,25 +23,18 @@ export default function SignUpPage() {
     }
 
     return (
-        <div className="login-wrapper">
-            <div className="brand-container">
-                <div className="brand-logo">RK</div>
-                <h1 className="brand-title">
-                    Join the only app made for the only RK AI
+        <div className="simple-login-wrapper">
+            <div className="simple-brand-header">
+                <h1 className="simple-brand-title">
+                    Join RK AI
                 </h1>
-                <p className="brand-subtitle">
-                    Create your account to get started with RK AI
+                <p className="simple-brand-subtitle">
+                    Create your account to get started
                 </p>
             </div>
 
-            <div className="card-container-wrapper">
-                <div className="glass-panel">
-                    <SignUpForm />
-                </div>
-
-                <p className="copyright-text">
-                    &copy; 2025 RK Innovators
-                </p>
+            <div className="simple-card">
+                <SignUpForm />
             </div>
         </div>
     );
