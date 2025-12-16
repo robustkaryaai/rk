@@ -191,7 +191,8 @@ body::after {
 }
 
 /* --- Buttons --- */
-.btn {
+.btn,
+.btn-ghost {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -201,6 +202,8 @@ body::after {
   cursor: pointer;
   border: none;
   transition: all 0.2s;
+  background: transparent;
+  color: white;
 }
 
 .btn-primary {
@@ -212,6 +215,17 @@ body::after {
 .btn-primary:active {
   transform: scale(0.98);
 }
+
+.btn-ghost {
+  background: transparent;
+  border: 1px solid var(--glass-border);
+}
+
+.btn-ghost:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
 
 .btn-icon {
   background: transparent;
@@ -334,7 +348,7 @@ input:checked+.slider:before {
   color: white;
 }
 
-/* --- Auth Pages --- */
+/* --- Auth & Forms (Expanded for Legacy Compatibility) --- */
 .auth-header {
   margin-bottom: 32px;
   text-align: center;
@@ -352,11 +366,24 @@ input:checked+.slider:before {
   color: var(--text-muted);
 }
 
-.form-group {
+.form-group,
+.auth-form-group {
   margin-bottom: 16px;
 }
 
-.form-input {
+.form-label,
+.auth-label {
+  display: block;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+  margin-left: 4px;
+}
+
+/* Unified Input Styles */
+.form-input,
+.auth-input,
+.ai-command-input {
   width: 100%;
   padding: 12px;
   background: rgba(0, 0, 0, 0.2);
@@ -364,14 +391,37 @@ input:checked+.slider:before {
   border-radius: 12px;
   color: white;
   transition: all 0.2s;
+  font-family: inherit;
+  font-size: 1rem;
 }
 
-.form-input:focus {
+.form-input:focus,
+.auth-input:focus,
+.ai-command-input:focus {
   border-color: var(--accent-primary);
   outline: none;
   background: rgba(0, 0, 0, 0.3);
 }
 
+.input-wrapper {
+  position: relative;
+}
+
+.input-icon-left {
+  position: absolute;
+  top: 50%;
+  left: 12px;
+  transform: translateY(-50%);
+  color: var(--text-dim);
+  pointer-events: none;
+}
+
+/* Adjust padding when icon is present */
+.input-wrapper .auth-input {
+  padding-left: 40px;
+}
+
+/* Buttons Legacy */
 .btn-primary-gradient {
   background: linear-gradient(135deg, #3b82f6, #8b5cf6);
   color: white;
@@ -381,6 +431,11 @@ input:checked+.slider:before {
   font-weight: 600;
   border: none;
   cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.btn-primary-gradient:active {
+  transform: scale(0.98);
 }
 
 .btn-google-outline {
@@ -396,4 +451,100 @@ input:checked+.slider:before {
   color: white;
   font-weight: 500;
   cursor: pointer;
+}
+
+/* Divider Legacy */
+.divider-wrapper {
+  display: flex;
+  align-items: center;
+  margin: 24px 0;
+  opacity: 0.6;
+}
+
+.divider-line {
+  flex: 1;
+  height: 1px;
+  background: var(--glass-border);
+}
+
+.divider-text {
+  margin: 0 12px;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+/* Links */
+.link-switch-wrapper {
+  text-align: center;
+  margin-top: 24px;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+.link-highlight {
+  color: var(--accent-primary);
+  text-decoration: none;
+  font-weight: 600;
+  margin-left: 4px;
+}
+
+/* Plans Container */
+.plans-container {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* Spinner */
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid rgba(255, 255, 255, 0.1);
+  border-left-color: var(--accent-primary);
+  border-radius: 50%;
+  margin: 40px auto;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Avatar Upload Legacy */
+.avatar-section {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 24px;
+}
+
+.avatar-upload-circle {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  border: 2px dashed var(--glass-border);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  background: rgba(0, 0, 0, 0.2);
+  transition: border-color 0.2s;
+}
+
+.avatar-upload-circle:hover {
+  border-color: var(--accent-primary);
+}
+
+.avatar-icon {
+  font-size: 1.5rem;
+  margin-bottom: 4px;
+  color: var(--text-muted);
+}
+
+.avatar-label-text {
+  font-size: 0.7rem;
+  color: var(--text-muted);
 }
