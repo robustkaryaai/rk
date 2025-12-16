@@ -4,9 +4,9 @@ import { useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { AiOutlineGoogle, AiOutlineEye, AiOutlineEyeInvisible, AiOutlineArrowRight } from 'react-icons/ai';
 
-export default function AuthForms() {
+export default function AuthForms({ initialLoginState = true }) {
     const { login, signup, loginWithGoogle } = useAuth();
-    const [isLogin, setIsLogin] = useState(true);
+    const [isLogin, setIsLogin] = useState(initialLoginState);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [showPassword, setShowPassword] = useState(false);
