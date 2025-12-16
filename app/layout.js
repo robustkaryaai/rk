@@ -17,18 +17,23 @@ export default function RootLayout({ children }) {
                         __html: `
                             (function() {
                                 try {
+                                    var html = document.documentElement;
+                                    var body = document.body;
+                                    window.__setTheme = function(isDark) {
+                                        if (isDark) {
+                                            html.classList.add('dark');
+                                            body.classList.add('dark');
+                                            localStorage.setItem('theme','dark');
+                                        } else {
+                                            html.classList.remove('dark');
+                                            body.classList.remove('dark');
+                                            localStorage.setItem('theme','light');
+                                        }
+                                    };
                                     var theme = localStorage.getItem('theme');
                                     var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
                                     var shouldDark = theme === 'dark' || (!theme && prefersDark);
-                                    var html = document.documentElement;
-                                    var body = document.body;
-                                    if (shouldDark) {
-                                        html.classList.add('dark');
-                                        body.classList.add('dark');
-                                    } else {
-                                        html.classList.remove('dark');
-                                        body.classList.remove('dark');
-                                    }
+                                    window.__setTheme(shouldDark);
                                 } catch (e) {}
                             })();
                         `,
