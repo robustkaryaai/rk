@@ -346,8 +346,12 @@ export function AuthProvider({ children }) {
                 localStorage.setItem('rk_oauth_token', oauthToken);
             } catch (e) { }
 
-            const callbackUrl = 'https://rk-alpha-nine.vercel.app/auth/callback';
-            const failureUrl = 'https://rk-alpha-nine.vercel.app/login?error=oauth_failed';
+            const origin =
+                (typeof window !== 'undefined' && window.location && window.location.origin) ||
+                process.env.NEXT_PUBLIC_APP_URL ||
+                'https://rk-alpha-nine.vercel.app';
+            const callbackUrl = `${origin.replace(/\/$/, '')}/auth/callback`;
+            const failureUrl = `${origin.replace(/\/$/, '')}/login?error=oauth_failed`;
             const scopes = ['email', 'profile', 'openid'];
 
             // Check if native platform
