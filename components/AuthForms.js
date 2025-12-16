@@ -30,7 +30,7 @@ export function SignInForm() {
                 const e = localStorage.getItem('rk_last_oauth_error') || '';
                 setLastUrl(u);
                 setOauthError(e);
-            } catch (_) {}
+            } catch (_) { }
         };
         window.addEventListener('focus', onFocus);
         return () => window.removeEventListener('focus', onFocus);
@@ -50,6 +50,7 @@ export function SignInForm() {
     };
 
     const handleGoogle = async () => {
+        if (typeof window !== 'undefined' && window.alert) alert('Google Button Clicked');
         setGoogleError('');
         setGoogleLoading(true);
         try {
@@ -57,7 +58,7 @@ export function SignInForm() {
         } catch (err) {
             const msg = err?.message || 'Google sign-in failed';
             setGoogleError(msg);
-            try { localStorage.setItem('rk_last_oauth_error', msg); } catch (_) {}
+            try { localStorage.setItem('rk_last_oauth_error', msg); } catch (_) { }
         } finally {
             setGoogleLoading(false);
             try {
@@ -65,7 +66,7 @@ export function SignInForm() {
                 const e = localStorage.getItem('rk_last_oauth_error') || '';
                 setLastUrl(u);
                 setOauthError(e);
-            } catch (_) {}
+            } catch (_) { }
         }
     };
 
@@ -347,7 +348,7 @@ export function SignUpForm() {
                     } catch (err) {
                         const msg = err?.message || 'Google sign-in failed';
                         setGoogleError(msg);
-                        try { localStorage.setItem('rk_last_oauth_error', msg); } catch (_) {}
+                        try { localStorage.setItem('rk_last_oauth_error', msg); } catch (_) { }
                     } finally {
                         setGoogleLoading(false);
                     }

@@ -27,6 +27,7 @@ export function AuthProvider({ children }) {
             App.addListener('appUrlOpen', async (event) => {
                 try {
                     console.log('FULL URL:', event.url);
+                    if (typeof window !== 'undefined' && window.alert) alert('Deep Link Received: ' + event.url);
                     try { localStorage.setItem('rk_last_oauth_url', event.url || ''); } catch (_) { }
 
                     if (!event.url) return;
@@ -300,6 +301,9 @@ export function AuthProvider({ children }) {
             // Import database functions
             const { databases, DATABASE_ID, COLLECTIONS } = await import('@/lib/appwrite');
 
+            // ALERT: Debug starting
+            if (typeof window !== 'undefined' && window.alert) alert('Starting Google Login Process');
+
             // Generate unique token and verify it doesn't exist
             let oauthToken;
             let isUnique = false;
@@ -356,7 +360,7 @@ export function AuthProvider({ children }) {
             const failureUrl = `${origin.replace(/\/$/, '')}/login?error=oauth_failed`;
             const scopes = ['email', 'profile', 'openid'];
             if (!APPWRITE_PROJECT_ID || !APPWRITE_ENDPOINT) {
-                try { localStorage.setItem('rk_last_oauth_error', 'Missing Appwrite configuration'); } catch (_) {}
+                try { localStorage.setItem('rk_last_oauth_error', 'Missing Appwrite configuration'); } catch (_) { }
                 // Continue with best-effort URL; endpoint may default from lib/appwrite
             }
 
@@ -375,13 +379,15 @@ export function AuthProvider({ children }) {
                 scopes.forEach(scope => targetUrl.searchParams.append('scopes[]', scope));
 
                 const finalUrl = targetUrl.toString();
-                try { localStorage.setItem('rk_last_oauth_url', finalUrl); } catch (_) {}
+                if (typeof window !== 'undefined' && window.alert) alert('Opening Browser: ' + finalUrl);
+                try { localStorage.setItem('rk_last_oauth_url', finalUrl); } catch (_) { }
                 try {
                     await Browser.open({ url: finalUrl });
                 } catch (e) {
+                    if (typeof window !== 'undefined' && window.alert) alert('Browser Open Error: ' + e.message);
                     try {
                         window.location.href = finalUrl;
-                    } catch (_) {}
+                    } catch (_) { }
                 }
             } else {
                 // Web: Use SDK method
@@ -395,7 +401,8 @@ export function AuthProvider({ children }) {
             }
         } catch (error) {
             console.error('[Google Login] Google login failed:', error);
-            try { localStorage.setItem('rk_last_oauth_error', error?.message || 'Google login failed'); } catch (_) {}
+            if (typeof window !== 'undefined' && window.alert) alert('Google Login Internal Error: ' + error.message);
+            try { localStorage.setItem('rk_last_oauth_error', error?.message || 'Google login failed'); } catch (_) { }
             throw error;
         }
     };
