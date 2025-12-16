@@ -85,17 +85,12 @@ export function SignInForm() {
             <button
                 type="button"
                 onClick={handleGoogle}
-                className={`btn btn-outline ${googleLoading ? 'btn-disabled' : ''}`}
-                disabled={loading || googleLoading}
+                className={`btn btn-outline`}
             >
-                {googleLoading ? (
-                    <AiOutlineLoading3Quarters className="animate-spin icon-lg" />
-                ) : (
-                    <>
+                <>
                         <AiOutlineGoogle className="icon-lg" />
                         <span>Continue with Google</span>
                     </>
-                )}
             </button>
 
             <div style={{ marginTop: '32px', textAlign: 'center' }}>
