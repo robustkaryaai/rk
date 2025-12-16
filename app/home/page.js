@@ -90,8 +90,6 @@ export default function HomePage() {
             <div className="page-container">
                 {/* Device Header */}
                 {device && (
-                    {/* Device Header */ }
-                {device && (
                     <div className="hero-section flex items-center justify-between mb-8 p-6 relative overflow-hidden">
                         {/* Glass Background Effect for Header */}
                         <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-purple-500/10 backdrop-blur-3xl rounded-3xl -z-10"></div>
