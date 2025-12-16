@@ -301,7 +301,7 @@ body.dark input:focus {
   font-size: 2.25rem;
   /* text-4xl */
   font-weight: 700;
-  color: #ffffff;
+  color: var(--text-light);
   margin-bottom: 1rem;
   letter-spacing: -0.025em;
   text-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
@@ -311,12 +311,21 @@ body.dark input:focus {
   font-size: 1.25rem;
   /* text-xl */
   font-weight: 500;
-  color: #cbd5e1;
+  color: var(--text-light);
   /* text-slate-300 */
   max-width: 32rem;
   margin-left: auto;
   margin-right: auto;
   line-height: 1.625;
+}
+
+body.dark .brand-title {
+  color: var(--text-dark);
+}
+
+body.dark .brand-subtitle {
+  color: var(--text-dark);
+  opacity: 0.85;
 }
 
 .copyright-text {
