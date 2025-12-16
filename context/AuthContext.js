@@ -352,21 +352,32 @@ export function AuthProvider({ children }) {
                 localStorage.setItem('rk_oauth_token', oauthToken);
             } catch (e) { }
 
-            const origin =
-                (typeof window !== 'undefined' && window.location && window.location.origin) ||
-                process.env.NEXT_PUBLIC_APP_URL ||
-                'https://rk-alpha-nine.vercel.app';
-            const callbackUrl = `${origin.replace(/\/$/, '')}/auth/callback`;
-            const failureUrl = `${origin.replace(/\/$/, '')}/login?error=oauth_failed`;
-            const scopes = ['email', 'profile', 'openid'];
-            if (!APPWRITE_PROJECT_ID || !APPWRITE_ENDPOINT) {
-                try { localStorage.setItem('rk_last_oauth_error', 'Missing Appwrite configuration'); } catch (_) { }
-                // Continue with best-effort URL; endpoint may default from lib/appwrite
-            }
-
             const isNative =
                 (typeof window !== 'undefined' && window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()) ||
                 (typeof Capacitor !== 'undefined' && Capacitor.isNativePlatform && Capacitor.isNativePlatform());
+
+            let origin;
+            if (isNative) {
+                // Native: Force production URL
+                origin = process.env.NEXT_PUBLIC_APP_URL || 'https://rk-alpha-nine.vercel.app';
+            } else {
+                // Web: Use current location (supports localhost)
+                origin =
+                    (typeof window !== 'undefined' && window.location && window.location.origin) ||
+                    process.env.NEXT_PUBLIC_APP_URL ||
+                    'https://rk-alpha-nine.vercel.app';
+            }
+            origin = origin.replace(/\/$/, '');
+
+            const callbackUrl = `${origin}/auth/callback`;
+            const failureUrl = `${origin}/login?error=oauth_failed`;
+
+            if (typeof window !== 'undefined' && window.alert) alert('Generated Callback URL: ' + callbackUrl);
+
+            const scopes = ['email', 'profile', 'openid'];
+            if (!APPWRITE_PROJECT_ID || !APPWRITE_ENDPOINT) {
+                try { localStorage.setItem('rk_last_oauth_error', 'Missing Appwrite configuration'); } catch (_) { }
+            }
 
             if (isNative) {
                 // Construct OAuth URL manually
