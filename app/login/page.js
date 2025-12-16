@@ -26,13 +26,13 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="simple-login-wrapper">
-      <div className="simple-brand-header">
-        <h1 className="simple-brand-title">RK AI</h1>
-        <p className="simple-brand-subtitle">Login to your account</p>
+    <div className="page-container">
+      <div className="brand-header">
+        <h1 className="brand-title gradient-text-brand">RK AI</h1>
+        <p className="brand-subtitle">Authentication Portal</p>
       </div>
 
-      <div className="simple-card">
+      <div className="glass-card">
         <SignInForm />
       </div>
     </div>

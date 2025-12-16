@@ -23,17 +23,17 @@ export default function SignUpPage() {
     }
 
     return (
-        <div className="simple-login-wrapper">
-            <div className="simple-brand-header">
-                <h1 className="simple-brand-title">
+        <div className="page-container">
+            <div className="brand-header">
+                <h1 className="brand-title gradient-text-brand">
                     Join RK AI
                 </h1>
-                <p className="simple-brand-subtitle">
-                    Create your account to get started
+                <p className="brand-subtitle">
+                    Create your workspace
                 </p>
             </div>
 
-            <div className="simple-card">
+            <div className="glass-card">
                 <SignUpForm />
             </div>
         </div>
