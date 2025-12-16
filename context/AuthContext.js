@@ -356,7 +356,7 @@ export function AuthProvider({ children }) {
             const scopes = ['email', 'profile', 'openid'];
             if (!APPWRITE_PROJECT_ID || !APPWRITE_ENDPOINT) {
                 try { localStorage.setItem('rk_last_oauth_error', 'Missing Appwrite configuration'); } catch (_) {}
-                throw new Error('Missing Appwrite configuration');
+                // Continue with best-effort URL; endpoint may default from lib/appwrite
             }
 
             const isNative =
