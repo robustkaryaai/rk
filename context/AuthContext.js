@@ -302,7 +302,14 @@ export function AuthProvider({ children }) {
             const { databases, DATABASE_ID, COLLECTIONS } = await import('@/lib/appwrite');
 
             // ALERT: Debug starting
-            if (typeof window !== 'undefined' && window.alert) alert('Starting Google Login Process');
+            if (typeof window !== 'undefined' && window.alert) {
+                alert(`Starting Google Login... \nEndpoint: ${APPWRITE_ENDPOINT} \nProject: ${APPWRITE_PROJECT_ID}`);
+            }
+
+            if (!APPWRITE_PROJECT_ID || !APPWRITE_ENDPOINT) {
+                alert("CRITICAL ERROR: Missing Appwrite Env Vars!");
+                throw new Error("Missing Appwrite Configuration");
+            }
 
             // Generate unique token and verify it doesn't exist
             let oauthToken;
@@ -390,12 +397,15 @@ export function AuthProvider({ children }) {
                 scopes.forEach(scope => targetUrl.searchParams.append('scopes[]', scope));
 
                 const finalUrl = targetUrl.toString();
-                if (typeof window !== 'undefined' && window.alert) alert('Opening Browser: ' + finalUrl);
+                if (typeof window !== 'undefined' && window.alert) alert('Attempting to open browser with URL: ' + finalUrl);
+
                 try { localStorage.setItem('rk_last_oauth_url', finalUrl); } catch (_) { }
+
                 try {
                     await Browser.open({ url: finalUrl });
+                    if (typeof window !== 'undefined' && window.alert) alert('Browser.open() called successfully');
                 } catch (e) {
-                    if (typeof window !== 'undefined' && window.alert) alert('Browser Open Error: ' + e.message);
+                    if (typeof window !== 'undefined' && window.alert) alert('Browser Open Error: ' + e.message + ' - Trying fallback');
                     try {
                         window.location.href = finalUrl;
                     } catch (_) { }
@@ -412,7 +422,7 @@ export function AuthProvider({ children }) {
             }
         } catch (error) {
             console.error('[Google Login] Google login failed:', error);
-            if (typeof window !== 'undefined' && window.alert) alert('Google Login Internal Error: ' + error.message);
+            if (typeof window !== 'undefined' && window.alert) alert('Google Login CRITICAL FAILURE: ' + error.message + '\nStack: ' + error.stack);
             try { localStorage.setItem('rk_last_oauth_error', error?.message || 'Google login failed'); } catch (_) { }
             throw error;
         }
