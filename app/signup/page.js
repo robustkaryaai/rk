@@ -25,8 +25,8 @@ export default function SignUpPage() {
     return (
         <div className="page-container">
             <div className="auth-header">
-                <h1 className="brand-title">Create account</h1>
-                <p className="brand-subtitle">Join RK AI today</p>
+                <h1 className="brand-title">RK</h1>
+                <p className="brand-subtitle">Join the Future</p>
             </div>
 
             <AuthForms initialLoginState={false} />

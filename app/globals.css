@@ -482,3 +482,105 @@ input:checked+.slider {
 input:checked+.slider:before {
   transform: translateX(20px);
 }
+
+/* ================= LIQUID GLASS BACKGROUND ================= */
+
+.liquid-bg-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  z-index: -1;
+  background-color: var(--bg-primary);
+  /* Base layer */
+}
+
+.liquid-blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  opacity: 0.6;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+  animation-direction: alternate;
+}
+
+.blob-1 {
+  top: -10%;
+  left: -10%;
+  width: 50vw;
+  height: 50vw;
+  background: #4f46e5;
+  animation: float-1 10s infinite;
+}
+
+.blob-2 {
+  bottom: -10%;
+  right: -10%;
+  width: 60vw;
+  height: 60vw;
+  background: #ec4899;
+  animation: float-2 12s infinite;
+}
+
+.blob-3 {
+  top: 40%;
+  left: 30%;
+  width: 40vw;
+  height: 40vw;
+  background: #06b6d4;
+  animation: float-3 15s infinite;
+}
+
+@keyframes float-1 {
+  0% {
+    transform: translateY(0) scale(1);
+    background: #4f46e5;
+  }
+
+  50% {
+    transform: translateY(20vh) scale(1.1);
+    background: #818cf8;
+  }
+
+  100% {
+    transform: translateY(0) scale(1);
+    background: #4f46e5;
+  }
+}
+
+@keyframes float-2 {
+  0% {
+    transform: translateY(0) scale(1);
+    background: #ec4899;
+  }
+
+  50% {
+    transform: translateY(-15vh) scale(1.2);
+    background: #f472b6;
+  }
+
+  100% {
+    transform: translateY(0) scale(1);
+    background: #ec4899;
+  }
+}
+
+@keyframes float-3 {
+  0% {
+    transform: translateY(0) scale(1);
+    background: #06b6d4;
+  }
+
+  50% {
+    transform: translateY(15vh) scale(0.9);
+    background: #22d3ee;
+  }
+
+  100% {
+    transform: translateY(0) scale(1);
+    background: #06b6d4;
+  }
+}

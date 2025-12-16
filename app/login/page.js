@@ -26,8 +26,8 @@ export default function LoginPage() {
   return (
     <div className="page-container">
       <div className="auth-header">
-        <h1 className="brand-title">Welcome back</h1>
-        <p className="brand-subtitle">Sign in to your account</p>
+        <h1 className="brand-title">RK</h1>
+        <p className="brand-subtitle">Experience the Future</p>
       </div>
 
       <AuthForms initialLoginState={true} />
