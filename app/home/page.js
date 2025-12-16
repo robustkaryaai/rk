@@ -90,55 +90,83 @@ export default function HomePage() {
             <div className="page-container">
                 {/* Device Header */}
                 {device && (
-                    <div className="hero-section flex items-end justify-between">
-                        <div>
-                            <div className="flex items-center gap-2 mb-2">
-                                <div className={`status-dot ${bleConnected ? 'online' : 'offline'}`}></div>
-                                <span className="text-sm text-gray-500 capitalize">{bleConnected ? 'online' : 'offline'}</span>
+                    {/* Device Header */ }
+                {device && (
+                    <div className="hero-section flex items-center justify-between mb-8 p-6 relative overflow-hidden">
+                        {/* Glass Background Effect for Header */}
+                        <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-purple-500/10 backdrop-blur-3xl rounded-3xl -z-10"></div>
+
+                        <div className="flex-1">
+                            <h1 className="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-white to-gray-300 md:text-5xl tracking-tight mb-2">
+                                {device.name}
+                            </h1>
+                            <div className="flex items-center gap-3">
+                                <span className="text-sm font-medium text-gray-400 tracking-wider uppercase">RK Assistant</span>
+                                <div className="h-1 w-1 bg-gray-600 rounded-full"></div>
+                                <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-black/20 border border-white/5 backdrop-blur-md">
+                                    <div className={`w-2 h-2 rounded-full ${bleConnected ? 'bg-green-400 shadow-[0_0_8px_rgba(74,222,128,0.5)]' : 'bg-gray-500'}`}></div>
+                                    <span className={`text-xs font-semibold ${bleConnected ? 'text-green-400' : 'text-gray-500'} uppercase tracking-wide`}>
+                                        {bleConnected ? 'Online' : 'Offline'}
+                                    </span>
+                                </div>
                             </div>
-                            <h1 className="hero-title">{device.name}</h1>
-                            <p className="hero-subtitle">RK Assistant</p>
                         </div>
-                        <div className="flex items-center justify-center w-16 h-16 bg-gray-100 rounded-full border border-gray-200">
-                            {bleConnected ? (
-                                <AiFillSmile size={32} className="text-green-500" />
-                            ) : (
-                                <AiOutlineMeh size={32} className="text-gray-400" />
-                            )}
+
+                        {/* Animated Status Icon */}
+                        <div className="relative group">
+                            <div className={`absolute inset-0 bg-gradient-to-br ${bleConnected ? 'from-green-500/20 to-emerald-500/20' : 'from-gray-500/20 to-gray-600/20'} rounded-full blur-xl group-hover:blur-2xl transition-all duration-500`}></div>
+                            <div className={`relative w-20 h-20 flex items-center justify-center rounded-2xl border border-white/10 ${bleConnected ? 'bg-gradient-to-br from-green-500/10 to-emerald-900/10' : 'bg-gray-800/40'} backdrop-blur-md shadow-2xl transition-all duration-500 group-hover:scale-105`}>
+                                {bleConnected ? (
+                                    <AiFillSmile size={42} className="text-green-400 drop-shadow-[0_0_10px_rgba(74,222,128,0.3)]" />
+                                ) : (
+                                    <AiOutlineMeh size={42} className="text-gray-500" />
+                                )}
+                            </div>
                         </div>
                     </div>
                 )}
 
                 {/* Activity Feed */}
                 <section>
-                    <div className="flex items-center gap-2 mb-4">
-                        <AiOutlineHistory className="icon-lg text-gray-700" />
-                        <h2 className="section-title mb-0">Activity History</h2>
+                    <div className="flex items-center gap-3 mb-6 px-2">
+                        <div className="p-2 bg-blue-500/10 rounded-lg border border-blue-500/20 text-blue-400">
+                            <AiOutlineHistory size={20} />
+                        </div>
+                        <h2 className="text-xl font-bold text-white tracking-wide">Activity History</h2>
                     </div>
 
                     <div className="flex flex-col gap-4">
                         {chatHistory.length > 0 ? chatHistory.map((convo) => (
-                            <div key={convo.id} className="glass-card">
+                            <div key={convo.id} className="glass-card group hover:border-blue-500/30 transition-all duration-300">
                                 {/* User Message */}
-                                <div className="flex gap-3 mb-3">
+                                <div className="flex gap-4 mb-4">
                                     <div className="flex-1">
-                                        <div className="text-xs font-bold text-blue-400 mb-1">YOU</div>
-                                        <div className="text-sm text-gray-100 leading-relaxed font-medium">{convo.userMessage}</div>
+                                        <div className="flex items-center justify-between mb-2">
+                                            <span className="text-xs font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-400 uppercase tracking-wider">You</span>
+                                        </div>
+                                        <div className="p-4 bg-white/5 rounded-2xl rounded-tl-none border border-white/5 text-[15px] text-gray-100 leading-relaxed font-medium shadow-inner">
+                                            {convo.userMessage}
+                                        </div>
                                     </div>
                                 </div>
 
                                 {/* AI Response */}
                                 {convo.aiMessage && (
-                                    <div className="flex gap-3 mt-3 pt-3 border-t border-white/5">
+                                    <div className="flex gap-4">
                                         <div className="flex-1">
-                                            <div className="text-xs font-bold text-purple-400 mb-1">RK</div>
-                                            <div className="text-sm text-gray-300 leading-relaxed">{convo.aiMessage}</div>
+                                            <div className="flex items-center justify-between mb-2">
+                                                <span className="text-xs font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400 uppercase tracking-wider pl-1">RK Assistant</span>
+                                            </div>
+                                            <div className="p-4 bg-gradient-to-br from-purple-500/5 to-pink-500/5 rounded-2xl rounded-tr-none border border-white/5 text-[15px] text-gray-200 leading-relaxed shadow-inner">
+                                                {convo.aiMessage}
+                                            </div>
                                         </div>
                                     </div>
                                 )}
 
-                                <div className="mt-3 pt-3 border-t border-gray-100/10 flex gap-4 text-xs text-gray-400">
-                                    {convo.date && <span>{convo.date}</span>}
+                                {/* Footer */}
+                                <div className="mt-4 pt-3 flex items-center justify-end gap-3 text-[11px] font-medium text-gray-500 border-t border-white/5">
+                                    {convo.date && <span className="bg-white/5 px-2 py-1 rounded text-gray-400">{convo.date}</span>}
                                     {convo.time && <span>{convo.time}</span>}
                                 </div>
                             </div>
