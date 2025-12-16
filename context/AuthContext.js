@@ -24,23 +24,22 @@ export function AuthProvider({ children }) {
     const setupDeepLinkListener = async () => {
         try {
             // Listen for when app is opened via deep link (OAuth callback)
+            // Listen for when app is opened via deep link (OAuth callback)
             App.addListener('appUrlOpen', async (event) => {
                 try {
                     console.log('FULL URL:', event.url);
                     if (typeof window !== 'undefined' && window.alert) alert('Deep Link Received: ' + event.url);
-                    try { localStorage.setItem('rk_last_oauth_url', event.url || ''); } catch (_) { }
 
                     if (!event.url) return;
 
-                    // 1. Close browser (Native) - ensure it's closed for any deep link
+                    // 1. Close browser
                     try { await Browser.close(); } catch (e) { }
 
                     const incomingUrl = new URL(event.url);
 
-                    // 2. Handle Settings (Drive Connect) logic
+                    // ... (Settings logic omitted for brevity, keeping existing) ...
                     if (event.url.includes('settings')) {
-                        console.log('🔗 Settings Deep Link Detected');
-                        // Check if it's success or error
+                        // ... existing settings logic ...
                         const params = incomingUrl.searchParams;
                         if (params.get('google_connected') === 'true') {
                             router.push(`/settings?google_connected=true&t=${Date.now()}`);
@@ -51,119 +50,64 @@ export function AuthProvider({ children }) {
                     }
 
                     // 3. Handle Login (Callback) logic
-                    // If not callback, ignore
-                    if (!event.url.includes('callback')) {
-                        // console.log('Ignoring non-login URL:', event.url);
-                        return;
-                    }
+                    if (!event.url.includes('callback')) return;
 
-                    console.log('🔗 Login Deep Link Detected');
-
-                    // Try to get token from URL first, then from localStorage
+                    // Try to get token
                     let oauthToken = incomingUrl.searchParams.get('token');
-
                     if (!oauthToken) {
-                        try {
-                            oauthToken = localStorage.getItem('rk_oauth_token');
-                        } catch (e) {
-                            console.error('[Deep Link] Failed to get token from localStorage:', e);
-                        }
+                        try { oauthToken = localStorage.getItem('rk_oauth_token'); } catch (e) { }
                     }
 
                     if (!oauthToken) {
+                        alert('Error: No OAuth Token found in URL or Storage');
                         router.push('/login?error=no_oauth_token');
                         return;
                     }
 
+                    alert('Processing Token: ' + oauthToken.substring(0, 5) + '...');
 
-                    // Call server endpoint to get session credentials
+                    // Call server endpoint
                     try {
-                        console.log('[Deep Link] Calling server API with token:', oauthToken);
+                        const apiBaseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://rk-alpha-nine.vercel.app';
+                        const targetEndpoint = `${apiBaseUrl}/api/auth/create-app-session?token=${oauthToken}`;
 
-                        const apiBaseUrl = process.env.NEXT_PUBLIC_APP_URL || window.location.origin;
-                        const response = await fetch(
-                            `${apiBaseUrl}/api/auth/create-app-session?token=${oauthToken}`,
-                            { method: 'GET' }
-                        );
+                        alert('Fetching Session from: ' + targetEndpoint);
+
+                        const response = await fetch(targetEndpoint, { method: 'GET' });
 
                         if (!response.ok) {
-                            const errorData = await response.json();
-                            throw new Error(errorData.error || 'Server request failed');
+                            const errorText = await response.text();
+                            alert('Server Error (' + response.status + '): ' + errorText);
+                            throw new Error('Server returned ' + response.status);
                         }
 
                         const sessionData = await response.json();
-                        console.log('[Deep Link] Session data received:', sessionData);
+                        alert('Session Data Recvd: ' + JSON.stringify(sessionData));
 
                         const { userId, secret, route } = sessionData;
 
                         if (!userId || !secret) {
-                            router.push('/login?error=invalid_session_data');
+                            alert('Invalid Session Data: Missing userId or secret');
                             return;
                         }
 
-                        // Check if session already exists
-                        let sessionExists = false;
-                        try {
-                            const existingSession = await account.get();
-                            if (existingSession && existingSession.$id === userId) {
-                                sessionExists = true;
-                            }
-                        } catch (e) {
-                            console.log('[Deep Link] No existing session, will create one');
-                        }
-
-                        // Create session if it doesn't exist
-                        if (!sessionExists) {
-                            try {
-                                await account.createSession(userId, secret);
-                            } catch (createError) {
-                                console.error('[Deep Link] Create session failed:', createError);
-                                router.push('/login?error=session_creation_failed');
-                                return;
-                            }
-                        }
+                        // Create session
+                        await account.createSession(userId, secret);
+                        alert('Session Created! Verifying user...');
 
                         await checkUser();
-                        alert('✅ User verified!');
-
-                        // Sync user profile and tokens
-                        try {
-                            const user = await account.get();
-                            const currentSession = await account.getSession('current');
-                            console.log('[Deep Link] Syncing user and tokens...');
-                            await userAPI.syncUserToAppwrite(
-                                user,
-                                '',
-                                currentSession.providerAccessToken,
-                                currentSession.providerRefreshToken
-                            );
-                        } catch (syncError) {
-                            console.warn('[Deep Link] User sync warning:', syncError);
-                        }
-                        // Clean up: delete the OAuth session document and localStorage token
-                        try {
-                            await databases.deleteDocument(
-                                DATABASE_ID,
-                                COLLECTIONS.OAUTH_SESSIONS,
-                                oauthToken
-                            );
-                            localStorage.removeItem('rk_oauth_token');
-                            console.log('[Deep Link] Cleaned up OAuth session');
-                        } catch (cleanupError) {
-                            console.error('[Deep Link] Cleanup error:', cleanupError);
-                        }
+                        alert('User Verified! Redirecting...');
 
                         router.push(`/${route || 'home'}`);
 
                     } catch (fetchError) {
-                        console.error('[Deep Link] Server request failed:', fetchError);
-                        router.push('/login?error=server_request_failed');
-                        return;
+                        alert('Fetch/Sync Error: ' + fetchError.message);
+                        console.error('[Deep Link] Error:', fetchError);
                     }
 
                 } catch (err) {
+                    alert('Critical Deep Link Error: ' + err.message);
                     console.error('DEEP LINK ERROR:', err);
-                    router.push('/login?error=exception');
                 }
             });
 

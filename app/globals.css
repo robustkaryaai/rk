@@ -22,15 +22,17 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    /* -- Dark Theme -- */
-    --bg-primary: #000000;
-    --bg-secondary: #111111;
+    /* -- Dark Theme (Softened) -- */
+    --bg-primary: #0a0a0a;
+    /* Not pure black */
+    --bg-secondary: #1c1c1e;
+    /* iOS Dark Gray */
     --text-primary: #ffffff;
-    --text-secondary: #9ca3af;
+    --text-secondary: #a1a1aa;
     --primary-color: #ffffff;
     --primary-text: #000000;
-    --border-color: #333333;
-    --input-bg: #111111;
+    --border-color: #27272a;
+    --input-bg: #1c1c1e;
   }
 }
 
