@@ -8,6 +8,8 @@ import GlassCard from '@/components/GlassCard';
 import {
     AiOutlineRobot,
     AiOutlineHistory,
+    AiFillSmile,
+    AiOutlineMeh,
 } from 'react-icons/ai';
 import { deviceAPI, mediaAPI } from '@/lib/api';
 import { Capacitor } from '@capacitor/core';
@@ -177,16 +179,38 @@ export default function HomePage() {
                             </div>
                             <h1 className="hero-title" style={{ fontSize: '28px', marginBottom: '4px' }}>Device: {device.name}</h1>
                         </div>
-                        <div className="device-icon-large">
-                            <AiOutlineRobot
-                                size={48}
-                                color={bleConnected ? '#10b981' : 'white'}
-                                style={{
-                                    opacity: bleConnected ? 1 : 0.2,
-                                    filter: bleConnected ? 'drop-shadow(0 0 6px rgba(16,185,129,0.6))' : 'none',
-                                    transform: bleConnected ? 'scale(1.05)' : 'none'
-                                }}
-                            />
+                        <div className="device-icon-large" style={{ position: 'relative', width: '64px', height: '64px' }}>
+                            {bleConnected ? (
+                                <div style={{
+                                    position: 'absolute',
+                                    right: 0,
+                                    bottom: 0,
+                                    background: 'rgba(16,185,129,0.15)',
+                                    borderRadius: '50%',
+                                    width: '24px',
+                                    height: '24px',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center'
+                                }}>
+                                    <AiFillSmile size={16} color="#10b981" />
+                                </div>
+                            ) : (
+                                <div style={{
+                                    position: 'absolute',
+                                    right: 0,
+                                    bottom: 0,
+                                    background: 'rgba(255,255,255,0.1)',
+                                    borderRadius: '50%',
+                                    width: '24px',
+                                    height: '24px',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center'
+                                }}>
+                                    <AiOutlineMeh size={16} color="white" />
+                                </div>
+                            )}
                         </div>
                     </div>
                 )}

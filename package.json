@@ -6,6 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "build:app": "NEXT_OUTPUT_EXPORT=1 next build && next export",
+    "build:app:safe": "mv app/api app/_api || true && NEXT_OUTPUT_EXPORT=1 next build && next export && mv app/_api app/api || true",
     "build:web": "next build",
     "start": "next start",
     "lint": "eslint . --ignore-pattern 'android/**' --ignore-pattern 'android/app/**' --ignore-pattern 'android/app/src/main/assets/**'"
