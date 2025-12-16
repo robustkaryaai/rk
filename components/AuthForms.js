@@ -20,6 +20,8 @@ export function SignInForm() {
     );
     const [googleLoading, setGoogleLoading] = useState(false);
     const [googleError, setGoogleError] = useState('');
+    const envProject = typeof process !== 'undefined' ? (process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID ? 'set' : 'missing') : 'unknown';
+    const envEndpoint = typeof process !== 'undefined' ? (process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT ? 'set' : 'missing') : 'unknown';
 
     useEffect(() => {
         const onFocus = () => {
@@ -151,6 +153,14 @@ export function SignInForm() {
                     <div className="info-item">
                         <div className="info-label">Last OAuth URL</div>
                         <div className="info-value" style={{ wordBreak: 'break-all' }}>{lastUrl || 'None'}</div>
+                    </div>
+                    <div className="info-item">
+                        <div className="info-label">Appwrite Project</div>
+                        <div className="info-value">{envProject}</div>
+                    </div>
+                    <div className="info-item">
+                        <div className="info-label">Appwrite Endpoint</div>
+                        <div className="info-value">{envEndpoint}</div>
                     </div>
                 </div>
             )}

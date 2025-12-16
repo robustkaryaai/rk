@@ -353,6 +353,10 @@ export function AuthProvider({ children }) {
             const callbackUrl = `${origin.replace(/\/$/, '')}/auth/callback`;
             const failureUrl = `${origin.replace(/\/$/, '')}/login?error=oauth_failed`;
             const scopes = ['email', 'profile', 'openid'];
+            if (!APPWRITE_PROJECT_ID || !APPWRITE_ENDPOINT) {
+                try { localStorage.setItem('rk_last_oauth_error', 'Missing Appwrite configuration'); } catch (_) {}
+                throw new Error('Missing Appwrite configuration');
+            }
 
             // Check if native platform
             const isNative = typeof window !== 'undefined' && window.Capacitor && window.Capacitor.isNativePlatform();
@@ -381,7 +385,8 @@ export function AuthProvider({ children }) {
             }
         } catch (error) {
             console.error('[Google Login] Google login failed:', error);
-            alert('Google login failed: ' + error.message);
+            try { localStorage.setItem('rk_last_oauth_error', error?.message || 'Google login failed'); } catch (_) {}
+            throw error;
         }
     };
 

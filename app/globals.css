@@ -172,15 +172,7 @@ body.dark::after {
 
 
 
-/* Premium Glass Card */
-.glass-card {
-  background: var(--bg-card);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
-  border: 1px solid var(--glass-border);
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), inset 0 0 0 1px var(--glass-highlight);
-  border-radius: 24px;
-}
+/* Removed conflicting early glass-card block */
 
 /* Text Gradients */
 .text-gradient {
@@ -712,22 +704,6 @@ body.dark .auth-input:focus {
 
 body.dark {
   background: var(--bg-dark);
-  color: var(--text-dark);
-}
-
-body.dark *:not(.btn-primary):not(.btn-secondary):not(.plan-badge) {
-  color: var(--text-dark);
-}
-
-body.dark h1,
-body.dark h2,
-body.dark h3,
-body.dark h4,
-body.dark h5,
-body.dark h6,
-body.dark p,
-body.dark span,
-body.dark div:not([class*="gradient"]):not([class*="blob"]) {
   color: var(--text-dark);
 }
 
