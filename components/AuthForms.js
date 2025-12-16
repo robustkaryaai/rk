@@ -18,6 +18,8 @@ export function SignInForm() {
     const [oauthError, setOauthError] = useState(() =>
         typeof window !== 'undefined' ? (localStorage.getItem('rk_last_oauth_error') || '') : ''
     );
+    const [googleLoading, setGoogleLoading] = useState(false);
+    const [googleError, setGoogleError] = useState('');
 
     useEffect(() => {
         const onFocus = () => {
@@ -42,6 +44,26 @@ export function SignInForm() {
         if (!result.success) {
             setError(result.error);
             setLoading(false);
+        }
+    };
+
+    const handleGoogle = async () => {
+        setGoogleError('');
+        setGoogleLoading(true);
+        try {
+            await loginWithGoogle();
+        } catch (err) {
+            const msg = err?.message || 'Google sign-in failed';
+            setGoogleError(msg);
+            try { localStorage.setItem('rk_last_oauth_error', msg); } catch (_) {}
+        } finally {
+            setGoogleLoading(false);
+            try {
+                const u = localStorage.getItem('rk_last_oauth_url') || '';
+                const e = localStorage.getItem('rk_last_oauth_error') || '';
+                setLastUrl(u);
+                setOauthError(e);
+            } catch (_) {}
         }
     };
 
@@ -105,13 +127,33 @@ export function SignInForm() {
             </div>
 
             <button
-                onClick={loginWithGoogle}
+                onClick={handleGoogle}
                 type="button"
                 className="btn-google-outline"
             >
                 <AiOutlineGoogle className="text-xl" />
-                <span>Sign in with Google</span>
+                <span>{googleLoading ? 'Opening Google…' : 'Sign in with Google'}</span>
             </button>
+
+            {googleError && (
+                <div className="error-box" style={{ marginTop: '12px' }}>
+                    <div className="error-dot"></div>
+                    {googleError}
+                </div>
+            )}
+
+            {(oauthError || lastUrl) && (
+                <div className="glass-card" style={{ marginTop: '12px', padding: '12px' }}>
+                    <div className="info-item">
+                        <div className="info-label">Last OAuth Error</div>
+                        <div className="info-value">{oauthError || 'None'}</div>
+                    </div>
+                    <div className="info-item">
+                        <div className="info-label">Last OAuth URL</div>
+                        <div className="info-value" style={{ wordBreak: 'break-all' }}>{lastUrl || 'None'}</div>
+                    </div>
+                </div>
+            )}
 
             <div className="link-switch-wrapper">
                 Don&apos;t have an account?{' '}
@@ -133,6 +175,8 @@ export function SignUpForm() {
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
     const fileInputRef = useRef(null);
+    const [googleLoading, setGoogleLoading] = useState(false);
+    const [googleError, setGoogleError] = useState('');
 
     const handleFileChange = (e) => {
         const file = e.target.files[0];
@@ -285,13 +329,32 @@ export function SignUpForm() {
             </div>
 
             <button
-                onClick={loginWithGoogle}
+                onClick={async () => {
+                    setGoogleError('');
+                    setGoogleLoading(true);
+                    try {
+                        await loginWithGoogle();
+                    } catch (err) {
+                        const msg = err?.message || 'Google sign-in failed';
+                        setGoogleError(msg);
+                        try { localStorage.setItem('rk_last_oauth_error', msg); } catch (_) {}
+                    } finally {
+                        setGoogleLoading(false);
+                    }
+                }}
                 type="button"
                 className="btn-google-outline"
             >
                 <AiOutlineGoogle className="text-xl" />
-                <span>Sign in with Google</span>
+                <span>{googleLoading ? 'Opening Google…' : 'Sign in with Google'}</span>
             </button>
+
+            {googleError && (
+                <div className="error-box" style={{ marginTop: '12px' }}>
+                    <div className="error-dot"></div>
+                    {googleError}
+                </div>
+            )}
 
             <div className="link-switch-wrapper">
                 Already have an account?{' '}

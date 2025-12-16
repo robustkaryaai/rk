@@ -352,6 +352,12 @@ html.dark .glass-panel {
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5) !important;
 }
 
+body:not(.dark) .glass-panel {
+  background: rgba(255, 255, 255, 0.8) !important;
+  border: 1px solid rgba(0, 0, 0, 0.1) !important;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15) !important;
+}
+
 /* Form Elements */
 .auth-form-group {
   margin-bottom: 1.25rem;
@@ -757,6 +763,18 @@ body.dark .glass-card {
 
 body.dark .glass-card:hover {
   box-shadow: 0 12px 40px var(--shadow-dark);
+}
+
+html.dark .glass-card {
+  background: var(--glass-bg-dark) !important;
+  border-color: var(--glass-border-dark) !important;
+  box-shadow: 0 8px 32px var(--shadow-dark) !important;
+}
+
+body:not(.dark) .glass-card {
+  background: var(--glass-bg-light) !important;
+  border-color: var(--glass-border-light) !important;
+  box-shadow: 0 8px 32px var(--shadow-light) !important;
 }
 
 /* Button Styles */
