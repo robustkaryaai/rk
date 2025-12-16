@@ -120,39 +120,38 @@ export default function HomePage() {
                         {chatHistory.length > 0 ? chatHistory.map((convo) => (
                             <div key={convo.id} className="glass-card">
                                 {/* User Message */}
-                                <div className="flex-1">
-                                    <div className="text-xs font-bold text-blue-400 mb-1">YOU</div>
-                                    <div className="text-sm text-gray-100 leading-relaxed font-medium">{convo.userMessage}</div>
+                                <div className="flex gap-3 mb-3">
+                                    <div className="flex-1">
+                                        <div className="text-xs font-bold text-blue-400 mb-1">YOU</div>
+                                        <div className="text-sm text-gray-100 leading-relaxed font-medium">{convo.userMessage}</div>
+                                    </div>
                                 </div>
-                            </div>
 
-                                {/* AI Response */ }
-                                {
-                                convo.aiMessage && (
+                                {/* AI Response */}
+                                {convo.aiMessage && (
                                     <div className="flex gap-3 mt-3 pt-3 border-t border-white/5">
                                         <div className="flex-1">
                                             <div className="text-xs font-bold text-purple-400 mb-1">RK</div>
                                             <div className="text-sm text-gray-300 leading-relaxed">{convo.aiMessage}</div>
                                         </div>
                                     </div>
-                                )
-                            }
+                                )}
 
-                            < div className = "mt-3 pt-3 border-t border-gray-100 flex gap-4 text-xs text-gray-400" >
-                            { convo.date && <span>{convo.date}</span> }
-                                    { convo.time && <span>{convo.time}</span> }
+                                <div className="mt-3 pt-3 border-t border-gray-100/10 flex gap-4 text-xs text-gray-400">
+                                    {convo.date && <span>{convo.date}</span>}
+                                    {convo.time && <span>{convo.time}</span>}
                                 </div>
-            </div>
-            )) : (
-            <div className="text-center py-12 text-gray-400 bg-gray-50 rounded-xl border border-dashed border-gray-200">
-                <p>No recent activity</p>
-            </div>
+                            </div>
+                        )) : (
+                            <div className="text-center py-12 text-gray-400 bg-gray-50 rounded-xl border border-dashed border-gray-200">
+                                <p>No recent activity</p>
+                            </div>
                         )}
-        </div >
+                    </div >
                 </section >
             </div >
 
-        <BottomNav />
+            <BottomNav />
         </>
     );
 }
