@@ -21,7 +21,6 @@
   --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
   --shadow-light: rgba(0, 0, 0, 0.1);
   --shadow-dark: rgba(0, 0, 0, 0.5);
-  /* Transition for smooth theme switch */
   --bg-dark: #05050A;
   --bg-card: rgba(20, 20, 25, 0.6);
   --accent-primary: #6366f1;
@@ -77,16 +76,14 @@
 /* Light Mode (Default) */
 body {
   font-family: 'Outfit', sans-serif;
-  background-color: var(--bg-light);
-  /* Use variable */
+  background-color: #f5f7fa;
+  background: linear-gradient(180deg, #ffffff 0%, #f0f4f8 50%, #ffffff 100%);
   color: var(--text-light);
   min-height: 100vh;
   min-height: 100dvh;
   overflow-x: hidden;
   position: relative;
   width: 100%;
-  transition: background-color 0.4s ease, color 0.4s ease;
-  /* Smooth transition */
 }
 
 /* Dark Mode Override */
@@ -351,15 +348,15 @@ body.dark .glass-panel {
 }
 
 html.dark .glass-panel {
-  background: rgba(20, 20, 25, 0.6);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  background: rgba(20, 20, 25, 0.6) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5) !important;
 }
 
 body:not(.dark) .glass-panel {
-  background: rgba(255, 255, 255, 0.8);
-  border: 1px solid rgba(0, 0, 0, 0.1);
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
+  background: rgba(255, 255, 255, 0.8) !important;
+  border: 1px solid rgba(0, 0, 0, 0.1) !important;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15) !important;
 }
 
 /* Form Elements */
@@ -754,15 +751,15 @@ body.dark .glass-card:hover {
 }
 
 html.dark .glass-card {
-  background: var(--glass-bg-dark);
-  border-color: var(--glass-border-dark);
-  box-shadow: 0 8px 32px var(--shadow-dark);
+  background: var(--glass-bg-dark) !important;
+  border-color: var(--glass-border-dark) !important;
+  box-shadow: 0 8px 32px var(--shadow-dark) !important;
 }
 
 body:not(.dark) .glass-card {
-  background: var(--glass-bg-light);
-  border-color: var(--glass-border-light);
-  box-shadow: 0 8px 32px var(--shadow-light);
+  background: var(--glass-bg-light) !important;
+  border-color: var(--glass-border-light) !important;
+  box-shadow: 0 8px 32px var(--shadow-light) !important;
 }
 
 /* Button Styles */
