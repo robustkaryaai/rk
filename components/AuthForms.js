@@ -35,6 +35,7 @@ export function SignInForm() {
         } catch (err) {
             setError(err.message || 'Google sign-in failed');
             setGoogleLoading(false);
+            alert(error)
         }
     };
 
