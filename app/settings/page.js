@@ -206,10 +206,17 @@ export default function SettingsPage() {
     const toggleDarkMode = () => {
         const html = document.documentElement;
         const body = document.body;
-        const darkModeEnabled = html.classList.toggle('dark');
-        body.classList.toggle('dark');
-        localStorage.setItem('theme', darkModeEnabled ? 'dark' : 'light');
-        setDarkMode(darkModeEnabled);
+        const currentlyDark = html.classList.contains('dark');
+        const nextDark = !currentlyDark;
+        if (nextDark) {
+            html.classList.add('dark');
+            body.classList.add('dark');
+        } else {
+            html.classList.remove('dark');
+            body.classList.remove('dark');
+        }
+        localStorage.setItem('theme', nextDark ? 'dark' : 'light');
+        setDarkMode(nextDark);
     };
 
     const handleEditName = () => {
