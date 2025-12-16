@@ -125,56 +125,65 @@ export default function HomePage() {
                 )}
 
                 {/* Activity Feed */}
-                <section>
+                <section className="mt-8">
                     <div className="flex items-center gap-3 mb-6 px-2">
-                        <div className="p-2 bg-blue-500/10 rounded-lg border border-blue-500/20 text-blue-400">
-                            <AiOutlineHistory size={20} />
+                        <div className="p-2 bg-blue-500/10 rounded-xl border border-blue-500/20 text-blue-400">
+                            <AiOutlineHistory size={22} />
                         </div>
                         <h2 className="text-xl font-bold text-white tracking-wide">Activity History</h2>
                     </div>
 
-                    <div className="flex flex-col gap-4">
+                    <div className="flex flex-col gap-6 pb-24">
                         {chatHistory.length > 0 ? chatHistory.map((convo) => (
-                            <div key={convo.id} className="glass-card group hover:border-blue-500/30 transition-all duration-300">
-                                {/* User Message */}
-                                <div className="flex gap-4 mb-4">
-                                    <div className="flex-1">
-                                        <div className="flex items-center justify-between mb-2">
-                                            <span className="text-xs font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-400 uppercase tracking-wider">You</span>
+                            <div key={convo.id} className="flex flex-col gap-4">
+                                {/* User Message - Right Aligned */}
+                                <div className="flex justify-end pl-12">
+                                    <div className="relative max-w-[90%]">
+                                        <div className="flex items-center justify-end gap-2 mb-1 mr-1">
+                                            <span className="text-[10px] font-bold text-blue-300 uppercase tracking-wider">You</span>
                                         </div>
-                                        <div className="p-4 bg-white/5 rounded-2xl rounded-tl-none border border-white/5 text-[15px] text-gray-100 leading-relaxed font-medium shadow-inner">
+                                        <div className="p-4 bg-gradient-to-br from-blue-600/80 to-indigo-600/80 backdrop-blur-md rounded-2xl rounded-tr-none border border-blue-400/30 text-white text-sm leading-relaxed shadow-[0_4px_15px_rgba(37,99,235,0.2)]">
                                             {convo.userMessage}
                                         </div>
+                                        <div className="absolute -right-2 top-0 w-4 h-4 bg-blue-600/80 clip-path-polygon-[0_0,100%_0,0_100%] rounded-sm"></div>
                                     </div>
                                 </div>
 
-                                {/* AI Response */}
+                                {/* AI Response - Left Aligned */}
                                 {convo.aiMessage && (
-                                    <div className="flex gap-4">
-                                        <div className="flex-1">
-                                            <div className="flex items-center justify-between mb-2">
-                                                <span className="text-xs font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400 uppercase tracking-wider pl-1">RK Assistant</span>
+                                    <div className="flex justify-start pr-12">
+                                        <div className="relative max-w-[90%]">
+                                            <div className="flex items-center gap-2 mb-1 ml-1">
+                                                <div className="w-4 h-4 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center text-[8px] font-bold text-white shadow-lg">RK</div>
+                                                <span className="text-[10px] font-bold text-purple-300 uppercase tracking-wider">Assistant</span>
                                             </div>
-                                            <div className="p-4 bg-gradient-to-br from-purple-500/5 to-pink-500/5 rounded-2xl rounded-tr-none border border-white/5 text-[15px] text-gray-200 leading-relaxed shadow-inner">
+                                            <div className="p-4 bg-gradient-to-br from-gray-800/90 to-gray-900/90 backdrop-blur-md rounded-2xl rounded-tl-none border border-white/10 text-gray-100 text-sm leading-relaxed shadow-xl">
                                                 {convo.aiMessage}
                                             </div>
                                         </div>
                                     </div>
                                 )}
 
-                                {/* Footer */}
-                                <div className="mt-4 pt-3 flex items-center justify-end gap-3 text-[11px] font-medium text-gray-500 border-t border-white/5">
-                                    {convo.date && <span className="bg-white/5 px-2 py-1 rounded text-gray-400">{convo.date}</span>}
-                                    {convo.time && <span>{convo.time}</span>}
+                                {/* Timestamp Separator */}
+                                <div className="flex items-center justify-center gap-2 opacity-30 mt-2">
+                                    <div className="h-[1px] w-12 bg-white"></div>
+                                    <span className="text-[10px] text-white font-medium whitespace-nowrap">
+                                        {convo.date} • {convo.time}
+                                    </span>
+                                    <div className="h-[1px] w-12 bg-white"></div>
                                 </div>
                             </div>
                         )) : (
-                            <div className="text-center py-12 text-gray-400 bg-gray-50 rounded-xl border border-dashed border-gray-200">
-                                <p>No recent activity</p>
+                            <div className="glass-card flex flex-col items-center justify-center py-16 text-center border-dashed border-2 border-white/10 bg-transparent shadow-none">
+                                <div className="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center mb-4 text-gray-500">
+                                    <AiOutlineHistory size={32} />
+                                </div>
+                                <p className="text-gray-400 font-medium">No activity recorded yet</p>
+                                <p className="text-sm text-gray-600 mt-2">Start a conversation to see it here</p>
                             </div>
                         )}
-                    </div >
-                </section >
+                    </div>
+                </section>
             </div >
 
             <BottomNav />
