@@ -51,7 +51,9 @@ export function SignInForm() {
     };
 
     const handleGoogle = async () => {
-        if (typeof window !== 'undefined' && window.alert) alert('Google Button Clicked');
+        if (typeof window !== 'undefined' && window.alert){
+
+        alert('Google Button Clicked');
         setGoogleError('');
         setGoogleLoading(true);
         try {
@@ -69,6 +71,7 @@ export function SignInForm() {
                 setOauthError(e);
             } catch (_) { }
         }
+    }
     };
 
     return (
