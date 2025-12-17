@@ -96,7 +96,6 @@ export default function HomePage() {
                                 <span style={{ fontSize: '14px', opacity: 0.8, textTransform: 'capitalize' }}>{device.status}</span>
                             </div>
                             <h1 className="hero-title" style={{ fontSize: '28px', marginBottom: '4px' }}>Device: {device.name}</h1>
-                            <p className="hero-subtitle" style={{ fontSize: '14px' }}>ID: {device.id}</p>
                         </div>
                         <div className="device-icon-large">
                             <AiOutlineRobot size={48} color="white" style={{ opacity: 0.2 }} />

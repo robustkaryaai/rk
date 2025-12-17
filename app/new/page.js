@@ -5,6 +5,8 @@ import BottomNav from '@/components/BottomNav';
 import GlassCard from '@/components/GlassCard';
 import { AiOutlineCheckCircle, AiOutlineAndroid, AiOutlineCloud, AiOutlineBug, AiOutlineArrowLeft } from 'react-icons/ai';
 
+const APP_VERSION = process.env.NEXT_PUBLIC_APP_VERSION || '2.1.4';
+
 export default function WhatsNewPage() {
     const router = useRouter();
 
@@ -12,7 +14,7 @@ export default function WhatsNewPage() {
         <>
             <div className="page-container">
                 <div className="hero-section">
-                    <h1 className="hero-title">🚀 RK v2.1.1 - Polish & Fixes!</h1>
+                    <h1 className="hero-title">🚀 RK v{APP_VERSION} - Polish & Fixes!</h1>
                     <p className="hero-subtitle">CSS improvements + Dark mode toggle fixed</p>
                     <button
                         onClick={() => router.back()}
