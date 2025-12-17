@@ -753,7 +753,8 @@ body.dark .gradient-blob-3 {
 }
 
 /* Simple Transparent Glass Card - Defaults to LIGHT MODE */
-.glass-card {
+.glass-card,
+.auth-card {
   position: relative;
   /* Light mode by default */
   background: rgba(255, 255, 255, 0.7);
@@ -768,19 +769,29 @@ body.dark .gradient-blob-3 {
   overflow: hidden;
 }
 
-/* Dark mode override */
-body.dark .glass-card {
+/* Explicit Dark Mode Class */
+.glass-card-dark {
+  background: rgba(20, 20, 25, 0.6) !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5) !important;
+}
+
+/* Dark mode override for automatic switching */
+body.dark .glass-card,
+body.dark .auth-card {
   background: rgba(20, 20, 25, 0.6);
   border-color: rgba(255, 255, 255, 0.1);
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
 }
 
-.glass-card:hover {
+.glass-card:hover,
+.auth-card:hover {
   transform: translateY(-2px);
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.1);
 }
 
-body.dark .glass-card:hover {
+body.dark .glass-card:hover,
+body.dark .auth-card:hover {
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
 }
 
