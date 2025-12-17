@@ -46,6 +46,7 @@ export default function RootLayout({ children }) {
                     <div className="gradient-blob-1"></div>
                     <div className="gradient-blob-2"></div>
                     <div className="gradient-blob-3"></div>
+                    <div className="gradient-blob-4"></div>
                     {children}
                 </AuthProvider>
             </body>

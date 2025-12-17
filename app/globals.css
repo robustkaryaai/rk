@@ -11,9 +11,9 @@
   --bg-light: #ffffff;
   --text-light: #1a1a2e;
   --text-dark: #ffffff;
-  /* Glass morphism with new color scheme */
+  /* Glass morphism with CORRECTED color scheme */
   --glass-bg-light: rgba(255, 255, 255, 0.7);
-  --glass-bg-dark: rgba(20, 20, 20, 0.7);
+  --glass-bg-dark: rgba(20, 20, 25, 0.6);
   --glass-border-light: rgba(200, 200, 200, 0.3);
   --glass-border-dark: rgba(255, 255, 255, 0.1);
   /* Gradient colors */
@@ -614,10 +614,11 @@ body.dark .auth-input:focus {
 /* Additional gradient blobs for more dynamic effect */
 .gradient-blob-1,
 .gradient-blob-2,
-.gradient-blob-3 {
+.gradient-blob-3,
+.gradient-blob-4 {
   position: fixed;
   filter: blur(100px);
-  opacity: 0.7;
+  opacity: 0.5;
   z-index: -1;
   animation: float-morph 25s ease-in-out infinite, color-shift-2 18s ease-in-out infinite;
 }
@@ -642,7 +643,7 @@ body.dark .auth-input:focus {
   animation-delay: 15s, 8s;
 }
 
-/* New Top Gradient Blob for more vibrance */
+/* Top Center Gradient Blob */
 .gradient-blob-3 {
   width: 380px;
   height: 380px;
@@ -652,6 +653,17 @@ body.dark .auth-input:focus {
   transform: translateX(-50%);
   border-radius: 50% 50% 60% 40% / 40% 50% 50% 60%;
   animation-delay: 10s, 5s;
+}
+
+/* Top Left Gradient Blob */
+.gradient-blob-4 {
+  width: 340px;
+  height: 340px;
+  background: linear-gradient(135deg, #4facfe, #00f2fe, #43e97b);
+  top: 15%;
+  left: 5%;
+  border-radius: 60% 40% 50% 50% / 50% 60% 40% 50%;
+  animation-delay: 7s, 3s;
 }
 
 /* Float and Morph Animation - moves AND changes shape */
@@ -747,8 +759,9 @@ body.dark::before,
 body.dark::after,
 body.dark .gradient-blob-1,
 body.dark .gradient-blob-2,
-body.dark .gradient-blob-3 {
-  opacity: 0.6;
+body.dark .gradient-blob-3,
+body.dark .gradient-blob-4 {
+  opacity: 0.45;
 }
 
 /* Simple Transparent Glass Card */
