@@ -117,25 +117,79 @@ export default function FileViewerModal({ file, deviceSlug, onClose, onDownload 
         return <div>{rows}</div>;
     };
 
+    const parseInlineFormatting = (text) => {
+        // Parse inline markdown: **bold**, *italic*, ***bold-italic***
+        const parts = [];
+        let currentIndex = 0;
+        const regex = /(\*\*\*.*?\*\*\*|\*\*.*?\*\*|\*.*?\*)/g;
+        let match;
+
+        while ((match = regex.exec(text)) !== null) {
+            // Add text before match
+            if (match.index > currentIndex) {
+                parts.push({ type: 'text', content: text.substring(currentIndex, match.index) });
+            }
+
+            const matched = match[0];
+            if (matched.startsWith('***') && matched.endsWith('***')) {
+                // Bold + Italic
+                parts.push({ type: 'bold-italic', content: matched.slice(3, -3) });
+            } else if (matched.startsWith('**') && matched.endsWith('**')) {
+                // Bold
+                parts.push({ type: 'bold', content: matched.slice(2, -2) });
+            } else if (matched.startsWith('*') && matched.endsWith('*')) {
+                // Italic
+                parts.push({ type: 'italic', content: matched.slice(1, -1) });
+            }
+
+            currentIndex = match.index + matched.length;
+        }
+
+        // Add remaining text
+        if (currentIndex < text.length) {
+            parts.push({ type: 'text', content: text.substring(currentIndex) });
+        }
+
+        return parts.length > 0 ? parts : [{ type: 'text', content: text }];
+    };
+
+    const renderInlineContent = (text) => {
+        const parts = parseInlineFormatting(text);
+        return parts.map((part, idx) => {
+            if (part.type === 'bold') {
+                return <strong key={idx} style={{ fontWeight: '700', color: '#e0e7ff' }}>{part.content}</strong>;
+            } else if (part.type === 'italic') {
+                return <em key={idx} style={{ fontStyle: 'italic', color: '#e0e7ff' }}>{part.content}</em>;
+            } else if (part.type === 'bold-italic') {
+                return <strong key={idx}><em style={{ fontWeight: '700', fontStyle: 'italic', color: '#e0e7ff' }}>{part.content}</em></strong>;
+            }
+            return <span key={idx}>{part.content}</span>;
+        });
+    };
+
     const renderFormattedText = (lines) => {
         return lines.map((line, idx) => {
             const trimmed = line.trim();
 
             // Headings
             if (trimmed.startsWith('###')) {
-                return <h3 key={idx} style={{ fontSize: '16px', fontWeight: '600', marginTop: '16px', marginBottom: '8px' }}>{trimmed.replace(/^###\s*/, '')}</h3>;
+                const content = trimmed.replace(/^###\s*/, '');
+                return <h3 key={idx} style={{ fontSize: '16px', fontWeight: '600', marginTop: '16px', marginBottom: '8px' }}>{renderInlineContent(content)}</h3>;
             } else if (trimmed.startsWith('##')) {
-                return <h2 key={idx} style={{ fontSize: '18px', fontWeight: '700', marginTop: '20px', marginBottom: '8px' }}>{trimmed.replace(/^##\s*/, '')}</h2>;
+                const content = trimmed.replace(/^##\s*/, '');
+                return <h2 key={idx} style={{ fontSize: '18px', fontWeight: '700', marginTop: '20px', marginBottom: '8px' }}>{renderInlineContent(content)}</h2>;
             } else if (trimmed.startsWith('#')) {
-                return <h1 key={idx} style={{ fontSize: '22px', fontWeight: '700', marginTop: '24px', marginBottom: '12px' }}>{trimmed.replace(/^#\s*/, '')}</h1>;
+                const content = trimmed.replace(/^#\s*/, '');
+                return <h1 key={idx} style={{ fontSize: '22px', fontWeight: '700', marginTop: '24px', marginBottom: '12px' }}>{renderInlineContent(content)}</h1>;
             }
 
-            // Bullet points
-            else if (trimmed.startsWith('-') || trimmed.startsWith('•') || trimmed.startsWith('*')) {
+            // Bullet points (avoid treating * at start as bullet if it's markdown formatting)
+            else if (trimmed.startsWith('-') || trimmed.startsWith('•') || (trimmed.startsWith('*') && trimmed[1] === ' ')) {
+                const content = trimmed.replace(/^[-•*]\s*/, '');
                 return (
                     <div key={idx} style={{ display: 'flex', gap: '8px', marginBottom: '6px', paddingLeft: '8px' }}>
-                        <span style={{ color: '#667eea', fontWeight: '600' }}>•</span>
-                        <span style={{ flex: 1, lineHeight: '1.6' }}>{trimmed.replace(/^[-•*]\s*/, '')}</span>
+                        <span style={{ color: '#667eea', fontWeight: '600', minWidth: '8px' }}>•</span>
+                        <span style={{ flex: 1, lineHeight: '1.6' }}>{renderInlineContent(content)}</span>
                     </div>
                 );
             }
@@ -145,8 +199,8 @@ export default function FileViewerModal({ file, deviceSlug, onClose, onDownload 
                 return <div key={idx} style={{ height: '8px' }} />;
             }
 
-            // Regular text
-            return <p key={idx} style={{ marginBottom: '8px', lineHeight: '1.6', fontSize: '14px' }}>{line}</p>;
+            // Regular text with inline formatting
+            return <p key={idx} style={{ marginBottom: '8px', lineHeight: '1.6', fontSize: '14px' }}>{renderInlineContent(line)}</p>;
         });
     };
 
@@ -170,9 +224,9 @@ export default function FileViewerModal({ file, deviceSlug, onClose, onDownload 
         >
             <GlassCard
                 style={{
-                    maxWidth: '700px',
+                    maxWidth: '900px',
                     width: '100%',
-                    maxHeight: '80vh',
+                    maxHeight: '85vh',
                     display: 'flex',
                     flexDirection: 'column',
                     padding: 0,
@@ -186,12 +240,21 @@ export default function FileViewerModal({ file, deviceSlug, onClose, onDownload 
                     borderBottom: '1px solid rgba(255,255,255,0.1)',
                     display: 'flex',
                     justifyContent: 'space-between',
-                    alignItems: 'center'
+                    alignItems: 'center',
+                    flexShrink: 0
                 }}>
-                    <h2 style={{ fontSize: '18px', fontWeight: '600', margin: 0 }}>
+                    <h2 style={{
+                        fontSize: '18px',
+                        fontWeight: '600',
+                        margin: 0,
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap',
+                        maxWidth: 'calc(100% - 140px)'
+                    }}>
                         {file.name}
                     </h2>
-                    <div style={{ display: 'flex', gap: '8px' }}>
+                    <div style={{ display: 'flex', gap: '8px', flexShrink: 0 }}>
                         <button
                             onClick={() => onDownload(file.name, file.id, file.source)}
                             style={{
@@ -204,7 +267,14 @@ export default function FileViewerModal({ file, deviceSlug, onClose, onDownload 
                                 alignItems: 'center',
                                 gap: '6px',
                                 fontSize: '14px',
-                                color: 'white'
+                                color: 'white',
+                                transition: 'all 0.2s ease'
+                            }}
+                            onMouseEnter={(e) => {
+                                e.currentTarget.style.background = 'rgba(102, 126, 234, 0.3)';
+                            }}
+                            onMouseLeave={(e) => {
+                                e.currentTarget.style.background = 'rgba(102, 126, 234, 0.2)';
                             }}
                         >
                             <AiOutlineDownload /> Download
@@ -218,7 +288,14 @@ export default function FileViewerModal({ file, deviceSlug, onClose, onDownload 
                                 borderRadius: '8px',
                                 cursor: 'pointer',
                                 display: 'flex',
-                                alignItems: 'center'
+                                alignItems: 'center',
+                                transition: 'all 0.2s ease'
+                            }}
+                            onMouseEnter={(e) => {
+                                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.15)';
+                            }}
+                            onMouseLeave={(e) => {
+                                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)';
                             }}
                         >
                             <AiOutlineClose size={20} />
@@ -230,7 +307,10 @@ export default function FileViewerModal({ file, deviceSlug, onClose, onDownload 
                 <div style={{
                     padding: '24px',
                     overflowY: 'auto',
-                    flex: 1
+                    overflowX: 'hidden',
+                    flex: 1,
+                    scrollBehavior: 'smooth',
+                    wordBreak: 'break-word'
                 }}>
                     {loading && (
                         <div style={{ textAlign: 'center', padding: '40px' }}>
@@ -257,6 +337,31 @@ export default function FileViewerModal({ file, deviceSlug, onClose, onDownload 
                     )}
                 </div>
             </GlassCard>
+
+            {/* Mobile responsive styles */}
+            <style jsx>{`
+                @media (max-width: 768px) {
+                    div[style*="maxWidth: '900px'"] {
+                        max-width: 95vw !important;
+                        max-height: 90vh !important;
+                    }
+                    h2 {
+                        font-size: 16px !important;
+                        max-width: calc(100% - 100px) !important;
+                    }
+                    button span {
+                        display: none;
+                    }
+                }
+                @media (max-width: 480px) {
+                    div[style*="padding: '24px'"] {
+                        padding: 16px !important;
+                    }
+                    div[style*="padding: '20px 24px'"] {
+                        padding: 16px !important;
+                    }
+                }
+            `}</style>
         </div>
     );
 }
