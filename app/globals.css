@@ -724,33 +724,46 @@ body.dark .gradient-blob-2 {
 }
 
 /* Glass Card Styles */
-.glass-card {
+.glass-card,
+.auth-card {
   position: relative;
-  background: var(--glass-bg-light);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid var(--glass-border-light);
-  border-radius: 20px;
+  /* Light mode by default */
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(200, 200, 200, 0.3);
+  border-radius: 24px;
   padding: 24px;
   margin: 2vh 0;
-  box-shadow: 0 8px 32px var(--shadow-light);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
   transition: all 0.3s ease;
   overflow: hidden;
 }
 
-body.dark .glass-card {
-  background: var(--glass-bg-dark);
-  border-color: var(--glass-border-dark);
-  box-shadow: 0 8px 32px var(--shadow-dark);
+/* Explicit Dark Mode Class */
+.glass-card-dark {
+  background: rgba(20, 20, 25, 0.6) !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5) !important;
 }
 
-.glass-card:hover {
+/* Dark mode override for automatic switching */
+body.dark .glass-card,
+body.dark .auth-card {
+  background: rgba(20, 20, 25, 0.6);
+  border-color: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+}
+
+.glass-card:hover,
+.auth-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 12px 40px var(--shadow-light);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.1);
 }
 
-body.dark .glass-card:hover {
-  box-shadow: 0 12px 40px var(--shadow-dark);
+body.dark .glass-card:hover,
+body.dark .auth-card:hover {
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
 }
 
 /* Button Styles */
