@@ -6,7 +6,7 @@ import { useAuth } from '@/context/AuthContext';
 import { deviceAPI } from '@/lib/api';
 import BottomNav from '@/components/BottomNav';
 import GlassCard from '@/components/GlassCard';
-import { AiOutlineAudio, AiOutlineSend, AiFillAudio } from 'react-icons/ai';
+import { AiOutlineAudio, AiOutlineSend, AiOutlineCheckCircle, AiOutlineCloseCircle, AiOutlineSound, AiOutlineAudioMuted } from 'react-icons/ai';
 
 export default function ControlPage() {
     const { user, loading: authLoading } = useAuth();
@@ -61,6 +61,24 @@ export default function ControlPage() {
         } catch (error) {
             console.error('Broadcast failed:', error);
             alert('Error sending announcement.');
+        } finally {
+            setSending(false);
+        }
+    };
+
+    const handleQuickAction = async (commandType, payload = {}) => {
+        if (!deviceSlug) return;
+        setSending(true);
+        try {
+            const success = await deviceAPI.queueCommand(deviceSlug, commandType, payload);
+            if (success) {
+                // optionally show small toast, but mostly silent
+                console.log(`Action ${commandType} sent`);
+            } else {
+                alert(`Failed to send ${commandType}.`);
+            }
+        } catch (error) {
+            console.error('Quick action failed:', error);
         } finally {
             setSending(false);
         }
@@ -125,6 +143,27 @@ export default function ControlPage() {
                                 )}
                             </button>
                         </form>
+                    </GlassCard>
+
+                    <GlassCard style={{ padding: '32px', marginTop: '24px' }}>
+                        <h2 style={{ fontSize: '20px', marginBottom: '16px' }}>Quick Actions</h2>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                            <button className="secondary-btn" onClick={() => handleQuickAction('voice', { text: 'yes' })} disabled={sending} style={{ padding: '12px', justifyContent: 'center' }}>
+                                <AiOutlineCheckCircle size={20} /> Yes
+                            </button>
+                            <button className="secondary-btn" onClick={() => handleQuickAction('voice', { text: 'no' })} disabled={sending} style={{ padding: '12px', justifyContent: 'center' }}>
+                                <AiOutlineCloseCircle size={20} /> No
+                            </button>
+                            <button className="secondary-btn" onClick={() => handleQuickAction('voice', { text: 'volume up' })} disabled={sending} style={{ padding: '12px', justifyContent: 'center' }}>
+                                <AiOutlineSound size={20} /> Vol +
+                            </button>
+                            <button className="secondary-btn" onClick={() => handleQuickAction('voice', { text: 'volume down' })} disabled={sending} style={{ padding: '12px', justifyContent: 'center' }}>
+                                <AiOutlineSound size={20} /> Vol -
+                            </button>
+                            <button className="secondary-btn" onClick={() => handleQuickAction('mute')} disabled={sending} style={{ padding: '12px', justifyContent: 'center', gridColumn: 'span 2' }}>
+                                <AiOutlineAudioMuted size={20} /> Mute Device
+                            </button>
+                        </div>
                     </GlassCard>
 
                 </div>
